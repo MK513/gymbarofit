@@ -2,14 +2,13 @@ package skku.gymbarofit.domain.log;
 
 import jakarta.persistence.*;
 import lombok.Getter;
-import lombok.Setter;
 import skku.gymbarofit.domain.Gym;
 
 import static jakarta.persistence.FetchType.LAZY;
 
 @Entity
 @DiscriminatorValue("gym")
-@Getter @Setter
+@Getter
 public class GymLog extends UserActivityLog{
 
     @ManyToOne(fetch = LAZY)

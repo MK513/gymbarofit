@@ -1,3 +1,10 @@
+# 25.05.14
+1. Dependency 추가
+    - validation
+2. 기능 명세서 작성
+3. ERD 수정
+4. 회원가입, 로그인 기능 구현 중
+
 # 25.04.15
 1. Dependency 추가
     - H2 database (테스트용 DB 구축 위함)

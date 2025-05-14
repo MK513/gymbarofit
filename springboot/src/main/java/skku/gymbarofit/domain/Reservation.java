@@ -2,7 +2,8 @@ package skku.gymbarofit.domain;
 
 import jakarta.persistence.*;
 import lombok.Getter;
-import lombok.Setter;
+import skku.gymbarofit.domain.status.ReservationStatus;
+
 
 import java.time.LocalDateTime;
 
@@ -10,7 +11,6 @@ import static jakarta.persistence.FetchType.LAZY;
 
 @Entity
 @Getter
-@Setter
 public class Reservation {
 
     @Id

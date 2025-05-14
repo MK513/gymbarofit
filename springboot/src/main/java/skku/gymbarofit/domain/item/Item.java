@@ -3,14 +3,12 @@ package skku.gymbarofit.domain.item;
 
 import jakarta.persistence.*;
 import lombok.Getter;
-import lombok.Setter;
-import skku.gymbarofit.domain.SizeStatus;
+import skku.gymbarofit.domain.status.SizeStatus;
 
 @Entity
 @Inheritance(strategy = InheritanceType.SINGLE_TABLE)
 @DiscriminatorColumn(name = "dtype")
 @Getter
-@Setter
 public class Item {
 
     @Id

@@ -2,12 +2,11 @@ package skku.gymbarofit.domain;
 
 import jakarta.persistence.*;
 import lombok.Getter;
-import lombok.Setter;
 import skku.gymbarofit.domain.item.Item;
+import skku.gymbarofit.domain.status.ItemStatus;
 
 @Entity
 @Getter
-@Setter
 public class GymItem {
 
     @Id

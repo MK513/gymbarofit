@@ -2,7 +2,6 @@ package skku.gymbarofit.domain.log;
 
 import jakarta.persistence.*;
 import lombok.Getter;
-import lombok.Setter;
 import skku.gymbarofit.domain.User;
 
 import java.time.Duration;
@@ -14,7 +13,6 @@ import static jakarta.persistence.FetchType.LAZY;
 @Inheritance(strategy = InheritanceType.SINGLE_TABLE)
 @DiscriminatorColumn(name = "dtype")
 @Getter
-@Setter
 public class UserActivityLog {
 
     @Id

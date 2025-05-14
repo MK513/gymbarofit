@@ -2,14 +2,13 @@ package skku.gymbarofit.domain;
 
 import jakarta.persistence.*;
 import lombok.Getter;
-import lombok.Setter;
 
 import java.time.LocalDateTime;
 
 import static jakarta.persistence.FetchType.*;
 
 @Entity
-@Getter @Setter
+@Getter
 public class UserGym {
 
     @Id
