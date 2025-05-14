@@ -27,6 +27,7 @@ public class User {
     @Enumerated(EnumType.STRING)
     private RoleStatus role;
 
+    @Column(unique = true)
     private String email;
 
     private String pw_hash;

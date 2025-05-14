@@ -32,9 +32,13 @@ public class UserService {
         return userRepository.findOne(userId);
     }
 
+    public User findByEmail(String email) {
+        return userRepository.findByEmail(email);
+    }
+
     private void validateDuplicateUser(User user) {
-        List<User> findUsers = userRepository.findByEmail(user.getEmail());
-        if (!findUsers.isEmpty()) {
+        User findUser = userRepository.findByEmail(user.getEmail());
+        if (findUser == null) {
             throw new IllegalStateException("이미 존재하는 이메일입니다.");
         }
     }
