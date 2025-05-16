@@ -1,3 +1,14 @@
+# 25.05.16
+1. Dependency 추가
+- Spring Security
+- JWT
+2. 회원 가입 및 로그인 로직 구현
+3. 로그인 시 비밀번호 Bcrypt encoder 적용
+4. Jwt 적용 중
+- JwtTokenProvider 구현
+- SecurityConfig 구현
+- Filters 구현 예정
+
 # 25.05.14
 1. Dependency 추가
     - validation

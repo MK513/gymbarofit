@@ -1,17 +1,19 @@
 package skku.gymbarofit.controller;
 
+import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
-import org.springframework.dao.EmptyResultDataAccessException;
-import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.stereotype.Controller;
+import org.springframework.validation.BindingResult;
 import org.springframework.web.bind.annotation.CrossOrigin;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import skku.gymbarofit.domain.User;
 import skku.gymbarofit.dto.ResponseDto;
-import skku.gymbarofit.dto.UserDto;
+import skku.gymbarofit.dto.UserLoginDto;
+import skku.gymbarofit.dto.UserSignupDto;
 import skku.gymbarofit.service.UserService;
 
 @Controller
@@ -22,28 +24,30 @@ public class UserController {
 
     private final UserService userService;
 
+    private final BCryptPasswordEncoder encoder;
+
     @PostMapping("/signup")
-    public String signupUser(@RequestBody UserDto userDto) {
-        User user = User.createUser(userDto);
+    public ResponseEntity<?> signup(@RequestBody @Valid UserSignupDto userSignupForm, BindingResult bindingResult) {
+        if (bindingResult.hasErrors()) {
+            return ResponseEntity.badRequest().body(bindingResult.getAllErrors().toString());
+        }
 
-        Long userId = userService.join(user);
+        User user = User.createUser(userSignupForm, encoder);
+        userService.join(user);
 
-        return null;
+        return ResponseEntity.ok().body(null);
     }
 
-    @PostMapping("/signin")
-    public ResponseEntity<?> signinUser(@RequestBody UserDto userDto) {
+    @PostMapping("/login")
+    public ResponseEntity<?> login(@RequestBody @Valid UserLoginDto userLoginDto, BindingResult bindingResult) {
+        if (bindingResult.hasErrors()) {
+            return ResponseEntity.badRequest().body(bindingResult.getAllErrors().toString());
+        }
 
-
-        // 토큰 붙여서 고쳐야함!!!!!
         try {
-            User user = userService.findByEmail(userDto.getEmail());
+            User user = userService.login(userLoginDto.getEmail(), userLoginDto.getPassword(), encoder);
 
-            if (user.getPw_hash().equals(userDto.getPw_hash())) {
-                return ResponseEntity.ok().body(null);
-            }
-            return ResponseEntity.ok().body(null);
-//        } catch (EmptyResultDataAccessException e) {
+            return ResponseEntity.ok().body(user);
         } catch (Exception e) {
             ResponseDto<Object> responseDto = ResponseDto.builder()
                     .error("Login failed.")

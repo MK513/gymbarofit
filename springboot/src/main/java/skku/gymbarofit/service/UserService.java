@@ -1,9 +1,13 @@
 package skku.gymbarofit.service;
 
+import jakarta.validation.constraints.NotEmpty;
 import lombok.RequiredArgsConstructor;
+import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import skku.gymbarofit.domain.User;
+import skku.gymbarofit.exception.BusinessException;
+import skku.gymbarofit.exception.ErrorCode;
 import skku.gymbarofit.repository.UserRepository;
 
 import java.util.List;
@@ -20,8 +24,13 @@ public class UserService {
      */
     @Transactional
     public Long join(User user) {
-        validateDuplicateUser(user); // 중복 회원 검증
+        // 1. 중복 회원 검증
+        validateDuplicateUser(user);
+
+        // 2. 회원 저장
         userRepository.save(user);
+
+        // 3. 회원 id 반환
         return user.getId();
     }
 
@@ -36,10 +45,26 @@ public class UserService {
         return userRepository.findByEmail(email);
     }
 
+
+    /**
+     * 로그인
+     */
+    public User login(String email, String password, PasswordEncoder encoder) {
+        // 1. 이메일로 유저 검색
+        User findUser = userRepository.findByEmail(email);
+
+        // 2. 비밀번호 검증
+        findUser.passwordAuthenticate(password, encoder);
+
+        return findUser;
+    }
+
     private void validateDuplicateUser(User user) {
         User findUser = userRepository.findByEmail(user.getEmail());
-        if (findUser == null) {
-            throw new IllegalStateException("이미 존재하는 이메일입니다.");
+
+        if (findUser != null) {
+            throw new BusinessException(ErrorCode.USER_ALREADY_EXISTS);
         }
     }
+
 }

@@ -5,7 +5,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.transaction.annotation.Transactional;
 import skku.gymbarofit.domain.User;
-import skku.gymbarofit.dto.UserDto;
+import skku.gymbarofit.dto.UserSignupDto;
 import skku.gymbarofit.repository.UserRepository;
 
 import static org.junit.jupiter.api.Assertions.*;
@@ -23,9 +23,9 @@ class UserServiceTest {
     @Test
     public void 회원가입() throws Exception {
         //given
-        UserDto userDto = getUserDto();
+        UserSignupDto userSignupForm = getUser();
 
-        User user = User.createUser(userDto);
+        User user = User.createUser(userSignupForm);
 
         //when
         Long savedId = userService.join(user);
@@ -37,10 +37,10 @@ class UserServiceTest {
     @Test
     public void 중복_회원_예외() throws Exception {
         //given
-        UserDto userDto = getUserDto();
+        UserSignupDto userSignupForm = getUser();
 
-        User user1 = User.createUser(userDto);
-        User user2 = User.createUser(userDto);
+        User user1 = User.createUser(userSignupForm);
+        User user2 = User.createUser(userSignupForm);
 
         //when
         userService.join(user1);
@@ -49,11 +49,11 @@ class UserServiceTest {
         assertThrows(IllegalStateException.class, ()->userService.join(user2));
     }
 
-    private static UserDto getUserDto() {
-        UserDto userDto = new UserDto();
-        userDto.setName("kim");
-        userDto.setEmail("aaaaa@naver.com");
-        userDto.setPw_hash("gh!th");
-        return userDto;
+    private static UserSignupDto getUser() {
+        UserSignupDto userSignupForm = new UserSignupDto();
+        userSignupForm.setName("kim");
+        userSignupForm.setEmail("aaaaa@naver.com");
+        userSignupForm.setPassword("gh!th");
+        return userSignupForm;
     }
 }
