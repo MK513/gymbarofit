@@ -4,7 +4,7 @@ import lombok.Getter;
 import jakarta.validation.constraints.NotEmpty;
 
 @Getter
-public class UserLoginDto {
+public class LoginDto {
 
     @NotEmpty(message = "이메일을 입력해주세요")
     private String email;

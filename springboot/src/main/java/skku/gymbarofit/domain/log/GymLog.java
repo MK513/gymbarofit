@@ -9,7 +9,7 @@ import static jakarta.persistence.FetchType.LAZY;
 @Entity
 @DiscriminatorValue("gym")
 @Getter
-public class GymLog extends UserActivityLog{
+public class GymLog extends UserActivityLog {
 
     @ManyToOne(fetch = LAZY)
     @JoinColumn(name = "gym_id")

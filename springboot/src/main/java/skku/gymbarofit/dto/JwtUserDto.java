@@ -1,18 +1,13 @@
 package skku.gymbarofit.dto;
 
 import lombok.Getter;
-import skku.gymbarofit.domain.status.RoleStatus;
-
-import java.util.Collection;
 
 @Getter
 public class JwtUserDto {
-    private Long userId;
     private String email;
-    private RoleStatus role;
+    private String role;
 
-    public JwtUserDto(Long userId, String email, RoleStatus role) {
-        this.userId = userId;
+    public JwtUserDto(String email, String role) {
         this.role = role;
         this.email = email;
     }

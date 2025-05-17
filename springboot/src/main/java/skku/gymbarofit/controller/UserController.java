@@ -3,7 +3,6 @@ package skku.gymbarofit.controller;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
-import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.stereotype.Controller;
 import org.springframework.validation.BindingResult;
 import org.springframework.web.bind.annotation.CrossOrigin;
@@ -12,8 +11,8 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import skku.gymbarofit.domain.User;
 import skku.gymbarofit.dto.ResponseDto;
-import skku.gymbarofit.dto.UserLoginDto;
-import skku.gymbarofit.dto.UserSignupDto;
+import skku.gymbarofit.dto.LoginDto;
+import skku.gymbarofit.dto.SignupDto;
 import skku.gymbarofit.service.UserService;
 
 @Controller
@@ -24,28 +23,25 @@ public class UserController {
 
     private final UserService userService;
 
-    private final BCryptPasswordEncoder encoder;
-
     @PostMapping("/signup")
-    public ResponseEntity<?> signup(@RequestBody @Valid UserSignupDto userSignupForm, BindingResult bindingResult) {
+    public ResponseEntity<?> signup(@RequestBody @Valid SignupDto memberSignupForm, BindingResult bindingResult) {
         if (bindingResult.hasErrors()) {
             return ResponseEntity.badRequest().body(bindingResult.getAllErrors().toString());
         }
 
-        User user = User.createUser(userSignupForm, encoder);
-        userService.join(user);
+        userService.join(memberSignupForm);
 
         return ResponseEntity.ok().body(null);
     }
 
     @PostMapping("/login")
-    public ResponseEntity<?> login(@RequestBody @Valid UserLoginDto userLoginDto, BindingResult bindingResult) {
+    public ResponseEntity<?> login(@RequestBody @Valid LoginDto loginDto, BindingResult bindingResult) {
         if (bindingResult.hasErrors()) {
             return ResponseEntity.badRequest().body(bindingResult.getAllErrors().toString());
         }
 
         try {
-            User user = userService.login(userLoginDto.getEmail(), userLoginDto.getPassword(), encoder);
+            User user = userService.login(loginDto.getEmail(), loginDto.getPassword());
 
             return ResponseEntity.ok().body(user);
         } catch (Exception e) {
@@ -56,3 +52,5 @@ public class UserController {
         }
     }
 }
+
+// 전체적으로 개선 필요 --> 클린코드!!

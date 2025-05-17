@@ -12,5 +12,8 @@
 #        #        show_sql: true
 #        format_sql: true
 
+# 디버그 모드 활성화
 logging.level:
   org.hibernate.SQL: debug
+  org.springframework.security: DEBUG
+

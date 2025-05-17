@@ -8,7 +8,6 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 import skku.gymbarofit.domain.User;
-import skku.gymbarofit.domain.status.RoleStatus;
 import skku.gymbarofit.dto.JwtUserDto;
 
 import javax.crypto.SecretKey;
@@ -33,7 +32,7 @@ public class JwtTokenProvider {
         Date now = new Date();
         Date accessExpiration = new Date(now.getTime() + EXPIRATION_TIME);
 
-        JwtBuilder builder = Jwts.builder()
+        return Jwts.builder()
                 .header()
                     .add("typ", "JWT")
                     .add("alg", "HS256")
@@ -41,13 +40,11 @@ public class JwtTokenProvider {
                 .and()
                 .claims()
                     .add("role", user.getRole())
-                    .add("email", user.getEmail())
                 .and()
-                .subject(String.valueOf(user.getId()))
+                .subject(String.valueOf(user.getEmail()))
                 .signWith(getKey(), Jwts.SIG.HS256) // JWT 서명 발급
-                .expiration(accessExpiration);
-
-        return builder.compact();
+                .expiration(accessExpiration)
+                .compact();
     }
 
     // secret key 객체 생성
@@ -61,12 +58,10 @@ public class JwtTokenProvider {
     public JwtUserDto getAuthentication(String jwt) {
         Claims claims = getClaims(jwt);
 
-        String email = Optional.ofNullable(claims.get("email", String.class))
-                .orElseThrow( () -> new RuntimeException("잘못된 토큰입니다."));
-        RoleStatus role = Optional.ofNullable(claims.get("role", RoleStatus.class))
+        String role = Optional.ofNullable(claims.get("role", String.class))
                 .orElseThrow( () -> new RuntimeException("잘못된 토큰입니다."));
 
-        return new JwtUserDto(Long.valueOf(claims.getSubject()), email, role);
+        return new JwtUserDto(claims.getSubject(), role);
     }
 
     /**

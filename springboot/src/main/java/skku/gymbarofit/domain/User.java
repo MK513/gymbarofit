@@ -6,8 +6,7 @@ import lombok.Getter;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import skku.gymbarofit.domain.log.UserActivityLog;
 import skku.gymbarofit.domain.status.GenderStatus;
-import skku.gymbarofit.domain.status.RoleStatus;
-import skku.gymbarofit.dto.UserSignupDto;
+import skku.gymbarofit.dto.SignupDto;
 import skku.gymbarofit.exception.BusinessException;
 import skku.gymbarofit.exception.ErrorCode;
 
@@ -27,8 +26,7 @@ public class User {
 
     private String name;
 
-    @Enumerated(EnumType.STRING)
-    private RoleStatus role;
+    private String role; // MEMBER, MANAGER
 
     @Column(unique = true)
     private String email;
@@ -49,7 +47,7 @@ public class User {
     private LocalDateTime created_at;
 
     // 테스트용, 비밀번호 암호화x
-    public static User createUser(UserSignupDto userSignupForm) {
+    public static User createUser(SignupDto userSignupForm) {
         return User.builder()
                 .name(userSignupForm.getName())
                 .email(userSignupForm.getEmail())
@@ -60,19 +58,19 @@ public class User {
                 .build();
     }
 
-    public static User createUser(UserSignupDto userSignupForm, PasswordEncoder encoder) {
+    public static User createUser(SignupDto userSignupForm, PasswordEncoder passwordEncoder) {
         return User.builder()
                 .name(userSignupForm.getName())
                 .email(userSignupForm.getEmail())
-                .password(encoder.encode(userSignupForm.getPassword()))
+                .password(passwordEncoder.encode(userSignupForm.getPassword()))
                 .phone_number(userSignupForm.getPhone_number())
                 .address(userSignupForm.getAddress())
                 .gender(userSignupForm.getGenderStatus())
                 .build();
     }
 
-    public void passwordAuthenticate(String rawPassword, PasswordEncoder encoder) {
-        if (!encoder.matches(rawPassword, this.password)) {
+    public void passwordAuthenticate(String rawPassword, PasswordEncoder passwordEncoder) {
+        if (!passwordEncoder.matches(rawPassword, this.password)) {
             throw new BusinessException(ErrorCode.PASSWORD_DISMATCH);
         }
     }

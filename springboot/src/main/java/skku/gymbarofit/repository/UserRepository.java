@@ -1,12 +1,9 @@
 package skku.gymbarofit.repository;
 
 import jakarta.persistence.EntityManager;
-import jakarta.persistence.NoResultException;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Repository;
 import skku.gymbarofit.domain.User;
-import skku.gymbarofit.exception.BusinessException;
-import skku.gymbarofit.exception.ErrorCode;
 
 import java.util.List;
 import java.util.Optional;
@@ -30,13 +27,10 @@ public class UserRepository {
                 .getResultList();
     }
 
-    public User findByEmail(String email) {
-        try {
+    public Optional<User> findByEmail(String email) {
             return em.createQuery("select u from User u where u.email = :email", User.class)
                     .setParameter("email", email)
-                    .getSingleResult();
-        } catch (NoResultException e) {
-            throw new BusinessException(ErrorCode.USER_NOT_FOUND);
-        }
+                    .getResultList()
+                    .stream().findAny();
     }
 }
