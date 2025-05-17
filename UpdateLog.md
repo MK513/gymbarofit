@@ -1,3 +1,11 @@
+# 25.05.17
+1. Jwt 적용 중
+- CustomAuthenticationFilter 구현
+- CustomAuthenticationProvider 구현
+- CustomUserDetails 구현
+- CustomUserDetailService 구현
+2. RoleStatus -> String class 변경
+
 # 25.05.16
 1. Dependency 추가
 - Spring Security
