@@ -5,10 +5,10 @@ export function call(api, method, request) {
     "Content-Type": "application/json",
   });
 
-//   const accessToken = localStorage.getItem("ACCESS_TOKEN");
-//   if (accessToken && accessToken !== null) {
-//     headers.append("Authorization", "Bearer " + accessToken);
-//   }
+  const accessToken = localStorage.getItem("ACCESS_TOKEN");
+  if (accessToken && accessToken !== null) {
+    headers.append("Authorization", "Bearer " + accessToken);
+  }
 
   let options = {
     headers: headers,
@@ -24,36 +24,49 @@ export function call(api, method, request) {
 
   return fetch(API_BASE_URL + api, options)
     .then((response) => {
-      if (response.status === 200) {
-        const contentType = response.headers.get("content-type");
+      const contentType = response.headers.get("content-type");
+
+      if (response.ok) {
         if (contentType && contentType.includes("application/json")) {
           return response.json(); // Parse JSON here
         } else {
-          // Handle non-JSON response here
-          return response.text().then((text) => {
-            throw new Error("Response is not in JSON format: " + text);
-          });
+          console.log("CH");
+          return { message: response.statusText };
         }
       } else if (response.status === 403) {
         window.location.href = "/login"; // Redirect
+        return Promise.reject("Unauthorized");
       } else {
-        throw new Error(response.statusText); // Throw an error for non-200 responses
+        // 에러 응답도 JSON 형식일 수 있으므로 json 파싱 시도
+        if (contentType && contentType.includes("application/json")) {
+          return response.json().then(err => {
+            return Promise.reject(err);
+          });
+        } else {
+          return Promise.reject({ message: response.statusText });
+        }
       }
     })
     .catch((error) => {
       console.error("http error", error);
-      throw error; // Re-throw the error to propagate it further
+      return null;
     });
 }
 
-export function signin(userDTO) {
-  return call("/auth/signin", "POST", userDTO)
+export function login(userDTO) {
+  return call("/auth/login", "POST", userDTO)
     .then((response) => {
-      if (response.token) {
-        // 로컬 스토리지에 토큰 저장
-        localStorage.setItem("ACCESS_TOKEN", response.token);
-        // token이 존재하는 경우 Todo 화면으로 리디렉트
-        window.location.href = "/";
+      console.log("res:::", response);
+
+      if (response && response.accessToken) {
+        localStorage.setItem("ACCESS_TOKEN", response.accessToken);
+        return "OK";
+      } else {
+        return "FAIL";
       }
+    })
+    .catch((e) => {
+      console.error("Login 실패:", e);
+      return "FAIL";
     });
 }

@@ -10,6 +10,7 @@ import skku.gymbarofit.exception.ErrorCode;
 
 import java.time.LocalDateTime;
 import java.util.ArrayList;
+import java.util.Date;
 import java.util.List;
 
 @Entity
@@ -55,6 +56,7 @@ public class User {
                 .address(userSignupForm.getAddress())
                 .gender(userSignupForm.getGender())
                 .role(userSignupForm.getRole())
+                .created_at(LocalDateTime.now())
                 .build();
     }
 
@@ -67,6 +69,7 @@ public class User {
                 .address(userSignupForm.getAddress())
                 .gender(userSignupForm.getGender())
                 .role(userSignupForm.getRole())
+                .created_at(LocalDateTime.now())
                 .build();
     }
 

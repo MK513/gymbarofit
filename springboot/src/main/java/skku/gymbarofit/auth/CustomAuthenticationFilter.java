@@ -12,17 +12,26 @@ import org.springframework.security.core.AuthenticationException;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
+import skku.gymbarofit.domain.User;
 import skku.gymbarofit.dto.LoginDto;
+import skku.gymbarofit.exception.BusinessException;
+import skku.gymbarofit.exception.ErrorCode;
+import skku.gymbarofit.repository.UserRepository;
 
 import java.io.IOException;
+import java.util.HashMap;
+import java.util.Map;
+import java.util.Optional;
 
 public class CustomAuthenticationFilter extends UsernamePasswordAuthenticationFilter {
 
     private final JwtTokenProvider jwtTokenProvider;
+    private final UserRepository userRepository;
 
-    public CustomAuthenticationFilter(AuthenticationManager authenticationManager, JwtTokenProvider jwtTokenProvider) {
+    public CustomAuthenticationFilter(AuthenticationManager authenticationManager, JwtTokenProvider jwtTokenProvider, UserRepository userRepository) {
         super.setAuthenticationManager(authenticationManager);
         this.jwtTokenProvider = jwtTokenProvider;
+        this.userRepository = userRepository;
     }
 
     /**
@@ -34,8 +43,20 @@ public class CustomAuthenticationFilter extends UsernamePasswordAuthenticationFi
         UserDetails userDetails = (UserDetails) authResult.getPrincipal();
 
         String jwtToken = jwtTokenProvider.createToken(userDetails);
+        User findUser = userRepository.findByEmail(userDetails.getUsername())
+                        .orElseThrow(()-> new BusinessException(ErrorCode.USER_NOT_FOUND));
+
 
         response.addHeader("Authorization", "Bearer " + jwtToken);
+        response.setContentType("application/json");
+
+        Map<String, Object> body = new HashMap<>();
+        body.put("accessToken", jwtToken);
+        body.put("name", findUser.getName());
+        body.put("role", findUser.getRole());
+
+        ObjectMapper mapper = new ObjectMapper();
+        mapper.writeValue(response.getWriter(), body);
     }
 
     /**

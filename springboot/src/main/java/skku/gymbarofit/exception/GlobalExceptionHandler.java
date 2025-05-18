@@ -5,6 +5,7 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
+import skku.gymbarofit.dto.ResponseDto;
 
 import java.util.Map;
 
@@ -15,9 +16,8 @@ public class GlobalExceptionHandler {
     public ResponseEntity<?> handleBusinessException(BusinessException e) {
         return ResponseEntity
                 .badRequest()
-                .body(Map.of(
-                        "error", e.getErrorCode().name(),
-                        "message", e.getErrorCode().getMessage()
+                .body(
+                        new ResponseDto<Object>(HttpStatus.BAD_REQUEST, e.getErrorCode().getMessage()
                 ));
     }
 

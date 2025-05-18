@@ -1,6 +1,5 @@
 import React, {useEffect, useState } from 'react';
-import { Link } from 'react-router-dom'
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, Link } from 'react-router-dom';
 import {
   Container,
   TextField,
@@ -10,7 +9,7 @@ import {
   Grid,
   Paper,
 } from '@mui/material';
-import { signin } from '../api/Api';
+import { login } from '../api/Api';
 
 const User = {
     email: 'abc@naver.com',
@@ -27,11 +26,10 @@ export default function Login() {
         const email = data.get("email")
         const pw = data.get('pw');
 
-        signin({email: email, pw: pw});
+        const result = await login({email: email, password: pw});
 
-        //const success = await fakeLogin(email, password);
-        // if (success) {
-        if (1) {
+        console.log("result: " + result);
+        if (result == "OK") {
             navigate('/'); // 로그인 성공 시 홈으로 이동
         } else {
             alert('로그인 실패');
@@ -60,6 +58,7 @@ export default function Login() {
               <TextField
                 required
                 fullWidth
+                id="pw"
                 type="pw"
                 label="비밀번호"
                 name="pw"
@@ -74,6 +73,17 @@ export default function Login() {
                 color="primary"
               >
                 로그인
+              </Button>
+            </Grid>
+            <Grid item xs={12}>
+              <Button
+                fullWidth
+                variant="outlined"
+                color="secondary"
+                component={Link}
+                to="/signup"
+              >
+                회원가입
               </Button>
             </Grid>
           </Grid>

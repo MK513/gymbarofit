@@ -1,18 +1,20 @@
 package skku.gymbarofit.dto;
 
-import lombok.AllArgsConstructor;
-import lombok.Builder;
-import lombok.Data;
-import lombok.NoArgsConstructor;
+import lombok.*;
+import org.springframework.http.HttpStatus;
 
 import java.util.List;
 
-@Builder
+@Getter
 @NoArgsConstructor
 @AllArgsConstructor
-@Data
 public class ResponseDto<T> {
-    private String error;
+    private HttpStatus status;
     private String message;
     private List<T> data;
+
+    public ResponseDto(HttpStatus status, String message) {
+        this.status = status;
+        this.message = message;
+    }
 }

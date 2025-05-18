@@ -1,3 +1,18 @@
+# 25.05.18
+1. Spring Security 통한 Jwt 구현
+- CustomAuthenticationFilter 구현
+- JwtTokenFilter 구현
+- login로직 filter로 이동
+- 테스트 클래스 3개 구현 (CustomAuthenticationProvider, CustomUserDetailService, JwtTokenProvider)
+ 
+2. GenderStatus -> String class 변경
+3. UserRepository jpa class로 변경
+4. GlobalExceptionHandler 구현
+- 내부 에러 발생시 react로 에러 내용 리턴
+5. CORS 처리
+- CorsConfig 구현
+6. react Login, Signup 로직 구현
+
 # 25.05.17
 1. Jwt 적용 중
 - CustomAuthenticationFilter 구현
