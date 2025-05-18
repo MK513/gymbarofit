@@ -5,6 +5,7 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.autoconfigure.security.servlet.PathRequest;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.data.jpa.repository.config.EnableJpaRepositories;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.ProviderManager;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
@@ -16,17 +17,21 @@ import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
+import skku.gymbarofit.repository.UserRepository;
 
 @Configuration
 @EnableWebSecurity
-@RequiredArgsConstructor
+@EnableJpaRepositories("skku.gymbarofit.repository")
 public class SpringSecurityConfig {
-
-    private final JwtTokenProvider jwtTokenProvider;
-    private final PasswordEncoder passwordEncoder;
 
     @Value("${jwt.secretKey}")
     private String secretKey;
+
+    private final UserRepository userRepository;
+
+    public SpringSecurityConfig(UserRepository userRepository) {
+        this.userRepository = userRepository;
+    }
 
     @Bean
     public WebSecurityCustomizer webSecurityCustomizer() {
@@ -42,13 +47,11 @@ public class SpringSecurityConfig {
                 .httpBasic(AbstractHttpConfigurer::disable)
                 .sessionManagement(session ->
                         session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
-                .securityMatcher("/auth/**")
                 .authorizeHttpRequests(authorize -> authorize
-                        .requestMatchers("/auth/user").hasRole("MEMBER")
-                        .requestMatchers("/auth/admin").hasRole("ADMIN")
+                        .requestMatchers("/member/**").hasRole("MEMBER")
+                        .requestMatchers("/admin/**").hasRole("ADMIN")
                         .requestMatchers("/auth/signup").permitAll()
-                        .requestMatchers("/auth/login").permitAll()
-//                        .anyRequest().authenticated()
+                        .requestMatchers("/auth/**").authenticated()
                         .anyRequest().permitAll()
                 )
                 .addFilter(customAuthenticationFilter())
@@ -59,8 +62,8 @@ public class SpringSecurityConfig {
 
     @Bean
     public CustomAuthenticationFilter customAuthenticationFilter() {
-        CustomAuthenticationFilter customAuthenticationFilter = new CustomAuthenticationFilter(authenticationManager());
-        customAuthenticationFilter.setFilterProcessesUrl("/doLogin");
+        CustomAuthenticationFilter customAuthenticationFilter = new CustomAuthenticationFilter(authenticationManager(), jwtTokenProvider());
+        customAuthenticationFilter.setFilterProcessesUrl("/auth/login");
         customAuthenticationFilter.afterPropertiesSet();
         return customAuthenticationFilter;
     }
@@ -72,16 +75,26 @@ public class SpringSecurityConfig {
 
     @Bean
     public CustomAuthenticationProvider customAuthenticationProvider() {
-        return new CustomAuthenticationProvider(passwordEncoder);
+        return new CustomAuthenticationProvider(passwordEncoder(), customUserDetailService());
+    }
+
+    @Bean
+    public CustomUserDetailService customUserDetailService() {
+        return new CustomUserDetailService(userRepository);
     }
 
     @Bean
     public JwtTokenFilter jwtTokenFilter() {
-        return new JwtTokenFilter();
+        return new JwtTokenFilter(customUserDetailService(), jwtTokenProvider());
     }
 
     @Bean
     public PasswordEncoder passwordEncoder() {
         return new BCryptPasswordEncoder();
+    }
+
+    @Bean
+    public JwtTokenProvider jwtTokenProvider() {
+        return new JwtTokenProvider();
     }
 }

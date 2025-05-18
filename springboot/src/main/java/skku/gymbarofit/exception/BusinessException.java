@@ -1,11 +1,15 @@
 package skku.gymbarofit.exception;
 
-public class BusinessException extends RuntimeException {
-    public BusinessException(Object p0) {
-    }
+import lombok.Getter;
 
-    public BusinessException() {
-        super();
+@Getter
+public class BusinessException extends RuntimeException {
+
+    private ErrorCode errorCode;
+
+    public BusinessException(ErrorCode errorCode) {
+        super(errorCode.getMessage());
+        this.errorCode = errorCode;
     }
 
     public BusinessException(String message) {

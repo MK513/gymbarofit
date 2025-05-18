@@ -3,20 +3,16 @@ package skku.gymbarofit.auth;
 import io.jsonwebtoken.*;
 import io.jsonwebtoken.io.Decoders;
 import io.jsonwebtoken.security.Keys;
-import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
-import org.springframework.stereotype.Component;
-import skku.gymbarofit.domain.User;
-import skku.gymbarofit.dto.JwtUserDto;
+import org.springframework.security.core.GrantedAuthority;
+import org.springframework.security.core.userdetails.UserDetails;
 
 import javax.crypto.SecretKey;
 import java.util.Date;
 import java.util.Optional;
 
 @Slf4j
-@Component
-@RequiredArgsConstructor
 public class JwtTokenProvider {
 
     @Value("${jwt.secretKey}")
@@ -27,10 +23,14 @@ public class JwtTokenProvider {
     /**
      * JWT 토큰 생성
      */
-    public String createToken(User user) {
+    public String createToken(UserDetails userDetails) {
 
         Date now = new Date();
         Date accessExpiration = new Date(now.getTime() + EXPIRATION_TIME);
+
+        Optional<String> role = userDetails.getAuthorities()
+                .stream().map(GrantedAuthority::getAuthority)
+                .findAny();
 
         return Jwts.builder()
                 .header()
@@ -39,9 +39,9 @@ public class JwtTokenProvider {
                     .add("regDate", System.currentTimeMillis())
                 .and()
                 .claims()
-                    .add("role", user.getRole())
+                    .add("role", role.orElse("MEMBER"))
                 .and()
-                .subject(String.valueOf(user.getEmail()))
+                .subject(userDetails.getUsername())
                 .signWith(getKey(), Jwts.SIG.HS256) // JWT 서명 발급
                 .expiration(accessExpiration)
                 .compact();
@@ -50,18 +50,6 @@ public class JwtTokenProvider {
     // secret key 객체 생성
     private SecretKey getKey() {
         return Keys.hmacShaKeyFor(Decoders.BASE64.decode(secretKey));
-    }
-
-    /**
-     * JWT 토큰 정보 추출
-     */
-    public JwtUserDto getAuthentication(String jwt) {
-        Claims claims = getClaims(jwt);
-
-        String role = Optional.ofNullable(claims.get("role", String.class))
-                .orElseThrow( () -> new RuntimeException("잘못된 토큰입니다."));
-
-        return new JwtUserDto(claims.getSubject(), role);
     }
 
     /**

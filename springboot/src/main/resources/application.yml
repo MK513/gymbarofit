@@ -12,8 +12,13 @@
 #        #        show_sql: true
 #        format_sql: true
 
+spring:
+  output.ansi.enabled: ALWAYS
+
 # 디버그 모드 활성화
 logging.level:
   org.hibernate.SQL: debug
   org.springframework.security: DEBUG
 
+jwt:
+  secretKey: 9x5qKwPzAnbDfGz7yT1VrWnHcXp2s4oE5dsf5749adfawe23d1fa5sad4f9

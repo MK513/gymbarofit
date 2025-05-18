@@ -1,11 +1,9 @@
 package skku.gymbarofit.domain;
 
 import jakarta.persistence.*;
-import lombok.Builder;
-import lombok.Getter;
+import lombok.*;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import skku.gymbarofit.domain.log.UserActivityLog;
-import skku.gymbarofit.domain.status.GenderStatus;
 import skku.gymbarofit.dto.SignupDto;
 import skku.gymbarofit.exception.BusinessException;
 import skku.gymbarofit.exception.ErrorCode;
@@ -18,6 +16,8 @@ import java.util.List;
 @Getter
 @Table(name = "users")
 @Builder
+@NoArgsConstructor(access = AccessLevel.PROTECTED)
+@AllArgsConstructor
 public class User {
 
     @Id @GeneratedValue
@@ -26,7 +26,7 @@ public class User {
 
     private String name;
 
-    private String role; // MEMBER, MANAGER
+    private String role; // MEMBER, ADMIN
 
     @Column(unique = true)
     private String email;
@@ -37,8 +37,7 @@ public class User {
 
     private String address;
 
-    @Enumerated(EnumType.STRING)
-    private GenderStatus gender;
+    private String gender;
 
     @Builder.Default
     @OneToMany(mappedBy = "user", cascade = CascadeType.ALL)
@@ -54,7 +53,8 @@ public class User {
                 .password(userSignupForm.getPassword())
                 .phone_number(userSignupForm.getPhone_number())
                 .address(userSignupForm.getAddress())
-                .gender(userSignupForm.getGenderStatus())
+                .gender(userSignupForm.getGender())
+                .role(userSignupForm.getRole())
                 .build();
     }
 
@@ -65,7 +65,8 @@ public class User {
                 .password(passwordEncoder.encode(userSignupForm.getPassword()))
                 .phone_number(userSignupForm.getPhone_number())
                 .address(userSignupForm.getAddress())
-                .gender(userSignupForm.getGenderStatus())
+                .gender(userSignupForm.getGender())
+                .role(userSignupForm.getRole())
                 .build();
     }
 

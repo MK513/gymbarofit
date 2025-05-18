@@ -1,11 +1,12 @@
 package skku.gymbarofit.dto;
 
 import jakarta.validation.constraints.NotEmpty;
+import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.Setter;
-import skku.gymbarofit.domain.status.GenderStatus;
 
 @Getter @Setter
+@AllArgsConstructor
 public class SignupDto {
 
     @NotEmpty(message = "이름을 입력해주세요")
@@ -17,8 +18,10 @@ public class SignupDto {
     @NotEmpty(message = "비밀번호를 입력해주세요")
     private String password;
 
+    private String role;
+
     private String phone_number;
     private String address;
 
-    private GenderStatus genderStatus;
+    private String gender;
 }
