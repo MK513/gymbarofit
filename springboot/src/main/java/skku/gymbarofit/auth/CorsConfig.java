@@ -26,7 +26,7 @@ public class CorsConfig {
         allowedHttpMethods.add("POST");
         allowedHttpMethods.add("PUT");
         allowedHttpMethods.add("DELETE");
-        allowedHttpMethods.add("OPTION");
+        allowedHttpMethods.add("OPTIONS");
         configuration.setAllowedMethods(allowedHttpMethods);
 
         // 모든 헤더 허용
