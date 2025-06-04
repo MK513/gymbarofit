@@ -59,7 +59,7 @@ export default function Login() {
                 required
                 fullWidth
                 id="pw"
-                type="pw"
+                type="password"
                 label="비밀번호"
                 name="pw"
                 autoComplete="current-password"
@@ -92,3 +92,4 @@ export default function Login() {
     </Container>
   );
 }
+
