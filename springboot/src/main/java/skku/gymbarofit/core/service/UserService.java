@@ -5,7 +5,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-import skku.gymbarofit.core.User;
+import skku.gymbarofit.core.user.User;
 import skku.gymbarofit.core.dto.SignupDto;
 import skku.gymbarofit.core.exception.BusinessException;
 import skku.gymbarofit.core.exception.ErrorCode;
@@ -22,24 +22,24 @@ public class UserService {
     private final PasswordEncoder passwordEncoder;
     private final UserRepository userRepository;
 
-    /**
-     * 회원가입
-     */
-    @Transactional
-    public Long join(SignupDto form) {
-        // 1. 중복 회원 검증
-        validateDuplicateUser(form.getEmail());
-
-        // 2. 회원 객체 생성
-        User user = User.createUser(form, passwordEncoder);
-
-        // 3. 회원 저장
-        userRepository.save(user);
-
-        // 4. 회원 id 반환
-        return user.getId();
-    }
-
+//    /**
+//     * 회원가입
+//     */
+//    @Transactional
+//    public Long join(SignupDto form) {
+//        // 1. 중복 회원 검증
+//        validateDuplicateUser(form.getEmail());
+//
+//        // 2. 회원 객체 생성
+//        User user = User.createUser(form, passwordEncoder);
+//
+//        // 3. 회원 저장
+//        userRepository.save(user);
+//
+//        // 4. 회원 id 반환
+//        return user.getId();
+//    }
+//
 //    /**
 //     * 로그인
 //     */

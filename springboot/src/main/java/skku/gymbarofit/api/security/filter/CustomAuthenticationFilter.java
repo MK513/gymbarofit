@@ -13,7 +13,7 @@ import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
 import skku.gymbarofit.api.security.provider.JwtTokenProvider;
-import skku.gymbarofit.core.User;
+import skku.gymbarofit.core.user.User;
 import skku.gymbarofit.core.dto.LoginDto;
 import skku.gymbarofit.core.exception.BusinessException;
 import skku.gymbarofit.core.exception.ErrorCode;

@@ -2,6 +2,7 @@ package skku.gymbarofit.core;
 
 import jakarta.persistence.*;
 import lombok.Getter;
+import skku.gymbarofit.core.user.User;
 
 import java.time.LocalDateTime;
 

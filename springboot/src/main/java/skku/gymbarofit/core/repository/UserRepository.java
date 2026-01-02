@@ -1,11 +1,9 @@
 package skku.gymbarofit.core.repository;
 
-import jakarta.persistence.EntityManager;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Repository;
-import skku.gymbarofit.core.User;
+import skku.gymbarofit.core.user.User;
 
-import java.util.List;
 import java.util.Optional;
 
 @Repository

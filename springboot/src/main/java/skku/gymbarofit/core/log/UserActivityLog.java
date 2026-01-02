@@ -2,12 +2,9 @@ package skku.gymbarofit.core.log;
 
 import jakarta.persistence.*;
 import lombok.Getter;
-import skku.gymbarofit.core.User;
 
 import java.time.Duration;
 import java.time.LocalDateTime;
-
-import static jakarta.persistence.FetchType.LAZY;
 
 @Entity
 @Inheritance(strategy = InheritanceType.SINGLE_TABLE)
@@ -19,10 +16,6 @@ public class UserActivityLog {
     @GeneratedValue
     @Column(name = "usage_id")
     private Long id;
-
-    @ManyToOne(fetch = LAZY)
-    @JoinColumn(name = "user_id")
-    private User user;
 
     private LocalDateTime start_time;
 

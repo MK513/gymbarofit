@@ -2,7 +2,7 @@ package skku.gymbarofit.api.security.userdetail;
 
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.userdetails.UserDetails;
-import skku.gymbarofit.core.User;
+import skku.gymbarofit.core.user.User;
 
 import java.util.ArrayList;
 import java.util.Collection;

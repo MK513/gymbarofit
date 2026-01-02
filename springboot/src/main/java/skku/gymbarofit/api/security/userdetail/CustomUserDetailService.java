@@ -5,7 +5,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
-import skku.gymbarofit.core.User;
+import skku.gymbarofit.core.user.User;
 import skku.gymbarofit.core.repository.UserRepository;
 
 @Slf4j
