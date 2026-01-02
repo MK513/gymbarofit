@@ -17,7 +17,7 @@ public class CorsConfig {
 
         // 허용하는 origin
         ArrayList<String> allowedOriginPatterns = new ArrayList<>();
-        allowedOriginPatterns.add("http://localhost:3000");
+        allowedOriginPatterns.add("http://localhost:5173");
         configuration.setAllowedOrigins(allowedOriginPatterns);
 
         // 허용하는 HTTP method

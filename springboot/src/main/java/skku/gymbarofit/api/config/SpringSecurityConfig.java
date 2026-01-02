@@ -25,7 +25,7 @@ import skku.gymbarofit.core.repository.UserRepository;
 
 @Configuration
 @EnableWebSecurity
-@EnableJpaRepositories("skku.gymbarofit.repository")
+@EnableJpaRepositories("skku.gymbarofit")
 public class SpringSecurityConfig {
 
     @Value("${jwt.secretKey}")
