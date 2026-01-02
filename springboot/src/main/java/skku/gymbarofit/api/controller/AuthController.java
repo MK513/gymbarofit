@@ -1,4 +1,4 @@
-package skku.gymbarofit.controller;
+package skku.gymbarofit.api.controller;
 
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
