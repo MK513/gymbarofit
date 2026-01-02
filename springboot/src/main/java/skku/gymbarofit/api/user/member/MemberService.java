@@ -7,6 +7,7 @@ import org.springframework.transaction.annotation.Transactional;
 import skku.gymbarofit.core.dto.MemberDetailResponseDto;
 import skku.gymbarofit.core.dto.MemberRegisterRequestDto;
 import skku.gymbarofit.core.service.MemberInternalService;
+import skku.gymbarofit.core.user.Member;
 
 @Service
 @Transactional
@@ -18,7 +19,10 @@ public class MemberService {
 
     public MemberDetailResponseDto register(MemberRegisterRequestDto requestDto) {
         String encodedPassword = bCryptPasswordEncoder.encode(requestDto.getPassword());
-        memberInternalService.save(requestDto, encodedPassword);
+
+        Member member = memberInternalService.save(requestDto, encodedPassword);
+
+        return MemberDetailResponseDto.of(member);
     }
 
 }

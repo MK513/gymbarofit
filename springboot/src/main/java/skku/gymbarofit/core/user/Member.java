@@ -14,11 +14,11 @@ public class Member extends User{
 
     public Member() { super(); }
 
-    public static Member from(MemberRegisterRequestDto dto) {
+    public static Member from(MemberRegisterRequestDto dto, String encodedPassword) {
         return Member.builder()
                 .username(dto.getUsername())
                 .email(dto.getEmail())
-                .password(dto.getPassword())
+                .password(encodedPassword)
                 .phoneNumber(dto.getPhoneNumber())
                 .address(dto.getAddress())
                 .gender(dto.getGender())

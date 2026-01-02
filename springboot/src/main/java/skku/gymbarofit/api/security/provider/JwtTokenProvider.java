@@ -7,6 +7,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.userdetails.UserDetails;
+import skku.gymbarofit.api.security.UserContext;
 
 import javax.crypto.SecretKey;
 import java.util.Date;
@@ -15,7 +16,11 @@ import java.util.Optional;
 @Slf4j
 public class JwtTokenProvider {
 
-    @Value("${jwt.secretKey}")
+    public static final String ROLE = "role";
+    public static final String CLIENT_IP = "ip";
+    public static final String CLIENT_UUID = "uuid";
+
+    @Value("${app.jwt.secretKey}")
     private String secretKey;
 
     private static final long EXPIRATION_TIME = 1000 * 60 * 60 * 24; // 1일
@@ -23,7 +28,7 @@ public class JwtTokenProvider {
     /**
      * JWT 토큰 생성
      */
-    public String createToken(UserDetails userDetails) {
+    public String generateAccessToken(UserDetails userDetails) {
 
         Date now = new Date();
         Date accessExpiration = new Date(now.getTime() + EXPIRATION_TIME);
@@ -47,6 +52,14 @@ public class JwtTokenProvider {
                 .compact();
     }
 
+    public UserContext getUserContextFromJwt(String token, String clientIp, String clientUuid, String userAgent) {
+        Claims claims = validateToken(token);
+
+        String encryptedIp = claims.get(CLIENT_IP, String.class);
+        String encryptedUuid = claims.get(CLIENT_UUID, String.class);
+        // TODO: AES256Utils 제거, Refresh Token 서버 저장 정책(정석)
+    }
+
     // secret key 객체 생성
     private SecretKey getKey() {
         return Keys.hmacShaKeyFor(Decoders.BASE64.decode(secretKey));
@@ -55,10 +68,13 @@ public class JwtTokenProvider {
     /**
      * 토큰 검증
      */
-    public boolean validateToken(String token) {
+    public Claims validateToken(String token) {
         try {
-            getClaims(token);
-            return true;
+            return Jwts.parser()
+                    .verifyWith(getKey())
+                    .build()
+                    .parseSignedClaims(token)
+                    .getPayload();
         } catch (Exception e) {
 
             if (e instanceof SecurityException) {
@@ -83,11 +99,4 @@ public class JwtTokenProvider {
         }
     }
 
-    public Claims getClaims(String jwt) {
-        return Jwts.parser()
-                .verifyWith(getKey())
-                .build()
-                .parseSignedClaims(jwt)
-                .getPayload();
-    }
 }

@@ -42,7 +42,7 @@ public class CustomAuthenticationFilter extends UsernamePasswordAuthenticationFi
     protected void successfulAuthentication(HttpServletRequest request, HttpServletResponse response, FilterChain chain, Authentication authResult) throws IOException, ServletException {
         UserDetails userDetails = (UserDetails) authResult.getPrincipal();
 
-        String jwtToken = jwtTokenProvider.createToken(userDetails);
+        String jwtToken = jwtTokenProvider.generateAccessToken(userDetails);
         User findUser = userRepository.findByEmail(userDetails.getUsername())
                         .orElseThrow(()-> new BusinessException(ErrorCode.USER_NOT_FOUND));
 
