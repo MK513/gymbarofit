@@ -1,19 +1,19 @@
 package skku.gymbarofit.auth;
 
 import org.junit.jupiter.api.Test;
-import org.mockito.Mock;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
-import org.springframework.context.annotation.Import;
 import org.springframework.security.authentication.BadCredentialsException;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.transaction.annotation.Transactional;
-import skku.gymbarofit.domain.User;
-import skku.gymbarofit.dto.SignupDto;
-import skku.gymbarofit.repository.UserRepository;
+import skku.gymbarofit.api.security.provider.CustomAuthenticationProvider;
+import skku.gymbarofit.api.security.userdetail.CustomUserDetailService;
+import skku.gymbarofit.core.User;
+import skku.gymbarofit.core.dto.SignupDto;
+import skku.gymbarofit.core.repository.UserRepository;
 
 import java.util.HashSet;
 

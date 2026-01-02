@@ -8,9 +8,9 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Controller;
 import org.springframework.validation.BindingResult;
 import org.springframework.web.bind.annotation.*;
-import skku.gymbarofit.dto.ResponseDto;
-import skku.gymbarofit.dto.SignupDto;
-import skku.gymbarofit.service.UserService;
+import skku.gymbarofit.core.dto.ResponseDto;
+import skku.gymbarofit.core.dto.SignupDto;
+import skku.gymbarofit.core.service.UserService;
 
 @Slf4j
 @Controller

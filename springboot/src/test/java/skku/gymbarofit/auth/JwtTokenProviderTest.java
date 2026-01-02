@@ -3,15 +3,15 @@ package skku.gymbarofit.auth;
 import io.jsonwebtoken.Claims;
 import io.jsonwebtoken.JwtException;
 import org.junit.jupiter.api.Test;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.transaction.annotation.Transactional;
-import skku.gymbarofit.domain.User;
-import skku.gymbarofit.repository.UserRepository;
+import skku.gymbarofit.api.security.provider.JwtTokenProvider;
+import skku.gymbarofit.api.security.userdetail.CustomUserDetailService;
+import skku.gymbarofit.core.User;
+import skku.gymbarofit.core.repository.UserRepository;
 
 import static org.assertj.core.api.AssertionsForClassTypes.assertThat;
 import static org.junit.jupiter.api.Assertions.*;
@@ -21,8 +21,10 @@ import static skku.gymbarofit.auth.CustomAuthenticationProviderTest.getSignupDto
 @Transactional
 class JwtTokenProviderTest {
 
-    @Autowired JwtTokenProvider jwtTokenProvider;
-    @Autowired CustomUserDetailService customUserDetailService;
+    @Autowired
+    JwtTokenProvider jwtTokenProvider;
+    @Autowired
+    CustomUserDetailService customUserDetailService;
     @Autowired PasswordEncoder passwordEncoder;
     @Autowired UserRepository userRepository;
 

@@ -3,7 +3,8 @@ package skku.gymbarofit.service;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.transaction.annotation.Transactional;
-import skku.gymbarofit.repository.UserRepository;
+import skku.gymbarofit.core.repository.UserRepository;
+import skku.gymbarofit.core.service.UserService;
 
 @SpringBootTest
 @Transactional

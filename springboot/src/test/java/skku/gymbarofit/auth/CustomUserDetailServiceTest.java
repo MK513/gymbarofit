@@ -7,8 +7,9 @@ import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.transaction.annotation.Transactional;
-import skku.gymbarofit.domain.User;
-import skku.gymbarofit.repository.UserRepository;
+import skku.gymbarofit.api.security.userdetail.CustomUserDetailService;
+import skku.gymbarofit.core.User;
+import skku.gymbarofit.core.repository.UserRepository;
 
 import static org.assertj.core.api.AssertionsForClassTypes.assertThat;
 import static org.junit.jupiter.api.Assertions.assertThrows;
