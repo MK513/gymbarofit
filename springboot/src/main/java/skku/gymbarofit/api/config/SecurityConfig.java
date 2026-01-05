@@ -8,6 +8,8 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.data.jpa.repository.config.EnableJpaRepositories;
 import org.springframework.security.authentication.AuthenticationManager;
+import org.springframework.security.authentication.ProviderManager;
+import org.springframework.security.config.annotation.authentication.builders.AuthenticationManagerBuilder;
 import org.springframework.security.config.annotation.authentication.configuration.AuthenticationConfiguration;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
@@ -22,12 +24,16 @@ import org.springframework.web.cors.CorsConfigurationSource;
 import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
 import skku.gymbarofit.api.security.filter.JwtTokenFilter;
 import skku.gymbarofit.api.security.provider.JwtTokenProvider;
+import skku.gymbarofit.api.security.provider.MemberAuthenticationProvider;
+import skku.gymbarofit.api.security.provider.OwnerAuthenticationProvider;
 
 import java.util.ArrayList;
 import java.util.Collections;
+import java.util.List;
 
 @Configuration
 @EnableWebSecurity
+@RequiredArgsConstructor
 //@EnableJpaRepositories("skku.gymbarofit")
 public class SecurityConfig {
 
@@ -73,7 +79,7 @@ public class SecurityConfig {
                         .requestMatchers("/owners/**").hasRole("OWNER")
                         .requestMatchers(
                                "/", "/index.html", "/assets/**", "/*.ico",
-                               "/**/*.css", "/**/*.js", "/**/*.png", "/**/*.svg"
+                               "/**/*.css", "/**/*.js", "/**/*.png", "/**/*.svg", "/error"
                         ).permitAll()
 //                        .anyRequest().permitAll()
                         .anyRequest().authenticated()
@@ -83,11 +89,17 @@ public class SecurityConfig {
         return http.build();
     }
 
-
     @Bean
-    public AuthenticationManager authenticationManager(AuthenticationConfiguration config) throws Exception {
-        return config.getAuthenticationManager();
+    public AuthenticationManager authenticationManager(
+            MemberAuthenticationProvider memberAuthenticationProvider,
+            OwnerAuthenticationProvider ownerAuthenticationProvider
+    ) {
+        return new ProviderManager(List.of(
+                memberAuthenticationProvider,
+                ownerAuthenticationProvider
+        ));
     }
+
 
 
     public CorsConfigurationSource corsConfigurationSource () {

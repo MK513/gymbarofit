@@ -12,6 +12,7 @@ import skku.gymbarofit.core.user.UserRole;
 public class UserContext {
 
     private Long id;
+    private String email;
     private UserRole role;
 
 }

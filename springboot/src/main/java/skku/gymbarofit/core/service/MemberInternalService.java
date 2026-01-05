@@ -6,6 +6,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import skku.gymbarofit.core.dto.MemberRegisterRequestDto;
 import skku.gymbarofit.core.exception.UserAlreadyExistException;
+import skku.gymbarofit.core.exception.UserNotExistException;
 import skku.gymbarofit.core.repository.MemberRepository;
 import skku.gymbarofit.core.user.Member;
 
@@ -15,6 +16,10 @@ import skku.gymbarofit.core.user.Member;
 public class MemberInternalService {
 
     private final MemberRepository memberRepository;
+
+    public Member findByEmail(String email) {
+        return memberRepository.findByEmail(email).orElseThrow(UserNotExistException::new);
+    }
 
     public Member save(MemberRegisterRequestDto requestDto, String encodedPassword) {
         if (memberRepository.existsByEmail(requestDto.getEmail())) {

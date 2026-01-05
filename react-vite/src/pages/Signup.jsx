@@ -57,39 +57,44 @@ export default function Signup() {
     }, [email, pw]);
 
     const handleSignup = async (e) => {
-        e.preventDefault(); // 새로고침 방지
+      e.preventDefault();
 
-        const data = new FormData(e.target);
-        const name = data.get("name")
-        const phone_number = data.get('phone_number');
-        const address = data.get('address');
-        const gender = data.get('gender');
-        const role = "ADMIN";
+      const data = new FormData(e.target);
+      const username = data.get("name");
+      const phoneNumber = data.get("phoneNumber");
+      const address = data.get("address");
+      const gender = data.get("gender");
+      const role = "ROLE_MEMBER";
 
-        const signupDto = {
-          email: email, 
-          password: pw, 
-          name:name, 
-          phone_number: phone_number, 
-          address: address, 
-          gender:gender, 
-          role:role};
-        
-        const responseDto = await call("/auth/signup", "POST", signupDto);
+      const signupDto = {
+        email,
+        password: pw,
+        username,
+        phoneNumber,
+        address,
+        gender,
+        role,
+      };
 
-        console.log("signup: "  + responseDto);
+      try {
+        // 1번 방식: 성공/실패는 HTTP status로 판단
+        // call()이 성공이면(2xx) 여기까지 옴
+        await call("/members/register", "POST", signupDto);
 
-        if (responseDto['status'] == "OK") {
-          navigate('/login'); // 로그인 성공 시 홈으로 이동
-        }
-        else {
-          alert('회원가입 실패')
-        }
-        // const success = await fakeLogin(email, password);
-        // if (success) {
-        // } else {
-        //     ;
-        // }
+        // 회원가입 성공 → 로그인 페이지로 이동
+        navigate("/login");
+      } catch (err) {
+        // call()이 4xx/5xx면 throw 한다는 전제로 처리
+        console.error("signup failed:", err);
+
+        // 선택: 서버가 message를 내려주면 보여주기
+        const msg =
+          err?.response?.data?.message ||
+          err?.message ||
+          "회원가입 실패";
+
+        alert(msg);
+      }
     };
 
    return (
@@ -149,8 +154,8 @@ export default function Signup() {
 
             <TextField
               label="전화번호"
-              type="phone_number"
-              name="phone_number"
+              type="phoneNumber"
+              name="phoneNumber"
               placeholder="01012345678"
               variant="outlined"
               fullWidth
@@ -170,8 +175,8 @@ export default function Signup() {
             <FormControl component="fieldset" margin="normal">
               <FormLabel component="legend">성별</FormLabel>
               <RadioGroup row name="gender">
-                <FormControlLabel value="male" control={<Radio />} label="남성" />
-                <FormControlLabel value="female" control={<Radio />} label="여성" />
+                <FormControlLabel value="MALE" control={<Radio />} label="남성" />
+                <FormControlLabel value="FEMALE" control={<Radio />} label="여성" />
               </RadioGroup>
             </FormControl>
 

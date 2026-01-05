@@ -29,4 +29,12 @@ public abstract class User extends BaseTimeEntity {
 
     private String address;
 
+    public User(User user, UserRole role) {
+        this.username = user.getUsername();
+        this.email = user.getEmail();
+        this.role = role;
+        this.phoneNumber = user.getPhoneNumber();
+        this.address = user.getAddress();
+    }
+
 }

@@ -53,20 +53,32 @@ export function call(api, method, request) {
     });
 }
 
-export function login(userDTO) {
-  return call("/auth/login", "POST", userDTO)
-    .then((response) => {
-      console.log("res:::", response);
+export async function login(userDTO) {
+  try {
+    const response = await call("/members/login", "POST", userDTO);
 
-      if (response && response.accessToken) {
-        localStorage.setItem("ACCESS_TOKEN", response.accessToken);
-        return "OK";
-      } else {
-        return "FAIL";
-      }
-    })
-    .catch((e) => {
-      console.error("Login 실패:", e);
-      return "FAIL";
-    });
+    // response = { accessToken, expiresIn }
+    const { accessToken, expiresIn } = response;
+
+    if (!accessToken) {
+      throw new Error("AccessToken not found in response");
+    }
+
+    // 토큰 저장
+    localStorage.setItem("ACCESS_TOKEN", accessToken);
+
+    // (선택) 만료 시각 저장
+    if (expiresIn) {
+      localStorage.setItem(
+        "ACCESS_TOKEN_EXPIRES_AT",
+        String(Date.now() + expiresIn)
+      );
+    }
+
+    // 성공 시 아무 값이나 반환하거나 true 반환
+    return true;
+  } catch (e) {
+    console.error("Login 실패:", e);
+    throw e; // ⭐ 실패는 호출부에서 처리
+  }
 }

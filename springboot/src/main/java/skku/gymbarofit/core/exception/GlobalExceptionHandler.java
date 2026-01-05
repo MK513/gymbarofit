@@ -19,14 +19,15 @@ public class GlobalExceptionHandler {
         log.error(e.getErrorCode().getMessage());
         return ResponseEntity
                 .badRequest()
-                .body(
-//                        new ResponseDto<Object>(HttpStatus.BAD_REQUEST, e.getErrorCode().getMessage()
-                        new ResponseEntity<Object>(HttpStatus.BAD_REQUEST)
-                );
+                .body(Map.of(
+                        "error", "BadRequest",
+                        "message", e.getMessage()));
     }
 
     @ExceptionHandler(Exception.class) // ✅ 모든 예외 처리
     public ResponseEntity<?> handleAll(Exception e) {
+
+        log.error(e.getMessage());
         return ResponseEntity
                 .status(HttpStatus.INTERNAL_SERVER_ERROR)
                 .body(Map.of(

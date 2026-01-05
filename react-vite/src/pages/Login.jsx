@@ -19,20 +19,18 @@ export default function Login() {
 
     const navigate = useNavigate();
 
-    const handleSubmit = async (e) => {
+    const handleLogin  = async (e) => {
         e.preventDefault(); // 새로고침 방지
 
         const data = new FormData(e.target);
         const email = data.get("email")
         const pw = data.get('pw');
 
-        const result = await login({email: email, password: pw});
-
-        console.log("result: " + result);
-        if (result == "OK") {
-            navigate('/'); // 로그인 성공 시 홈으로 이동
-        } else {
-            alert('로그인 실패');
+        try {
+          await login({email: email, password: pw});
+          navigate("/"); // 로그인 성공
+        } catch {
+          alert("로그인 실패");
         }
     };
 
@@ -42,7 +40,7 @@ export default function Login() {
         <Typography variant="h5" align="center" gutterBottom>
           로그인
         </Typography>
-        <Box component="form" onSubmit={handleSubmit} noValidate>
+        <Box component="form" onSubmit={handleLogin } noValidate>
           <Grid container spacing={2}>
             <Grid item xs={12}>
               <TextField

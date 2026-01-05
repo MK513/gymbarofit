@@ -3,6 +3,7 @@ package skku.gymbarofit.api.security.provider;
 import io.jsonwebtoken.*;
 import io.jsonwebtoken.io.Decoders;
 import io.jsonwebtoken.security.Keys;
+import jakarta.servlet.http.HttpServletResponse;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.security.core.GrantedAuthority;
@@ -14,6 +15,7 @@ import skku.gymbarofit.api.security.userdetail.CustomUserDetails;
 import skku.gymbarofit.core.user.UserRole;
 
 import javax.crypto.SecretKey;
+import java.time.Instant;
 import java.util.Date;
 import java.util.Optional;
 
@@ -22,7 +24,8 @@ import java.util.Optional;
 public class JwtTokenProvider {
 
     public static final String ROLE = "role";
-    public static final String CLIENT_UUID = "uuid";
+    public static final String EMAIL = "email";
+    public static final String ISSUER = "gymbarofit";
 
     @Value("${app.jwt.secretKey}")
     private String secretKey;
@@ -32,43 +35,30 @@ public class JwtTokenProvider {
     /**
      * JWT 토큰 생성
      */
-    public String generateAccessToken(UserDetails userDetails) {
+    public String generateAccessToken(CustomUserDetails customUserDetails, HttpServletResponse response) {
 
-        Date now = new Date();
-        Date accessExpiration = new Date(now.getTime() + EXPIRATION_TIME);
-
-        Optional<String> role = userDetails.getAuthorities()
-                .stream().map(GrantedAuthority::getAuthority)
-                .findAny();
+        UserContext userContext = customUserDetails.getUserContext();
+        Instant now = Instant.now();
 
         return Jwts.builder()
-                .header()
-                    .add("typ", "JWT")
-                    .add("alg", "HS256")
-                    .add("regDate", System.currentTimeMillis())
-                .and()
-                .claims()
-                    .add("role", role.orElse("MEMBER"))
-                .and()
-                .subject(userDetails.getUsername())
-                .signWith(getKey(), Jwts.SIG.HS256) // JWT 서명 발급
-                .expiration(accessExpiration)
+                .subject(String.valueOf(userContext.getId()))     // sub = userId
+                .claim(ROLE, userContext.getRole().name())      // role = "ROLE_MEMBER"
+                .claim(EMAIL, userContext.getEmail())
+                .issuedAt(Date.from(now))                         // iat
+                .expiration(Date.from(now.plusMillis(EXPIRATION_TIME))) // exp
+                .issuer(ISSUER)                             // iss (선택)
+                .signWith(getKey(), Jwts.SIG.HS256)
                 .compact();
     }
 
-    public CustomUserDetails getUserDetailsFromJwt(String token, String clientUuid) {
+    public CustomUserDetails getUserDetailsFromJwt(String token) {
         Claims claims = validateToken(token);
 
-        String encryptedUuid = claims.get(CLIENT_UUID, String.class);
-
-        if (!encryptedUuid.equals(clientUuid)) {
-            throw new JwtContextException();
-        }
-
-        Long userId = Long.parseLong(claims.getId());
+        Long userId = Long.parseLong(claims.getSubject());
         UserRole role = UserRole.valueOf(claims.get(ROLE, String.class));
+        String email = claims.get(EMAIL, String.class);
 
-        return new CustomUserDetails(new UserContext(userId, role));
+        return new CustomUserDetails(new UserContext(userId, email, role));
     }
 
     // secret key 객체 생성
@@ -86,6 +76,7 @@ public class JwtTokenProvider {
                     .build()
                     .parseSignedClaims(token)
                     .getPayload();
+
         } catch (Exception e) {
 
             if (e instanceof SecurityException) {
@@ -110,4 +101,7 @@ public class JwtTokenProvider {
         }
     }
 
+    public Long getAccessTokenExpiryDuration() {
+        return EXPIRATION_TIME;
+    }
 }

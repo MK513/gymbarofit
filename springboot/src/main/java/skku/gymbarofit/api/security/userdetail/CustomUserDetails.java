@@ -13,6 +13,7 @@ import java.util.Collection;
 import java.util.List;
 
 @AllArgsConstructor
+@Getter
 public class CustomUserDetails implements UserDetails{
 
     private final UserContext userContext;
