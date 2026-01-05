@@ -1,15 +1,15 @@
 package skku.gymbarofit.core.repository;
 
 import org.springframework.data.jpa.repository.JpaRepository;
-import org.springframework.stereotype.Repository;
 import skku.gymbarofit.core.user.Member;
+import skku.gymbarofit.core.user.Owner;
 import skku.gymbarofit.core.user.User;
 
 import java.util.Optional;
 
-public interface MemberRepository extends JpaRepository<Member, Long> {
+public interface OwnerRepository extends JpaRepository<Owner, Long> {
 
-    Optional<Member> findByEmail(String email);
-
+    Optional<Owner> findByEmail(String email);
+    
     Boolean existsByEmail(String email);
 }

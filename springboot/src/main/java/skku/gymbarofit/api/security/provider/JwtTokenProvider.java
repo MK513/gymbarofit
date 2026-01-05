@@ -7,17 +7,21 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.userdetails.UserDetails;
+import org.springframework.stereotype.Component;
 import skku.gymbarofit.api.security.UserContext;
+import skku.gymbarofit.api.security.exception.JwtContextException;
+import skku.gymbarofit.api.security.userdetail.CustomUserDetails;
+import skku.gymbarofit.core.user.UserRole;
 
 import javax.crypto.SecretKey;
 import java.util.Date;
 import java.util.Optional;
 
 @Slf4j
+@Component
 public class JwtTokenProvider {
 
     public static final String ROLE = "role";
-    public static final String CLIENT_IP = "ip";
     public static final String CLIENT_UUID = "uuid";
 
     @Value("${app.jwt.secretKey}")
@@ -52,12 +56,19 @@ public class JwtTokenProvider {
                 .compact();
     }
 
-    public UserContext getUserContextFromJwt(String token, String clientIp, String clientUuid, String userAgent) {
+    public CustomUserDetails getUserDetailsFromJwt(String token, String clientUuid) {
         Claims claims = validateToken(token);
 
-        String encryptedIp = claims.get(CLIENT_IP, String.class);
         String encryptedUuid = claims.get(CLIENT_UUID, String.class);
-        // TODO: AES256Utils 제거, Refresh Token 서버 저장 정책(정석)
+
+        if (!encryptedUuid.equals(clientUuid)) {
+            throw new JwtContextException();
+        }
+
+        Long userId = Long.parseLong(claims.getId());
+        UserRole role = UserRole.valueOf(claims.get(ROLE, String.class));
+
+        return new CustomUserDetails(new UserContext(userId, role));
     }
 
     // secret key 객체 생성

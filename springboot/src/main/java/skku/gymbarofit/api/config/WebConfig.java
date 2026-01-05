@@ -2,7 +2,6 @@ package skku.gymbarofit.api.config;
 
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
-import org.springframework.mobile.device.LiteDeviceResolver;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.web.servlet.config.annotation.EnableWebMvc;
@@ -17,8 +16,4 @@ public class WebConfig implements WebMvcConfigurer {
         return new BCryptPasswordEncoder();
     }
 
-    @Bean
-    public LiteDeviceResolver liteDeviceResolver() {
-        return new LiteDeviceResolver();
-    }
 }

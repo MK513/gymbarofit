@@ -27,7 +27,10 @@ public class MemberApiController {
     public ResponseEntity<MemberDetailResponseDto> register(
             @RequestBody MemberRegisterRequestDto registerRequestDto
     ) {
-        return ResponseEntity.ok().build();
+
+        MemberDetailResponseDto responseDto = new MemberDetailResponseDto(1L, registerRequestDto.getEmail(), registerRequestDto.getUsername());
+
+        return ResponseEntity.ok(responseDto);
     }
 
 }

@@ -10,7 +10,8 @@ import org.springframework.security.core.AuthenticationException;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Component;
-import skku.gymbarofit.api.security.userdetail.CustomUserDetailService;
+import skku.gymbarofit.api.security.UserContext;
+import skku.gymbarofit.api.security.userdetail.CustomUserDetails;
 
 @Slf4j
 @RequiredArgsConstructor
@@ -18,7 +19,6 @@ import skku.gymbarofit.api.security.userdetail.CustomUserDetailService;
 public class CustomAuthenticationProvider implements AuthenticationProvider {
 
     private final PasswordEncoder passwordEncoder;
-    private final CustomUserDetailService userDetailsService;
 
     @Override
     public Authentication authenticate(Authentication authentication) throws AuthenticationException {
@@ -27,7 +27,8 @@ public class CustomAuthenticationProvider implements AuthenticationProvider {
         String email = token.getName();
         String password = (String) token.getCredentials();
 
-        UserDetails userDetails = userDetailsService.loadUserByUsername(email);
+//        UserDetails userDetails = userDetailsService.loadUserByUsername(email);
+        UserDetails userDetails = new CustomUserDetails(new UserContext());
 
         if (!(userDetails.getUsername().equals(email) && passwordEncoder.matches(password, userDetails.getPassword()))) {
             log.info("CustomAuthenticationProvider 실패 : 유효하지 않은 이메일 or 비밀번호");

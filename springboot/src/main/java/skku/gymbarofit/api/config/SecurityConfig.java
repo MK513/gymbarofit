@@ -8,10 +8,9 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.data.jpa.repository.config.EnableJpaRepositories;
 import org.springframework.security.authentication.AuthenticationManager;
-import org.springframework.security.authentication.ProviderManager;
+import org.springframework.security.config.annotation.authentication.configuration.AuthenticationConfiguration;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
-import org.springframework.security.config.annotation.web.configuration.WebSecurityConfiguration;
 import org.springframework.security.config.annotation.web.configuration.WebSecurityCustomizer;
 import org.springframework.security.config.annotation.web.configurers.AbstractHttpConfigurer;
 import org.springframework.security.config.http.SessionCreationPolicy;
@@ -23,23 +22,17 @@ import org.springframework.web.cors.CorsConfigurationSource;
 import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
 import skku.gymbarofit.api.security.filter.JwtTokenFilter;
 import skku.gymbarofit.api.security.provider.JwtTokenProvider;
-import skku.gymbarofit.api.security.userdetail.CustomUserDetailService;
-import skku.gymbarofit.core.repository.UserRepository;
 
 import java.util.ArrayList;
 import java.util.Collections;
 
-@RequiredArgsConstructor
 @Configuration
 @EnableWebSecurity
-@EnableJpaRepositories("skku.gymbarofit")
-public class SecurityConfig extends WebSecurityConfiguration {
+//@EnableJpaRepositories("skku.gymbarofit")
+public class SecurityConfig {
 
-    @Value("${jwt.secretKey}")
+    @Value("${app.jwt.secretKey}")
     private String secretKey;
-
-    private final UserRepository userRepository;
-    private final JwtTokenFilter jwtTokenFilter;
 
     @Bean
     public WebSecurityCustomizer webSecurityCustomizer() {
@@ -47,7 +40,7 @@ public class SecurityConfig extends WebSecurityConfiguration {
     }
 
     @Bean
-    SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
+    SecurityFilterChain filterChain(HttpSecurity http, JwtTokenFilter jwtTokenFilter) throws Exception {
 
         http.cors(cors -> cors.configurationSource(corsConfigurationSource()))
                 .csrf(AbstractHttpConfigurer::disable)
@@ -73,9 +66,11 @@ public class SecurityConfig extends WebSecurityConfiguration {
                         "script-src 'self'"
                 )))
                 .authorizeHttpRequests(authorize -> authorize
+                        .requestMatchers(org.springframework.http.HttpMethod.OPTIONS, "/**").permitAll()
+                        .requestMatchers("/members/register", "/members/login").permitAll()
+                        .requestMatchers("/owners/register", "/owners/login").permitAll()
                         .requestMatchers("/members/**").hasRole("MEMBER")
                         .requestMatchers("/owners/**").hasRole("OWNER")
-                        .requestMatchers("/members/register", "/owners/register", "/members/login", "/owners/login").permitAll()
                         .requestMatchers(
                                "/", "/index.html", "/assets/**", "/*.ico",
                                "/**/*.css", "/**/*.js", "/**/*.png", "/**/*.svg"
@@ -90,19 +85,10 @@ public class SecurityConfig extends WebSecurityConfiguration {
 
 
     @Bean
-    public AuthenticationManager authenticationManager() {
-        return super.authenticationManager();
+    public AuthenticationManager authenticationManager(AuthenticationConfiguration config) throws Exception {
+        return config.getAuthenticationManager();
     }
 
-    @Bean
-    public CustomUserDetailService customUserDetailService() {
-        return new CustomUserDetailService(userRepository);
-    }
-
-    @Bean
-    public JwtTokenProvider jwtTokenProvider() {
-        return new JwtTokenProvider();
-    }
 
     public CorsConfigurationSource corsConfigurationSource () {
         CorsConfiguration configuration = new CorsConfiguration();

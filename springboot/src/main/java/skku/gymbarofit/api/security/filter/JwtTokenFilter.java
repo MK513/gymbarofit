@@ -11,12 +11,12 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
-import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.stereotype.Component;
 import org.springframework.util.StringUtils;
 import org.springframework.web.filter.OncePerRequestFilter;
-import skku.gymbarofit.api.security.userdetail.CustomUserDetailService;
+import skku.gymbarofit.api.security.exception.JwtContextException;
 import skku.gymbarofit.api.security.provider.JwtTokenProvider;
+import skku.gymbarofit.api.security.userdetail.CustomUserDetails;
 
 import java.io.IOException;
 
@@ -34,7 +34,6 @@ public class JwtTokenFilter extends OncePerRequestFilter {
     @Value("${app.jwt.header.prefix}")
     private String tokenRequestHeaderPrefix;
 
-    private final CustomUserDetailService customUserDetailService;
     private final JwtTokenProvider jwtTokenProvider;
 
     @Override
@@ -46,19 +45,29 @@ public class JwtTokenFilter extends OncePerRequestFilter {
 
         try {
 
+            log.info("Before");
+
+            String header = request.getHeader("Authorization");
+            if (header == null || !header.startsWith("Bearer ")) {
+                chain.doFilter(request, response);
+                return;
+            }
+
+            log.info("After Bearer");
+
+
             if (SecurityContextHolder.getContext().getAuthentication() == null) {
 
                 String jwt = getJwtTokenFromRequest(request);
 
                 if (StringUtils.hasText(jwt)) {
-                    String clientIp = getClientIp(request);
                     String clientUuid = getClientUuid(request);
-                    String userAgent = request.getHeader("User-Agent");
+//                    String userAgent = request.getHeader("User-Agent");
 
-                    jwtTokenProvider.get
-                    UserDetails userDetails = customUserDetailService.loadUserByUsername(email);
+                    CustomUserDetails userDetails = jwtTokenProvider.getUserDetailsFromJwt(jwt, clientUuid);
 
-                    Authentication authentication = new UsernamePasswordAuthenticationToken(userDetails, userDetails.getPassword(), userDetails.getAuthorities());
+                    Authentication authentication = new UsernamePasswordAuthenticationToken(
+                            userDetails, userDetails.getPassword(), userDetails.getAuthorities());
                     SecurityContextHolder.getContext().setAuthentication(authentication);
                 }
             }
@@ -103,7 +112,7 @@ public class JwtTokenFilter extends OncePerRequestFilter {
         }
 
         if (clientUuid == null) {
-            throw new JwtNotMeException();
+            throw new JwtContextException();
         }
 
         return clientUuid;

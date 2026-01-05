@@ -3,9 +3,6 @@ package skku.gymbarofit.api.controller;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.web.bind.annotation.*;
-import skku.gymbarofit.core.dto.LoginDto;
-import skku.gymbarofit.core.dto.ResponseDto;
-import skku.gymbarofit.core.dto.SignupDto;
 
 @Slf4j
 @RestController

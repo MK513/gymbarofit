@@ -6,10 +6,8 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import skku.gymbarofit.core.user.User;
-import skku.gymbarofit.core.dto.SignupDto;
 import skku.gymbarofit.core.exception.BusinessException;
 import skku.gymbarofit.core.exception.ErrorCode;
-import skku.gymbarofit.core.repository.UserRepository;
 
 import java.util.Optional;
 
@@ -20,7 +18,6 @@ import java.util.Optional;
 public class UserService {
 
     private final PasswordEncoder passwordEncoder;
-    private final UserRepository userRepository;
 
 //    /**
 //     * 회원가입
@@ -57,21 +54,21 @@ public class UserService {
     /**
      * 유저 검색
      */
-    public Optional<User> findById(Long userId) {
-        return userRepository.findById(userId);
-    }
-
-    public Optional<User> findByEmail(String email) {
-        return userRepository.findByEmail(email);
-    }
-
-
-    private void validateDuplicateUser(String email) {
-        userRepository.findByEmail(email)
-                .ifPresent(member -> {
-                    log.info("Duplicated Email used");
-                    throw new BusinessException(ErrorCode.DUPLICATED_EMAIL_USED);
-                });
-    }
+//    public Optional<User> findById(Long userId) {
+//        return userRepository.findById(userId);
+//    }
+//
+//    public Optional<User> findByEmail(String email) {
+//        return userRepository.findByEmail(email);
+//    }
+//
+//
+//    private void validateDuplicateUser(String email) {
+//        userRepository.findByEmail(email)
+//                .ifPresent(member -> {
+//                    log.info("Duplicated Email used");
+//                    throw new BusinessException(ErrorCode.DUPLICATED_EMAIL_USED);
+//                });
+//    }
 
 }
