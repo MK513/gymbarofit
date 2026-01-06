@@ -72,6 +72,7 @@ public class SecurityConfig {
                         "script-src 'self'"
                 )))
                 .authorizeHttpRequests(authorize -> authorize
+                        .requestMatchers("/v3/api-docs/**", "/swagger-ui/**", "/swagger-ui.html").permitAll()
                         .requestMatchers(org.springframework.http.HttpMethod.OPTIONS, "/**").permitAll()
                         .requestMatchers("/members/register", "/members/login").permitAll()
                         .requestMatchers("/owners/register", "/owners/login").permitAll()
