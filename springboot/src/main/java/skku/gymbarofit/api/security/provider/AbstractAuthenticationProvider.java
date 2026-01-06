@@ -11,12 +11,8 @@ public abstract class AbstractAuthenticationProvider implements AuthenticationPr
     @Override
     public Authentication authenticate(Authentication authentication) throws AuthenticationException {
 
-        System.out.println("start authenticate");
         String email = authentication.getName();
         String password = (String) authentication.getCredentials();
-
-        System.out.println("email = " + email);
-        System.out.println("password = " + password);
 
         CustomUserDetails customUserDetails = getCustomUserDetails(email, password);
 

@@ -23,4 +23,6 @@ public class OwnerRegisterRequestDto {
     private String phoneNumber;
 
     private String address;
+
+    private String businessNumber;
 }

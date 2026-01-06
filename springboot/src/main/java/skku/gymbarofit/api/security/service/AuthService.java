@@ -39,7 +39,6 @@ public class AuthService {
     public LoginResponseDto createJwtToken(CustomUserDetails customUserDetails, HttpServletResponse response) {
         String jwtAccessToken = jwtTokenProvider.generateAccessToken(customUserDetails, response);
 
-        System.out.println("jwtAccessToken = " + jwtAccessToken);
         return new LoginResponseDto(jwtAccessToken, jwtTokenProvider.getAccessTokenExpiryDuration());
     }
 }

@@ -3,7 +3,6 @@ package skku.gymbarofit.api.security.provider;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Component;
 import skku.gymbarofit.api.security.UserContext;
-import skku.gymbarofit.api.security.service.AuthService;
 import skku.gymbarofit.api.security.service.UserValidateService;
 import skku.gymbarofit.api.security.token.OwnerUsernamePasswordAuthenticationToken;
 import skku.gymbarofit.api.security.userdetail.CustomUserDetails;

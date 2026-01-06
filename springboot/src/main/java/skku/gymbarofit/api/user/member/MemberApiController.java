@@ -36,8 +36,6 @@ public class MemberApiController {
                 )
         );
 
-        System.out.println("Second");
-
         return ResponseEntity.ok(authService.createJwtToken(customUserDetails, response));
     }
 

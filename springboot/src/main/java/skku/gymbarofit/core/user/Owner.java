@@ -10,16 +10,19 @@ import skku.gymbarofit.core.dto.OwnerRegisterRequestDto;
 @Table(name = "OWNERS")
 public class Owner extends User{
 
+    private String businessNumber;
+
     public Owner() { super(); }
 
-    public static Owner from(OwnerRegisterRequestDto dto) {
+    public static Owner from(OwnerRegisterRequestDto dto, String encodedPassword) {
         return Owner.builder()
                 .username(dto.getUsername())
                 .email(dto.getEmail())
-                .password(dto.getPassword()) // ⚠️ 암호화는 Service에서
+                .password(encodedPassword)
                 .phoneNumber(dto.getPhoneNumber())
                 .address(dto.getAddress())
                 .role(UserRole.ROLE_OWNER)
+                .businessNumber(dto.getBusinessNumber())
                 .build();
     }
 }
