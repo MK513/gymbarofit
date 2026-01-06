@@ -6,18 +6,14 @@ import io.jsonwebtoken.security.Keys;
 import jakarta.servlet.http.HttpServletResponse;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
-import org.springframework.security.core.GrantedAuthority;
-import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.stereotype.Component;
 import skku.gymbarofit.api.security.UserContext;
-import skku.gymbarofit.api.security.exception.JwtContextException;
 import skku.gymbarofit.api.security.userdetail.CustomUserDetails;
 import skku.gymbarofit.core.user.UserRole;
 
 import javax.crypto.SecretKey;
 import java.time.Instant;
 import java.util.Date;
-import java.util.Optional;
 
 @Slf4j
 @Component

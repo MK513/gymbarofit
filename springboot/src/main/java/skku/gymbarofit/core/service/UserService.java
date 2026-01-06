@@ -5,11 +5,6 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-import skku.gymbarofit.core.user.User;
-import skku.gymbarofit.core.exception.BusinessException;
-import skku.gymbarofit.core.exception.ErrorCode;
-
-import java.util.Optional;
 
 @Slf4j
 @Service

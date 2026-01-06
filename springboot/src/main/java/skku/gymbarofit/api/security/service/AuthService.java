@@ -3,19 +3,13 @@ package skku.gymbarofit.api.security.service;
 import jakarta.servlet.http.HttpServletResponse;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.authentication.AuthenticationManager;
-import org.springframework.security.authentication.BadCredentialsException;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
-import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.stereotype.Service;
-import skku.gymbarofit.api.security.exception.UserLoginException;
 import skku.gymbarofit.api.security.provider.JwtTokenProvider;
 import skku.gymbarofit.api.security.userdetail.CustomUserDetails;
 import skku.gymbarofit.core.dto.LoginResponseDto;
-import skku.gymbarofit.core.user.User;
-
-import java.util.Optional;
 
 @Service
 @RequiredArgsConstructor
