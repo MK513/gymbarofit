@@ -44,7 +44,7 @@ export default function Login() {
       if (role === "member") await loginMember(dto);
       else await loginOwner(dto);
 
-      navigate("/");
+      navigate("/members/dashboard");
     } catch {
       alert("로그인 실패: 이메일과 비밀번호를 확인해주세요.");
     }
