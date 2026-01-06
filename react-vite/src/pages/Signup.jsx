@@ -1,206 +1,349 @@
-import React, {useEffect, useState } from 'react';
-import { Box, Card, CardContent, TextField, Button, Typography,
+import React, { useEffect, useState } from "react";
+import {
+  Box,
+  Paper,
+  TextField,
+  Button,
+  Typography,
+  Container,
   FormControl,
   FormLabel,
   RadioGroup,
   FormControlLabel,
-  Radio,} from '@mui/material';
-import { useNavigate } from 'react-router-dom';
-import { call } from '../api/Api';
+  Radio,
+  InputAdornment,
+  Avatar,
+  ToggleButton,
+  ToggleButtonGroup,
+  Grid,
+} from "@mui/material";
+import { useNavigate, Link } from "react-router-dom";
 
+// 아이콘 Import
+import PersonAddOutlinedIcon from "@mui/icons-material/PersonAddOutlined";
+import EmailIcon from "@mui/icons-material/Email";
+import KeyIcon from "@mui/icons-material/Key";
+import PersonIcon from "@mui/icons-material/Person";
+import PhoneIcon from "@mui/icons-material/Phone";
+import HomeIcon from "@mui/icons-material/Home";
+import StoreIcon from "@mui/icons-material/Store";
+import BadgeIcon from "@mui/icons-material/Badge";
+import WcIcon from "@mui/icons-material/Wc"; // 성별 아이콘
+
+import { signupMember, signupOwner } from "../api/Api";
 
 export default function Signup() {
-    const [email, setEmail] = useState('');
-    const [pw, setPw] = useState('');
-    
-    const [emailValid, setEmailValid] = useState(false);
-    const [pwValid, setPwValid] = useState(false);
-    
-    const navigate = useNavigate();
+  const navigate = useNavigate();
 
-    const emailRegex = /^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/;
-    const pwRegex  = /^(?=.*[a-zA-Z])(?=.*[0-9]).{8,25}$/ // 영문 숫자 조합 8자리 이상
+  const [role, setRole] = useState("member"); // member | owner
+  const [email, setEmail] = useState("");
+  const [pw, setPw] = useState("");
 
-    const handleEmail = (e) => {
-        setEmail(e.target.value);
-        if (emailRegex.test(email)) {
-            setEmailValid(true);
-        }
-        else {
-            setEmailValid(false);
-        }
+  const [emailValid, setEmailValid] = useState(false);
+  const [pwValid, setPwValid] = useState(false);
+
+  const emailRegex = /^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/;
+  const pwRegex = /^(?=.*[a-zA-Z])(?=.*[0-9]).{8,25}$/;
+
+  useEffect(() => {
+    setEmailValid(emailRegex.test(email));
+    setPwValid(pwRegex.test(pw));
+  }, [email, pw]);
+
+  const handleRoleChange = (event, newRole) => {
+    if (newRole !== null) {
+      setRole(newRole);
     }
+  };
 
-    const handlePw = (e) => {
-        setPw(e.target.value);
-        if (pwRegex.test(pw)) {
-            setPwValid(true);
-        }
-        else {
-            setPwValid(false);
-        }
-    }
-    
-    useEffect(()=> {
-      if (emailRegex.test(email)) {
-            setEmailValid(true);
-        }
-        else {
-            setEmailValid(false);
-        }
-        if (pwRegex.test(pw)) {
-            setPwValid(true);
-        }
-        else {
-            setPwValid(false);
-        }
-    }, [email, pw]);
+  const handleSignup = async (e) => {
+    e.preventDefault();
+    const data = new FormData(e.target);
 
-    const handleSignup = async (e) => {
-      e.preventDefault();
-
-      const data = new FormData(e.target);
-      const username = data.get("name");
-      const phoneNumber = data.get("phoneNumber");
-      const address = data.get("address");
-      const gender = data.get("gender");
-      const role = "ROLE_MEMBER";
-
-      const signupDto = {
-        email,
-        password: pw,
-        username,
-        phoneNumber,
-        address,
-        gender,
-        role,
-      };
-
-      try {
-        // 1번 방식: 성공/실패는 HTTP status로 판단
-        // call()이 성공이면(2xx) 여기까지 옴
-        await call("/members/register", "POST", signupDto);
-
-        // 회원가입 성공 → 로그인 페이지로 이동
-        navigate("/login");
-      } catch (err) {
-        // call()이 4xx/5xx면 throw 한다는 전제로 처리
-        console.error("signup failed:", err);
-
-        // 선택: 서버가 message를 내려주면 보여주기
-        const msg =
-          err?.response?.data?.message ||
-          err?.message ||
-          "회원가입 실패";
-
-        alert(msg);
+    try {
+      if (role === "member") {
+        const dto = {
+          email,
+          password: pw,
+          username: data.get("name"),
+          phoneNumber: data.get("phoneNumber"),
+          address: data.get("address"),
+          gender: data.get("gender"),
+        };
+        await signupMember(dto);
+      } else {
+        const dto = {
+          email,
+          password: pw,
+          name: data.get("ownerName"),
+          phoneNumber: data.get("phoneNumber"),
+          address: data.get("address"),
+          businessNumber: data.get("businessNumber"),
+        };
+        await signupOwner(dto);
       }
-    };
 
-   return (
-    <Box
-      sx={{
-        minHeight: '100vh',
-        bgcolor: 'background.default',
-        display: 'flex',
-        alignItems: 'center',
-        justifyContent: 'center',
-        p: 2,
-      }}
-    >
-      <Card sx={{ width: '100%', maxWidth: 400, boxShadow: 3 }}>
-        <CardContent>
-          <form onSubmit={handleSignup}>
-            <Typography variant="h5" align="center" fontWeight="bold" mb={3}>
-              회원가입
-            </Typography>
+      alert("회원가입 성공! 로그인 해주세요.");
+      navigate("/login");
+    } catch (err) {
+      console.error("signup failed:", err);
+      alert(err?.message || "회원가입 실패");
+    }
+  };
 
-            <TextField
-              label="이메일"
-              type="email"
-              name="email"
-              placeholder="email@example.com"
-              variant="outlined"
+  const isMember = role === "member";
+
+  return (
+    <Container component="main" maxWidth="sm">
+      <Box
+        sx={{
+          // 모바일(xs)에선 위아래 여백 2, 태블릿 이상(sm)에선 4
+          marginTop: { xs: 2, sm: 4 },
+          marginBottom: { xs: 2, sm: 4 },
+          display: "flex",
+          flexDirection: "column",
+          alignItems: "center",
+          justifyContent: "center",
+          minHeight: "90vh",
+        }}
+      >
+        <Paper
+          sx={{
+            boxShadow: { xs: "none", sm: 6 },
+            borderRadius: { xs: 0, sm: 3 },
+            p: { xs: 2, sm: 4 },
+
+            display: "flex",
+            flexDirection: "column",
+            alignItems: "center",
+            width: "100%",
+            background: "#ffffff",
+          }}
+        >
+          {/* 헤더 아이콘 */}
+          <Avatar sx={{ m: 1, bgcolor: "secondary.main", width: 56, height: 56 }}>
+            <PersonAddOutlinedIcon fontSize="large" />
+          </Avatar>
+          
+          <Typography component="h1" variant="h5" sx={{ mb: 3, fontWeight: "bold" }}>
+            회원가입
+          </Typography>
+
+          {/* 역할 선택 (토글 버튼) */}
+          <ToggleButtonGroup
+            value={role}
+            exclusive
+            onChange={handleRoleChange}
+            fullWidth
+            sx={{ mb: 3 }}
+            aria-label="가입 유형 선택"
+          >
+            <ToggleButton value="member" sx={{ py: 1.5 }}>
+              <PersonIcon sx={{ mr: 1 }} />
+              개인 회원
+            </ToggleButton>
+            <ToggleButton value="owner" sx={{ py: 1.5 }}>
+              <StoreIcon sx={{ mr: 1 }} />
+              기업 회원
+            </ToggleButton>
+          </ToggleButtonGroup>
+
+          <Box component="form" onSubmit={handleSignup} noValidate sx={{ width: "100%" }}>
+            <Grid container spacing={2} direction="column">
+              {/* 공통 필드: 이메일 & 비밀번호 */}
+              <Grid item xs={12}>
+                <TextField
+                  required
+                  fullWidth
+                  label="이메일"
+                  name="email"
+                  type="email"
+                  value={email}
+                  onChange={(e) => setEmail(e.target.value)}
+                  error={!emailValid && email.length > 0}
+                  helperText={
+                    !emailValid && email.length > 0
+                      ? "올바른 이메일 형식이 아닙니다."
+                      : ""
+                  }
+                  InputProps={{
+                    startAdornment: (
+                      <InputAdornment position="start">
+                        <EmailIcon color="action" />
+                      </InputAdornment>
+                    ),
+                  }}
+                />
+              </Grid>
+              <Grid item xs={12}>
+                <TextField
+                  required
+                  fullWidth
+                  label="비밀번호"
+                  name="password"
+                  type="password"
+                  value={pw}
+                  onChange={(e) => setPw(e.target.value)}
+                  error={!pwValid && pw.length > 0}
+                  helperText={
+                    !pwValid && pw.length > 0
+                      ? "영문+숫자 조합 8~25자"
+                      : ""
+                  }
+                  InputProps={{
+                    startAdornment: (
+                      <InputAdornment position="start">
+                        <KeyIcon color="action" />
+                      </InputAdornment>
+                    ),
+                  }}
+                />
+              </Grid>
+
+              {/* 역할별 분기 */}
+              {isMember ? (
+                <>
+                  <Grid item xs={12}>
+                    <TextField
+                      required
+                      fullWidth
+                      label="이름"
+                      name="name"
+                      InputProps={{
+                        startAdornment: (
+                          <InputAdornment position="start">
+                            <PersonIcon color="action" />
+                          </InputAdornment>
+                        ),
+                      }}
+                    />
+                  </Grid>
+                  <Grid item xs={12}>
+                    <TextField
+                      fullWidth
+                      label="전화번호"
+                      name="phoneNumber"
+                      placeholder="01012345678"
+                      InputProps={{
+                        startAdornment: (
+                          <InputAdornment position="start">
+                            <PhoneIcon color="action" />
+                          </InputAdornment>
+                        ),
+                      }}
+                    />
+                  </Grid>
+                  <Grid item xs={12}>
+                    <TextField
+                      fullWidth
+                      label="주소"
+                      name="address"
+                      InputProps={{
+                        startAdornment: (
+                          <InputAdornment position="start">
+                            <HomeIcon color="action" />
+                          </InputAdornment>
+                        ),
+                      }}
+                    />
+                  </Grid>
+                  <Grid item xs={12}>
+                    <FormControl component="fieldset" sx={{ width: '100%', pb: 1.5, pt: 1.5 }}>
+                      <Box display="flex" alignItems="center">
+                        <WcIcon color="action" sx={{ ml: 1,mr: 2 }} />
+                        <FormLabel component="legend" sx={{ mr: 3 }}>성별</FormLabel>
+                        <RadioGroup row name="gender" defaultValue="MALE">
+                          <FormControlLabel value="MALE" control={<Radio size="small" sx={{ p: 0.5, }}/>} label="남성" />
+                          <FormControlLabel value="FEMALE" control={<Radio size="small" sx={{ p: 0.5, }}/>} label="여성" />
+                        </RadioGroup>
+                      </Box>
+                    </FormControl>
+                  </Grid>
+                </>
+              ) : (
+                <>
+                  <Grid item xs={12}>
+                    <TextField
+                      required
+                      fullWidth
+                      label="이름"
+                      name="ownerName"
+                      InputProps={{
+                        startAdornment: (
+                          <InputAdornment position="start">
+                            <PersonIcon color="action" />
+                          </InputAdornment>
+                        ),
+                      }}
+                    />
+                  </Grid>
+                  <Grid item xs={12}>
+                    <TextField
+                      fullWidth
+                      label="사업자 번호"
+                      name="businessNumber"
+                      placeholder="123-45-67890"
+                      InputProps={{
+                        startAdornment: (
+                          <InputAdornment position="start">
+                            <BadgeIcon color="action" />
+                          </InputAdornment>
+                        ),
+                      }}
+                    />
+                  </Grid>
+                  <Grid item xs={12}>
+                    <TextField
+                      fullWidth
+                      label="전화번호"
+                      name="phoneNumber"
+                      InputProps={{
+                        startAdornment: (
+                          <InputAdornment position="start">
+                            <PhoneIcon color="action" />
+                          </InputAdornment>
+                        ),
+                      }}
+                    />
+                  </Grid>
+                  <Grid item xs={12}>
+                    <TextField
+                      fullWidth
+                      label="가게 주소"
+                      name="address"
+                      InputProps={{
+                        startAdornment: (
+                          <InputAdornment position="start">
+                            <HomeIcon color="action" />
+                          </InputAdornment>
+                        ),
+                      }}
+                    />
+                  </Grid>
+                </>
+              )}
+            </Grid>
+
+            <Button
+              type="submit"
               fullWidth
-              margin="normal"
-              value={email}
-              onChange={handleEmail}
-              required
-            />
+              variant="contained"
+              size="large"
+              sx={{ mt: 4, mb: 2, py: 1.5, fontSize: "1.1rem", fontWeight: "bold" }}
+            >
+              가입하기
+            </Button>
 
-            <TextField
-              label="비밀번호"
-              type="password"
-              name="password"
-              placeholder="영문 숫자 조합 8자리 이상"
-              variant="outlined"
-              fullWidth
-              margin="normal"
-              value={pw}
-              onChange={handlePw}
-              required
-            />
-
-            <TextField
-              label="이름"
-              type="name"
-              name="name"
-              placeholder="홍길동"
-              variant="outlined"
-              fullWidth
-              margin="normal"
-              required
-            />
-
-            <TextField
-              label="전화번호"
-              type="phoneNumber"
-              name="phoneNumber"
-              placeholder="01012345678"
-              variant="outlined"
-              fullWidth
-              margin="normal"
-            />
-
-            <TextField
-              label="주소"
-              type="address"
-              name="address"
-              placeholder="서울시 동대문구 장한로"
-              variant="outlined"
-              fullWidth
-              margin="normal"
-            />
-
-            <FormControl component="fieldset" margin="normal">
-              <FormLabel component="legend">성별</FormLabel>
-              <RadioGroup row name="gender">
-                <FormControlLabel value="MALE" control={<Radio />} label="남성" />
-                <FormControlLabel value="FEMALE" control={<Radio />} label="여성" />
-              </RadioGroup>
-            </FormControl>
-
-            {!emailValid && email.length > 0 && (
-              <Typography color="error" variant="body2" mt={1}>
-                올바른 이메일을 입력해주세요.
-              </Typography>
-            )}
-
-            {!pwValid && pw.length > 0 && (
-              <Typography color="error" variant="body2" mt={1}>
-                비밀번호를 형식에 맞게 입력해주세요.
-                *영문 숫자 조합 8자리 이상
-              </Typography>
-            )}
-
-            <Box mt={3}>
-              <Button type="submit" variant="contained" color="primary" fullWidth>
-                가입
-              </Button>
-            </Box>
-          </form>
-        </CardContent>
-      </Card>
-    </Box>
+            <Grid container justifyContent="flex-end">
+              <Grid item>
+                <Button component={Link} to="/login" variant="text">
+                  이미 계정이 있으신가요? 로그인
+                </Button>
+              </Grid>
+            </Grid>
+          </Box>
+        </Paper>
+      </Box>
+    </Container>
   );
 }
