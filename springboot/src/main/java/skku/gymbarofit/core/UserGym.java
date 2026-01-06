@@ -2,6 +2,8 @@ package skku.gymbarofit.core;
 
 import jakarta.persistence.*;
 import lombok.Getter;
+import skku.gymbarofit.core.user.Owner;
+import skku.gymbarofit.core.user.User;
 
 import java.time.LocalDateTime;
 
@@ -18,7 +20,7 @@ public class UserGym {
 
     @ManyToOne(fetch = LAZY)
     @JoinColumn(name = "user_id")
-    private User user;
+    private Owner owner;
 
     @ManyToOne(fetch = LAZY)
     @JoinColumn(name = "gym_id")

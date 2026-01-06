@@ -3,6 +3,8 @@ package skku.gymbarofit.core;
 import jakarta.persistence.*;
 import lombok.Getter;
 import skku.gymbarofit.core.status.ReservationStatus;
+import skku.gymbarofit.core.user.Member;
+import skku.gymbarofit.core.user.User;
 
 
 import java.time.LocalDateTime;
@@ -19,7 +21,7 @@ public class Reservation {
     private Long id;
 
     @OneToOne(fetch = LAZY, cascade = CascadeType.ALL)
-    private User user;
+    private Member member;
 
     @OneToOne(fetch = LAZY, cascade = CascadeType.ALL)
     private GymItem gymItem;

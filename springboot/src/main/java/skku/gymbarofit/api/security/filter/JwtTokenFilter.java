@@ -10,49 +10,117 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
-import org.springframework.security.core.userdetails.UserDetails;
+import org.springframework.stereotype.Component;
+import org.springframework.util.StringUtils;
 import org.springframework.web.filter.OncePerRequestFilter;
-import skku.gymbarofit.api.security.userdetail.CustomUserDetailService;
 import skku.gymbarofit.api.security.provider.JwtTokenProvider;
+import skku.gymbarofit.api.security.userdetail.CustomUserDetails;
 
 import java.io.IOException;
 
 @Slf4j
+@Component
 @RequiredArgsConstructor
 public class JwtTokenFilter extends OncePerRequestFilter {
 
-    @Value("${jwt.secretKey}")
+    @Value("${app.jwt.secretKey}")
     private String secretKey;
 
-    private final CustomUserDetailService customUserDetailService;
+    @Value("${app.jwt.header.name}")
+    private String tokenRequestHeader;
+
+    @Value("${app.jwt.header.prefix}")
+    private String tokenRequestHeaderPrefix;
 
     private final JwtTokenProvider jwtTokenProvider;
 
     @Override
-    protected void doFilterInternal(HttpServletRequest request, HttpServletResponse response, FilterChain chain) throws ServletException, IOException {
-        String jwtHeader = request.getHeader("Authorization");
+    protected void doFilterInternal(
+            HttpServletRequest request,
+            HttpServletResponse response,
+            FilterChain chain
+    ) throws ServletException, IOException {
 
-        // JWT 토큰 유무 확인
-        if (jwtHeader == null || !jwtHeader.startsWith("Bearer ")) {
-            chain.doFilter(request, response);
-            return;
-        }
+        try {
 
-        String token = jwtHeader.replace("Bearer ", "");
+            String header = request.getHeader("Authorization");
+            if (header == null || !header.startsWith("Bearer ")) {
+                chain.doFilter(request, response);
+                return;
+            }
 
-        if (jwtTokenProvider.validateToken(token)) {
-            String email = jwtTokenProvider.getClaims(token).getSubject();
 
-            log.info("parsed email : {} ", email);
-            log.info("token : {}", token);
+            if (SecurityContextHolder.getContext().getAuthentication() == null) {
 
-            UserDetails userDetails = customUserDetailService.loadUserByUsername(email);
+                String jwt = getJwtTokenFromRequest(request);
 
-            Authentication authentication = new UsernamePasswordAuthenticationToken(userDetails, userDetails.getPassword(), userDetails.getAuthorities());
-            SecurityContextHolder.getContext().setAuthentication(authentication);
+                if (StringUtils.hasText(jwt)) {
+//                    String clientUuid = getClientUuid(request);
+//                    String userAgent = request.getHeader("User-Agent");
+
+                    CustomUserDetails userDetails = jwtTokenProvider.getUserDetailsFromJwt(jwt);
+
+                    Authentication authentication = new UsernamePasswordAuthenticationToken(
+                            userDetails, null, userDetails.getAuthorities());
+                    SecurityContextHolder.getContext().setAuthentication(authentication);
+                }
+            }
+
+        } catch (Exception e) {
+            log.error("JWT Token Validation Failed: {}", e.getMessage());
+            throw new RuntimeException(e);
         }
 
         chain.doFilter(request, response);
     }
+
+    @Override
+    protected boolean shouldNotFilter(HttpServletRequest request) {
+        String path = request.getServletPath();
+        return path.equals("/error")
+                || path.equals("/members/login")
+                || path.equals("/members/register")
+                || path.equals("/owners/login")
+                || path.equals("/owners/register");
+    }
+
+    private String getJwtTokenFromRequest(HttpServletRequest request) {
+        String rawToken = request.getHeader("Authorization");
+
+        if (StringUtils.hasText(rawToken) && rawToken.startsWith(tokenRequestHeaderPrefix)) {
+            log.info("Extracted Token: " + rawToken);
+            return rawToken.replace(tokenRequestHeaderPrefix, "");
+        }
+        return null;
+    }
+
+    public String getClientIp(HttpServletRequest request) {
+        String clientIp = request.getHeader("X-Forwarded-For");
+
+        if (clientIp == null) {
+            clientIp = request.getRemoteAddr();
+        }
+
+        return clientIp;
+    }
+
+//    public String getClientUuid(HttpServletRequest request) {
+//        String clientUuid = null;
+//
+//        Cookie[] cookies = request.getCookies();
+//        if (cookies != null) {
+//            for (Cookie cookie : cookies) {
+//                if (cookie.getName().equals(JwtTokenProvider.CLIENT_UUID)) {
+//                    clientUuid = cookie.getValue();
+//                }
+//            }
+//        }
+//
+//        if (clientUuid == null) {
+//            throw new JwtContextException();
+//        }
+//
+//        return clientUuid;
+//    }
 
 }

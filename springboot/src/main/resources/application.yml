@@ -13,5 +13,9 @@ logging.level:
   org.hibernate.SQL: debug
   org.springframework.security: DEBUG
 
-jwt:
-  secretKey: ${JWT_SECRET}
+app:
+  jwt:
+    secretKey: ${JWT_SECRET}
+    header:
+      name: Authorization
+      prefix: Bearer
