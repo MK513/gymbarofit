@@ -21,7 +21,7 @@ import {
   DialogContent,
   DialogActions,
 } from "@mui/material";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, Link } from "react-router-dom";
 
 // ▼▼▼ 아이콘 Import ▼▼▼
 import LogoutIcon from "@mui/icons-material/Logout";
@@ -344,10 +344,10 @@ export default function Dashboard() {
             </Box>
 
             <Stack direction="row" spacing={2}>
-              <Button fullWidth variant="outlined" color="secondary" sx={{ py: 1.5, borderRadius: 2, fontWeight: 'bold' }}>
+              <Button fullWidth variant="outlined" color="secondary" component={Link} to="/locker/extension" sx={{ py: 1.5, borderRadius: 2, fontWeight: 'bold' }}>
                 기간 연장
               </Button>
-              <Button fullWidth variant="contained" color="secondary" disableElevation sx={{ py: 1.5, borderRadius: 2, fontWeight: 'bold' }}>
+              <Button fullWidth variant="contained" color="secondary" component={Link} to="/locker/reservation" disableElevation sx={{ py: 1.5, borderRadius: 2, fontWeight: 'bold' }}>
                 신규 예약
               </Button>
             </Stack>
