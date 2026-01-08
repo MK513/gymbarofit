@@ -1,7 +1,7 @@
 spring:
+  profiles:
+    active: dev
   jpa:
-    hibernate:
-#      ddl-auto: create
     properties:
       hibernate:
         #        show_sql: true
@@ -10,11 +10,6 @@ spring:
     serialization:
       write-dates-as-timestamps: false
   output.ansi.enabled: ALWAYS
-
-# 디버그 모드 활성화
-logging.level:
-  org.hibernate.SQL: debug
-  org.springframework.security: DEBUG
 
 app:
   jwt:

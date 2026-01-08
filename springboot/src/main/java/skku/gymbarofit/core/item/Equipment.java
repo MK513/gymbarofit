@@ -21,4 +21,6 @@ public class Equipment{
 
     //TODO: 일단 string인데 이후에 리액트 보고 좌표값으로 수정 필요
     private String location;
+
+    private String displayName;
 }

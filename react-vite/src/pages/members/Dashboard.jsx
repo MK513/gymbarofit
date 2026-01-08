@@ -1,10 +1,10 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import {
   AppBar,
   Toolbar,
   Typography,
   Container,
-  Stack, // Grid 대신 Stack을 주로 사용
+  Stack,
   Paper,
   Box,
   Button,
@@ -20,8 +20,12 @@ import {
   DialogTitle,
   DialogContent,
   DialogActions,
+  Menu,
+  MenuItem,
+  Divider, // 구분선 추가
 } from "@mui/material";
 import { useNavigate, Link } from "react-router-dom";
+import { useAuth } from "../../context/AuthContext";
 
 // ▼▼▼ 아이콘 Import ▼▼▼
 import LogoutIcon from "@mui/icons-material/Logout";
@@ -36,20 +40,65 @@ import EventAvailableIcon from "@mui/icons-material/EventAvailable";
 import QrCodeIcon from '@mui/icons-material/QrCode'; 
 import PeopleAltIcon from '@mui/icons-material/PeopleAlt'; 
 import CheckCircleIcon from '@mui/icons-material/CheckCircle';
+import LocationOnIcon from '@mui/icons-material/LocationOn';
+import KeyboardArrowDownIcon from '@mui/icons-material/KeyboardArrowDown';
+import AddCircleOutlineIcon from '@mui/icons-material/AddCircleOutline'; // 추가 버튼 아이콘
 
 export default function Dashboard() {
   const navigate = useNavigate();
-  const userName = "김헬스";
+  const { user, logout } = useAuth();
 
-  // 가상 데이터 상태
+  // 기존 상태들
   const [lockerStatus] = useState({ use: true, number: 103, expiry: "2024-02-20" });
   const [equipStatus] = useState({ use: false, name: "", time: "" });
   const [attendance, setAttendance] = useState({ streak: 3, checkedToday: false }); 
   const [openQr, setOpenQr] = useState(false); 
-  
+
+  // [수정] 지점 관리 상태
+  const [myGyms, setMyGyms] = useState([]); // 서버에서 가져온 헬스장 목록
+  const [currentGym, setCurrentGym] = useState(null); // 현재 선택된 헬스장 객체
+  const [anchorEl, setAnchorEl] = useState(null);
+  const openMenu = Boolean(anchorEl);
+
+  // [추가] 헬스장 목록 불러오기 (Mocking)
+  useEffect(() => {
+    // 실제 구현 시: axios.get('/api/member/gyms').then(...)
+    const fetchGyms = async () => {
+      try {
+        // ▼▼▼ 가상 데이터 (테스트용: 빈 배열 []로 바꾸면 '등록 필요' 뜸) ▼▼▼
+        // const responseData = []; // 데이터가 없을 때 테스트
+        const responseData = [
+          { id: 1, name: "강남 1호점" },
+          { id: 2, name: "역삼 2호점" }
+        ];
+
+        setMyGyms(responseData);
+
+        // 초기값 설정: 목록이 있으면 첫 번째 지점 선택
+        if (responseData.length > 0) {
+          setCurrentGym(responseData[0]);
+        } else {
+          setCurrentGym(null);
+        }
+      } catch (error) {
+        console.error("헬스장 목록 로딩 실패", error);
+      }
+    };
+
+    fetchGyms();
+  }, []);
+
+  useEffect(() => {
+    if (!user) navigate("/login");
+  }, [user, navigate]);
+
+  if (!user) return null;
+
   const weeklyProgress = 70;
+  const userName = user.name || "회원";
 
   const handleLogout = () => {
+    logout();
     alert("로그아웃 되었습니다.");
     navigate("/login");
   };
@@ -60,12 +109,31 @@ export default function Dashboard() {
     alert(`출석체크 완료! 🔥\n${attendance.streak + 1}일 연속 운동 중입니다.`);
   };
 
+  const handleNewReservation = () => navigate('/locker/reservation');
   const handleOpenQr = () => setOpenQr(true);
   const handleCloseQr = () => setOpenQr(false);
 
+  // [수정] 지점 선택 핸들러
+  const handleGymMenuOpen = (event) => setAnchorEl(event.currentTarget);
+  
+  const handleGymSelect = (gym) => {
+    setCurrentGym(gym);
+    setAnchorEl(null);
+    // TODO: 선택된 지점에 따라 대시보드 데이터(출석, 예약 등) 다시 불러오기
+    // fetchDashboardData(gym.id); 
+  };
+
+  const handleGymMenuClose = () => setAnchorEl(null);
+
+  // [추가] 헬스장 등록 페이지 이동
+  const handleGoToRegister = () => {
+    setAnchorEl(null);
+    navigate('/members/gym/register'); // 헬스장 등록 라우트로 이동
+  };
+
   return (
     <Box sx={{ flexGrow: 1, bgcolor: "#f5f7fa", minHeight: "100vh" }}>
-      {/* 상단 네비게이션 */}
+      {/* 상단바 */}
       <AppBar position="static" color="inherit" elevation={0} sx={{ borderBottom: '1px solid #e0e0e0', bgcolor: "white" }}>
         <Toolbar>
           <FitnessCenterIcon sx={{ mr: 2, color: "primary.main" }} />
@@ -78,12 +146,10 @@ export default function Dashboard() {
         </Toolbar>
       </AppBar>
 
-      {/* 메인 컨텐츠 Container */}
       <Container maxWidth="sm" sx={{ mt: 3, mb: 4, px: 3 }}>
-        {/* Grid 대신 Stack을 사용하여 수직 배치 강제 */}
         <Stack spacing={3} sx={{ width: "100%" }}>
           
-          {/* ▼▼▼ 0. 환영 인사 & 혼잡도 통합 카드 ▼▼▼ */}
+          {/* 0. 환영 인사 & 지점 선택 */}
           <Paper 
             elevation={0} 
             sx={{ 
@@ -92,30 +158,92 @@ export default function Dashboard() {
               border: '1px solid #eef2f6', 
               bgcolor: 'white',
               display: 'flex',
-              justifyContent: 'space-between',
-              alignItems: 'center',
-              flexWrap: 'wrap',
-              gap: 1
+              flexDirection: 'column',
+              gap: 2
             }}
           >
             <Typography variant="subtitle1" sx={{ color: "#333", fontWeight: '500' }}>
               오늘도 득근하세요, <Box component="span" sx={{ fontWeight: '800', color: 'primary.main' }}>{userName}</Box>님 💪
             </Typography>
 
-            <Chip 
-              icon={<PeopleAltIcon fontSize="small" />} 
-              label="현재 헬스장: 쾌적 🟢" 
-              sx={{ 
-                bgcolor: "#e8f5e9", 
-                color: "#2e7d32", 
-                fontWeight: "bold",
-                border: '1px solid #c8e6c9'
-              }} 
-            />
+            <Box display="flex" justifyContent="space-between" alignItems="center" flexWrap="wrap" gap={1}>
+              
+              {/* [수정] 지점 선택 버튼 (조건부 렌더링) */}
+              <Button
+                onClick={handleGymMenuOpen}
+                startIcon={<LocationOnIcon />}
+                endIcon={<KeyboardArrowDownIcon />}
+                size="small"
+                color={currentGym ? "primary" : "error"} // 지점 없으면 빨간색 경고 느낌
+                sx={{ 
+                  fontWeight: 'bold', 
+                  bgcolor: currentGym ? '#f5f5f5' : '#ffebee', 
+                  borderRadius: 2,
+                  px: 1.5,
+                  '&:hover': { bgcolor: currentGym ? '#e0e0e0' : '#ffcdd2' }
+                }}
+              >
+                {/* 데이터 유무에 따른 텍스트 표시 */}
+                {currentGym ? currentGym.name : "헬스장 등록 필요 ⚠️"}
+              </Button>
+              
+              {/* [수정] 드롭다운 메뉴 */}
+              <Menu
+                anchorEl={anchorEl}
+                open={openMenu}
+                onClose={handleGymMenuClose}
+                PaperProps={{
+                  elevation: 3,
+                  sx: { borderRadius: 2, mt: 1, minWidth: 160 }
+                }}
+              >
+                {/* 1. 등록된 헬스장 목록 렌더링 */}
+                {myGyms.length > 0 ? (
+                  myGyms.map((gym) => (
+                    <MenuItem 
+                      key={gym.id} 
+                      onClick={() => handleGymSelect(gym)}
+                      selected={currentGym?.id === gym.id}
+                      sx={{ fontSize: '0.95rem' }}
+                    >
+                      {gym.name}
+                    </MenuItem>
+                  ))
+                ) : (
+                  <MenuItem disabled sx={{ fontSize: '0.9rem', color: 'text.secondary' }}>
+                    등록된 정보가 없습니다.
+                  </MenuItem>
+                )}
+
+                <Divider sx={{ my: 1 }} />
+
+                {/* 2. 헬스장 추가 버튼 (항상 표시) */}
+                <MenuItem onClick={handleGoToRegister} sx={{ color: 'primary.main', fontWeight: 'bold', fontSize: '0.9rem' }}>
+                  <ListItemIcon>
+                    <AddCircleOutlineIcon fontSize="small" color="primary" />
+                  </ListItemIcon>
+                  새 헬스장 등록
+                </MenuItem>
+              </Menu>
+
+              <Chip 
+                icon={<PeopleAltIcon fontSize="small" />} 
+                label="현재 헬스장: 쾌적 🟢" 
+                size="small"
+                sx={{ 
+                  bgcolor: "#e8f5e9", 
+                  color: "#2e7d32", 
+                  fontWeight: "bold",
+                  border: '1px solid #c8e6c9',
+                  height: 32
+                }} 
+              />
+            </Box>
           </Paper>
 
-          {/* 1. 출석체크 & 입장 QR 배너 */}
-          <Paper 
+          {/* ... (이하 나머지 컴포넌트는 기존과 동일) ... */}
+          {/* 편의상 나머지 코드는 생략하지만, 실제 파일엔 그대로 두시면 됩니다. */}
+           <Paper 
             elevation={0} 
             sx={{ 
               p: 3, 
@@ -347,7 +475,7 @@ export default function Dashboard() {
               <Button fullWidth variant="outlined" color="secondary" component={Link} to="/locker/extension" sx={{ py: 1.5, borderRadius: 2, fontWeight: 'bold' }}>
                 기간 연장
               </Button>
-              <Button fullWidth variant="contained" color="secondary" component={Link} to="/locker/reservation" disableElevation sx={{ py: 1.5, borderRadius: 2, fontWeight: 'bold' }}>
+              <Button fullWidth variant="contained" color="secondary" onClick={handleNewReservation} disableElevation sx={{ py: 1.5, borderRadius: 2, fontWeight: 'bold' }}>
                 신규 예약
               </Button>
             </Stack>

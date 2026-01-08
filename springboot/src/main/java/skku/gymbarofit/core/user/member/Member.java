@@ -5,11 +5,10 @@ import jakarta.persistence.EnumType;
 import jakarta.persistence.Enumerated;
 import jakarta.persistence.Table;
 import lombok.experimental.SuperBuilder;
-import skku.gymbarofit.core.Reservation;
 import skku.gymbarofit.core.user.User;
 import skku.gymbarofit.core.user.member.dto.MemberRegisterRequestDto;
-import skku.gymbarofit.core.global.enums.Gender;
-import skku.gymbarofit.core.global.enums.UserRole;
+import skku.gymbarofit.core.user.enums.Gender;
+import skku.gymbarofit.core.user.enums.UserRole;
 
 @Entity
 @Table(name = "MEMBERS")
@@ -29,7 +28,6 @@ public class Member extends User {
                 .phoneNumber(dto.getPhoneNumber())
                 .address(dto.getAddress())
                 .gender(dto.getGender())
-                .role(UserRole.ROLE_MEMBER)
                 .build();
     }
 }

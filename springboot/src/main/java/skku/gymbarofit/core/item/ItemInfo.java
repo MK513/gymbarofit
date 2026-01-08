@@ -3,17 +3,15 @@ package skku.gymbarofit.core.item;
 
 import jakarta.persistence.*;
 import lombok.Getter;
-import skku.gymbarofit.core.Gym;
-import skku.gymbarofit.core.Reservation;
-import skku.gymbarofit.core.global.enums.ItemStatus;
+import skku.gymbarofit.core.gym.Gym;
+import skku.gymbarofit.core.reservation.Reservation;
+import skku.gymbarofit.core.item.enums.ItemStatus;
 
 import static jakarta.persistence.FetchType.LAZY;
 
 @Embeddable
 @Getter
 public class ItemInfo {
-
-    private String displayName;
 
     private String type;
 

@@ -1,9 +1,9 @@
-package skku.gymbarofit.core.global.enums;
+package skku.gymbarofit.core.user.enums;
 
 public enum UserRole {
 
-    ROLE_MEMBER("MEMBER"),
-    ROLE_OWNER("OWNER");
+    MEMBER("MEMBER"),
+    OWNER("OWNER");
 
     private final String role;
 

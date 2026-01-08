@@ -4,6 +4,7 @@ import lombok.Getter;
 import lombok.ToString;
 import skku.gymbarofit.api.security.dto.JwtTokenDto;
 import skku.gymbarofit.core.user.dto.UserRequestInfo;
+import skku.gymbarofit.core.user.enums.UserRole;
 import skku.gymbarofit.core.user.member.Member;
 
 @Getter
@@ -19,7 +20,7 @@ public class LoginResponseDto {
                 .id(member.getId())
                 .email(member.getEmail())
                 .name(member.getUsername())
-                .role(member.getRole().toString())
+                .role(UserRole.MEMBER.name())
                 .build();
     }
 }

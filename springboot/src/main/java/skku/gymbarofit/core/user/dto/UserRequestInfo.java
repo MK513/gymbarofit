@@ -3,6 +3,8 @@ package skku.gymbarofit.core.user.dto;
 import lombok.Builder;
 import lombok.Getter;
 
+import java.util.List;
+
 @Getter
 @Builder
 public class UserRequestInfo {
@@ -10,4 +12,5 @@ public class UserRequestInfo {
     private String email;
     private String name;
     private String role;
+    private List<String> gyms;
 }

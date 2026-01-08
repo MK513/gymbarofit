@@ -4,7 +4,7 @@ import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.ToString;
-import skku.gymbarofit.core.global.enums.UserRole;
+import skku.gymbarofit.core.user.enums.UserRole;
 
 @Getter
 @ToString

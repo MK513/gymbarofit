@@ -3,13 +3,12 @@ package skku.gymbarofit.api.security.provider;
 import io.jsonwebtoken.*;
 import io.jsonwebtoken.io.Decoders;
 import io.jsonwebtoken.security.Keys;
-import jakarta.servlet.http.HttpServletResponse;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 import skku.gymbarofit.api.security.UserContext;
 import skku.gymbarofit.api.security.userdetail.CustomUserDetails;
-import skku.gymbarofit.core.global.enums.UserRole;
+import skku.gymbarofit.core.user.enums.UserRole;
 
 import javax.crypto.SecretKey;
 import java.time.*;
@@ -18,6 +17,8 @@ import java.util.Date;
 @Slf4j
 @Component
 public class JwtTokenProvider {
+    
+    //TODO: refreshToken 추후 구현
 
     public static final String ROLE = "role";
     public static final String EMAIL = "email";
@@ -26,7 +27,7 @@ public class JwtTokenProvider {
     @Value("${app.jwt.secretKey}")
     private String secretKey;
 
-    private static final long EXPIRATION_TIME = 60 * 60 * 24; // 1일
+    private static final long EXPIRATION_TIME = 60 * 60; // 1시간
 
     /**
      * JWT 토큰 생성
@@ -38,7 +39,7 @@ public class JwtTokenProvider {
 
         return Jwts.builder()
                 .subject(String.valueOf(userContext.getId()))     // sub = userId
-                .claim(ROLE, userContext.getRole().name())      // role = "ROLE_MEMBER"
+                .claim(ROLE, userContext.getRole().name())      // role = "MEMBER"
                 .claim(EMAIL, userContext.getEmail())
                 .issuedAt(Date.from(now))                         // iat
                 .expiration(Date.from(now.plusMillis(EXPIRATION_TIME))) // exp
@@ -67,11 +68,8 @@ public class JwtTokenProvider {
      */
     public Claims validateToken(String token) {
         try {
-            return Jwts.parser()
-                    .verifyWith(getKey())
-                    .build()
-                    .parseSignedClaims(token)
-                    .getPayload();
+
+            return getClaims(token);
 
         } catch (Exception e) {
 
@@ -98,13 +96,17 @@ public class JwtTokenProvider {
     }
 
     public OffsetDateTime getExpiresAt(String token) {
-        Claims claims = Jwts.parser()
+        Claims claims = getClaims(token);
+
+        Instant expInstant = claims.getExpiration().toInstant();
+        return expInstant.atOffset(ZoneId.of("Asia/Seoul").getRules().getOffset(expInstant)).plusSeconds(EXPIRATION_TIME);
+    }
+
+    public Claims getClaims(String token) {
+        return Jwts.parser()
                 .verifyWith(getKey())
                 .build()
                 .parseSignedClaims(token)
                 .getPayload();
-
-        Instant expInstant = claims.getExpiration().toInstant();
-        return expInstant.atOffset(ZoneId.of("Asia/Seoul").getRules().getOffset(expInstant));
     }
 }

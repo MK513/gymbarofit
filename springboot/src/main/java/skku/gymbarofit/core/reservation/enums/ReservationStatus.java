@@ -1,4 +1,4 @@
-package skku.gymbarofit.core.global.enums;
+package skku.gymbarofit.core.reservation.enums;
 
 public enum ReservationStatus {
     CANCELLED, WAITING, USING, COMPLETED

@@ -1,4 +1,4 @@
-package skku.gymbarofit.core.global.enums;
+package skku.gymbarofit.core.user.enums;
 
 public enum Gender {
 

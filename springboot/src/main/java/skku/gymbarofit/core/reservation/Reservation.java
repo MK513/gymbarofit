@@ -1,9 +1,9 @@
-package skku.gymbarofit.core;
+package skku.gymbarofit.core.reservation;
 
 import jakarta.persistence.*;
 import lombok.Getter;
 import skku.gymbarofit.core.global.domain.BaseTimeEntity;
-import skku.gymbarofit.core.global.enums.ReservationStatus;
+import skku.gymbarofit.core.reservation.enums.ReservationStatus;
 import skku.gymbarofit.core.user.member.Member;
 
 

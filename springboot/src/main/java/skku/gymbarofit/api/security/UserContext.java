@@ -3,7 +3,7 @@ package skku.gymbarofit.api.security;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
-import skku.gymbarofit.core.global.enums.UserRole;
+import skku.gymbarofit.core.user.enums.UserRole;
 
 @Getter
 @AllArgsConstructor

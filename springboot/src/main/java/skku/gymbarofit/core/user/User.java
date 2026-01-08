@@ -4,7 +4,7 @@ import jakarta.persistence.*;
 import lombok.*;
 import lombok.experimental.SuperBuilder;
 import skku.gymbarofit.core.global.domain.BaseTimeEntity;
-import skku.gymbarofit.core.global.enums.UserRole;
+import skku.gymbarofit.core.user.enums.UserRole;
 
 @MappedSuperclass
 @Getter
@@ -19,9 +19,6 @@ public abstract class User extends BaseTimeEntity {
 
     private String username;
 
-    @Enumerated(EnumType.STRING)
-    private UserRole role;
-
     @Column(unique = true)
     private String email;
 
@@ -30,13 +27,5 @@ public abstract class User extends BaseTimeEntity {
     private String phoneNumber;
 
     private String address;
-
-    public User(User user, UserRole role) {
-        this.username = user.getUsername();
-        this.email = user.getEmail();
-        this.role = role;
-        this.phoneNumber = user.getPhoneNumber();
-        this.address = user.getAddress();
-    }
 
 }

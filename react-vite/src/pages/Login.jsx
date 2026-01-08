@@ -22,9 +22,11 @@ import PersonIcon from "@mui/icons-material/Person";
 import StoreIcon from "@mui/icons-material/Store";
 
 import { loginMember, loginOwner } from "../api/Api";
+import { useAuth } from "../context/AuthContext";
 
 export default function Login() {
   const navigate = useNavigate();
+  const { login } = useAuth();
   const [role, setRole] = useState("member"); // member | owner
 
   const handleRoleChange = (event, newRole) => {
@@ -41,10 +43,16 @@ export default function Login() {
 
     try {
       const dto = { email, password: pw };
-      if (role === "member") await loginMember(dto);
-      else await loginOwner(dto);
 
-      navigate("/members/dashboard");
+      if (role === "member") {
+        const userInfo = await loginMember(dto);
+
+        login(userInfo);
+
+        navigate("/members/dashboard");
+      } else {
+        response = await loginOwner(dto);
+      }
     } catch {
       alert("로그인 실패: 이메일과 비밀번호를 확인해주세요.");
     }

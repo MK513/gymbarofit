@@ -2,7 +2,7 @@ package skku.gymbarofit.core.log;
 
 import jakarta.persistence.*;
 import lombok.Getter;
-import skku.gymbarofit.core.Gym;
+import skku.gymbarofit.core.gym.Gym;
 import skku.gymbarofit.core.global.domain.BaseTimeEntity;
 import skku.gymbarofit.core.user.member.Member;
 

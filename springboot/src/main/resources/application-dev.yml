@@ -1,6 +1,19 @@
 spring:
+  jpa:
+    hibernate:
+      ddl-auto: create
+    defer-datasource-initialization: true
+  sql:
+    init:
+      mode: always
+      data-locations: classpath:data-dev.sql
   datasource:
     url: ${H2_DB_URL}
     username: ${H2_DB_USERNAME}
     password: ${H2_DB_PASSWORD}
     driver-class-name: org.h2.Driver
+
+# 디버그 모드 활성화
+logging.level:
+  org.hibernate.SQL: debug
+  org.springframework.security: DEBUG

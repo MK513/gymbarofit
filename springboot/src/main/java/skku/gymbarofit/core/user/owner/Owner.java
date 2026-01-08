@@ -5,7 +5,7 @@ import jakarta.persistence.Table;
 import lombok.experimental.SuperBuilder;
 import skku.gymbarofit.core.user.User;
 import skku.gymbarofit.core.user.owner.dto.OwnerRegisterRequestDto;
-import skku.gymbarofit.core.global.enums.UserRole;
+import skku.gymbarofit.core.user.enums.UserRole;
 
 @Entity
 @SuperBuilder
@@ -23,7 +23,6 @@ public class Owner extends User {
                 .password(encodedPassword)
                 .phoneNumber(dto.getPhoneNumber())
                 .address(dto.getAddress())
-                .role(UserRole.ROLE_OWNER)
                 .businessNumber(dto.getBusinessNumber())
                 .build();
     }

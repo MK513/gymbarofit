@@ -8,6 +8,7 @@ import skku.gymbarofit.api.security.dto.JwtTokenDto;
 import skku.gymbarofit.api.security.service.AuthService;
 import skku.gymbarofit.api.security.token.MemberUsernamePasswordAuthenticationToken;
 import skku.gymbarofit.api.security.userdetail.CustomUserDetails;
+import skku.gymbarofit.core.gym.service.GymInternalService;
 import skku.gymbarofit.core.user.dto.LoginRequestDto;
 import skku.gymbarofit.api.user.dto.LoginResponseDto;
 import skku.gymbarofit.core.user.member.dto.MemberDetailResponseDto;
@@ -21,6 +22,7 @@ import skku.gymbarofit.core.user.member.Member;
 public class MemberService {
 
     private final MemberInternalService memberInternalService;
+    private final GymInternalService gymInternalService;
     private final BCryptPasswordEncoder bCryptPasswordEncoder;
     private final AuthService authService;
 
@@ -43,6 +45,7 @@ public class MemberService {
 
         JwtTokenDto jwtToken = authService.createJwtToken(customUserDetails);
         Member member = memberInternalService.findByEmail(loginRequestDto.getEmail());
+        //gymInternalService.findByMemberId(member.getId)
 
         return new LoginResponseDto(jwtToken, member);
     }
