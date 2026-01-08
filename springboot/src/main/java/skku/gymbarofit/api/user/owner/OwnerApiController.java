@@ -1,6 +1,5 @@
 package skku.gymbarofit.api.user.owner;
 
-import jakarta.servlet.http.HttpServletResponse;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -11,7 +10,7 @@ import skku.gymbarofit.api.security.service.AuthService;
 import skku.gymbarofit.api.security.token.OwnerUsernamePasswordAuthenticationToken;
 import skku.gymbarofit.api.security.userdetail.CustomUserDetails;
 import skku.gymbarofit.core.user.dto.LoginRequestDto;
-import skku.gymbarofit.core.user.dto.LoginResponseDto;
+import skku.gymbarofit.api.user.dto.LoginResponseDto;
 import skku.gymbarofit.core.user.owner.dto.OwnerDetailResponseDto;
 import skku.gymbarofit.core.user.owner.dto.OwnerRegisterRequestDto;
 
@@ -25,8 +24,7 @@ public class OwnerApiController {
 
     @PostMapping("/login")
     public ResponseEntity<LoginResponseDto> login(
-            @RequestBody LoginRequestDto loginRequestDto,
-            HttpServletResponse response
+            @RequestBody LoginRequestDto loginRequestDto
     ) {
 
         CustomUserDetails customUserDetails = authService.authenticateUser(
@@ -36,7 +34,8 @@ public class OwnerApiController {
                 )
         );
 
-        return ResponseEntity.ok(authService.createJwtToken(customUserDetails, response));
+//        return ResponseEntity.ok(authService.createJwtToken(customUserDetails));
+        return ResponseEntity.ok().build();
     }
 
     @PostMapping("/register")

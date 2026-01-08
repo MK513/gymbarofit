@@ -42,7 +42,7 @@ export async function loginOwner(dto) {
 
 async function login(url, dto) {
   const res = await call(url, "POST", dto);
-  localStorage.setItem("ACCESS_TOKEN", res.accessToken);
+  localStorage.setItem("ACCESS_TOKEN", res.token.accessToken);
   return true;
 }
 

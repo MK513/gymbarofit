@@ -6,6 +6,9 @@ spring:
       hibernate:
         #        show_sql: true
         format_sql: true
+  jackson:
+    serialization:
+      write-dates-as-timestamps: false
   output.ansi.enabled: ALWAYS
 
 # 디버그 모드 활성화

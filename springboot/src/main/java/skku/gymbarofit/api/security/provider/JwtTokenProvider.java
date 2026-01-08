@@ -12,7 +12,7 @@ import skku.gymbarofit.api.security.userdetail.CustomUserDetails;
 import skku.gymbarofit.core.global.enums.UserRole;
 
 import javax.crypto.SecretKey;
-import java.time.Instant;
+import java.time.*;
 import java.util.Date;
 
 @Slf4j
@@ -26,12 +26,12 @@ public class JwtTokenProvider {
     @Value("${app.jwt.secretKey}")
     private String secretKey;
 
-    private static final long EXPIRATION_TIME = 1000 * 60 * 60 * 24; // 1일
+    private static final long EXPIRATION_TIME = 60 * 60 * 24; // 1일
 
     /**
      * JWT 토큰 생성
      */
-    public String generateAccessToken(CustomUserDetails customUserDetails, HttpServletResponse response) {
+    public String generateAccessToken(CustomUserDetails customUserDetails) {
 
         UserContext userContext = customUserDetails.getUserContext();
         Instant now = Instant.now();
@@ -97,7 +97,14 @@ public class JwtTokenProvider {
         }
     }
 
-    public Long getAccessTokenExpiryDuration() {
-        return EXPIRATION_TIME;
+    public OffsetDateTime getExpiresAt(String token) {
+        Claims claims = Jwts.parser()
+                .verifyWith(getKey())
+                .build()
+                .parseSignedClaims(token)
+                .getPayload();
+
+        Instant expInstant = claims.getExpiration().toInstant();
+        return expInstant.atOffset(ZoneId.of("Asia/Seoul").getRules().getOffset(expInstant));
     }
 }
