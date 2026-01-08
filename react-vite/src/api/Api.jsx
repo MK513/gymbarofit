@@ -31,6 +31,13 @@ export function call(api, method, request) {
   });
 }
 
+/* ===== 대시보드 ===== */
+export async function getMembershipInfo() {
+  const res = await call("/memberships/info", "GET", null);
+  return res;
+}
+
+
 /* ===== 로그인 ===== */
 export async function loginMember(dto) {
   return login("/members/login", dto);

@@ -76,6 +76,7 @@ public class SecurityConfig {
                         .requestMatchers(org.springframework.http.HttpMethod.OPTIONS, "/**").permitAll()
                         .requestMatchers("/members/register", "/members/login").permitAll()
                         .requestMatchers("/owners/register", "/owners/login").permitAll()
+                        .requestMatchers("/memberships/**").hasRole("MEMBER")
                         .requestMatchers("/members/**").hasRole("MEMBER")
                         .requestMatchers("/owners/**").hasRole("OWNER")
                         .requestMatchers(

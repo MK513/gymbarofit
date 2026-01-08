@@ -26,6 +26,7 @@ import {
 } from "@mui/material";
 import { useNavigate, Link } from "react-router-dom";
 import { useAuth } from "../../context/AuthContext";
+import { getMembershipInfo } from "../../api/Api";
 
 // ▼▼▼ 아이콘 Import ▼▼▼
 import LogoutIcon from "@mui/icons-material/Logout";
@@ -60,24 +61,16 @@ export default function Dashboard() {
   const [anchorEl, setAnchorEl] = useState(null);
   const openMenu = Boolean(anchorEl);
 
-  // [추가] 헬스장 목록 불러오기 (Mocking)
   useEffect(() => {
-    // 실제 구현 시: axios.get('/api/member/gyms').then(...)
-    const fetchGyms = async () => {
+    const fetchMembershipInfo = async () => {
       try {
-        // ▼▼▼ 가상 데이터 (테스트용: 빈 배열 []로 바꾸면 '등록 필요' 뜸) ▼▼▼
-        // const responseData = []; // 데이터가 없을 때 테스트
-        const responseData = [
-          { id: 1, name: "강남 1호점" },
-          { id: 2, name: "역삼 2호점" }
-        ];
+        const res = await getMembershipInfo();
 
-        setMyGyms(responseData);
-
-        // 초기값 설정: 목록이 있으면 첫 번째 지점 선택
-        if (responseData.length > 0) {
-          setCurrentGym(responseData[0]);
+        if (res?.gymList?.length > 0) {
+          setMyGyms(res.gymList);
+          setCurrentGym(res.gymList[0]);
         } else {
+          setMyGyms([]);
           setCurrentGym(null);
         }
       } catch (error) {
@@ -85,7 +78,7 @@ export default function Dashboard() {
       }
     };
 
-    fetchGyms();
+    fetchMembershipInfo();
   }, []);
 
   useEffect(() => {

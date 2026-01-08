@@ -12,5 +12,4 @@ public class UserRequestInfo {
     private String email;
     private String name;
     private String role;
-    private List<String> gyms;
 }

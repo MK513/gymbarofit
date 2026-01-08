@@ -32,6 +32,8 @@ import CheckCircleIcon from "@mui/icons-material/CheckCircle";
 import MapIcon from "@mui/icons-material/Map";
 import InfoIcon from "@mui/icons-material/Info";
 
+// TODO: 카카오 지도 API 넣기
+
 export default function MemberGymRegister() {
   const navigate = useNavigate();
 

@@ -3,9 +3,12 @@ package skku.gymbarofit.api.user.dto;
 import lombok.Getter;
 import lombok.ToString;
 import skku.gymbarofit.api.security.dto.JwtTokenDto;
+import skku.gymbarofit.core.membership.Membership;
 import skku.gymbarofit.core.user.dto.UserRequestInfo;
 import skku.gymbarofit.core.user.enums.UserRole;
 import skku.gymbarofit.core.user.member.Member;
+
+import java.util.List;
 
 @Getter
 @ToString

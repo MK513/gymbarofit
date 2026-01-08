@@ -35,6 +35,4 @@ public class Membership {
 
     private LocalDateTime expiredAt;
 
-    @Enumerated(EnumType.STRING)
-    private UserRole role;
 }
