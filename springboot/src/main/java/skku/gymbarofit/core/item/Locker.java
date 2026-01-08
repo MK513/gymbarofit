@@ -1,14 +1,25 @@
 package skku.gymbarofit.core.item;
 
-import jakarta.persistence.DiscriminatorValue;
-import jakarta.persistence.Entity;
+import jakarta.persistence.*;
 import lombok.Getter;
+import skku.gymbarofit.core.global.enums.SizeStatus;
 
 @Entity
-@DiscriminatorValue("L")
 @Getter
-public class Locker extends Item{
+public class Locker{
 
-    private boolean is_private;
-    private int locker_number;
+    @Id
+    @GeneratedValue
+    @Column(name = "locker_id")
+    private Long id;
+
+    private int lockerNumber;
+
+    @Enumerated(EnumType.STRING)
+    private SizeStatus size;
+
+    @Embedded
+    private ItemInfo itemInfo;
+
+
 }

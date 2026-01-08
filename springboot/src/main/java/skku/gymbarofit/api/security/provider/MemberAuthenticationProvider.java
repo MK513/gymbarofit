@@ -6,8 +6,8 @@ import skku.gymbarofit.api.security.UserContext;
 import skku.gymbarofit.api.security.service.UserValidateService;
 import skku.gymbarofit.api.security.token.MemberUsernamePasswordAuthenticationToken;
 import skku.gymbarofit.api.security.userdetail.CustomUserDetails;
-import skku.gymbarofit.core.service.MemberInternalService;
-import skku.gymbarofit.core.user.Member;
+import skku.gymbarofit.core.user.member.service.MemberInternalService;
+import skku.gymbarofit.core.user.member.Member;
 
 @Component
 @RequiredArgsConstructor

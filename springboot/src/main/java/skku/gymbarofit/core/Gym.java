@@ -2,12 +2,18 @@ package skku.gymbarofit.core;
 
 import jakarta.persistence.*;
 import lombok.Getter;
+import skku.gymbarofit.core.global.domain.BaseTimeEntity;
+import skku.gymbarofit.core.item.Locker;
+import skku.gymbarofit.core.user.owner.Owner;
 
 import java.time.LocalTime;
+import java.util.List;
+
+import static jakarta.persistence.FetchType.*;
 
 @Entity
 @Getter
-public class Gym {
+public class Gym extends BaseTimeEntity {
 
     @Id
     @GeneratedValue
@@ -18,7 +24,11 @@ public class Gym {
 
     private String address;
 
-    private LocalTime open_time;
+    @ManyToOne(fetch = LAZY)
+    private Owner owner;
 
-    private LocalTime close_time;
+    private LocalTime openAt;
+
+    private LocalTime closeAt;
+
 }

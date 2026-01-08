@@ -9,7 +9,7 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 import skku.gymbarofit.api.security.UserContext;
 import skku.gymbarofit.api.security.userdetail.CustomUserDetails;
-import skku.gymbarofit.core.user.UserRole;
+import skku.gymbarofit.core.global.enums.UserRole;
 
 import javax.crypto.SecretKey;
 import java.time.Instant;

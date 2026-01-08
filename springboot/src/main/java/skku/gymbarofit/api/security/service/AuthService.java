@@ -9,7 +9,7 @@ import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 import skku.gymbarofit.api.security.provider.JwtTokenProvider;
 import skku.gymbarofit.api.security.userdetail.CustomUserDetails;
-import skku.gymbarofit.core.dto.LoginResponseDto;
+import skku.gymbarofit.core.user.dto.LoginResponseDto;
 
 @Service
 @RequiredArgsConstructor

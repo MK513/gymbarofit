@@ -10,10 +10,10 @@ import org.springframework.web.bind.annotation.RestController;
 import skku.gymbarofit.api.security.service.AuthService;
 import skku.gymbarofit.api.security.token.MemberUsernamePasswordAuthenticationToken;
 import skku.gymbarofit.api.security.userdetail.CustomUserDetails;
-import skku.gymbarofit.core.dto.LoginRequestDto;
-import skku.gymbarofit.core.dto.LoginResponseDto;
-import skku.gymbarofit.core.dto.MemberDetailResponseDto;
-import skku.gymbarofit.core.dto.MemberRegisterRequestDto;
+import skku.gymbarofit.core.user.dto.LoginRequestDto;
+import skku.gymbarofit.core.user.dto.LoginResponseDto;
+import skku.gymbarofit.core.user.member.dto.MemberDetailResponseDto;
+import skku.gymbarofit.core.user.member.dto.MemberRegisterRequestDto;
 
 @RestController
 @RequiredArgsConstructor

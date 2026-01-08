@@ -1,14 +1,24 @@
 package skku.gymbarofit.core.item;
 
-import jakarta.persistence.DiscriminatorValue;
-import jakarta.persistence.Entity;
+import jakarta.persistence.*;
 import lombok.Getter;
 
 @Entity
-@DiscriminatorValue("E")
 @Getter
-public class Equipment extends Item{
+public class Equipment{
 
-    private String model_name;
-    private int serial_number;
+    @Id
+    @GeneratedValue
+    @Column(name = "equipment_id")
+    private Long id;
+
+    private String modelName;
+
+    private int serialNumber;
+
+    @Embedded
+    private ItemInfo itemInfo;
+
+    //TODO: 일단 string인데 이후에 리액트 보고 좌표값으로 수정 필요
+    private String location;
 }

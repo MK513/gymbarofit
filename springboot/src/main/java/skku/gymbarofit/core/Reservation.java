@@ -2,9 +2,9 @@ package skku.gymbarofit.core;
 
 import jakarta.persistence.*;
 import lombok.Getter;
-import skku.gymbarofit.core.status.ReservationStatus;
-import skku.gymbarofit.core.user.Member;
-import skku.gymbarofit.core.user.User;
+import skku.gymbarofit.core.global.domain.BaseTimeEntity;
+import skku.gymbarofit.core.global.enums.ReservationStatus;
+import skku.gymbarofit.core.user.member.Member;
 
 
 import java.time.LocalDateTime;
@@ -13,25 +13,21 @@ import static jakarta.persistence.FetchType.LAZY;
 
 @Entity
 @Getter
-public class Reservation {
+public class Reservation extends BaseTimeEntity {
 
     @Id
     @GeneratedValue
     @Column(name = "reservation_id")
     private Long id;
 
-    @OneToOne(fetch = LAZY, cascade = CascadeType.ALL)
+    @ManyToOne(fetch = LAZY)
+    @JoinColumn(name = "member_id")
     private Member member;
 
-    @OneToOne(fetch = LAZY, cascade = CascadeType.ALL)
-    private GymItem gymItem;
+    private LocalDateTime startTime;
 
-    private LocalDateTime start_time;
-
-    private LocalDateTime end_time;
+    private LocalDateTime endTime;
 
     @Enumerated(EnumType.STRING)
     private ReservationStatus status;
-
-    private LocalDateTime created_at;
 }

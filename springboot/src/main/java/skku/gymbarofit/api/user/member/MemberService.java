@@ -4,10 +4,10 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-import skku.gymbarofit.core.dto.MemberDetailResponseDto;
-import skku.gymbarofit.core.dto.MemberRegisterRequestDto;
-import skku.gymbarofit.core.service.MemberInternalService;
-import skku.gymbarofit.core.user.Member;
+import skku.gymbarofit.core.user.member.dto.MemberDetailResponseDto;
+import skku.gymbarofit.core.user.member.dto.MemberRegisterRequestDto;
+import skku.gymbarofit.core.user.member.service.MemberInternalService;
+import skku.gymbarofit.core.user.member.Member;
 
 @Service
 @Transactional

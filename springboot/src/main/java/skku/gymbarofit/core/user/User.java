@@ -3,7 +3,8 @@ package skku.gymbarofit.core.user;
 import jakarta.persistence.*;
 import lombok.*;
 import lombok.experimental.SuperBuilder;
-import skku.gymbarofit.core.BaseTimeEntity;
+import skku.gymbarofit.core.global.domain.BaseTimeEntity;
+import skku.gymbarofit.core.global.enums.UserRole;
 
 @MappedSuperclass
 @Getter
@@ -18,6 +19,7 @@ public abstract class User extends BaseTimeEntity {
 
     private String username;
 
+    @Enumerated(EnumType.STRING)
     private UserRole role;
 
     @Column(unique = true)
