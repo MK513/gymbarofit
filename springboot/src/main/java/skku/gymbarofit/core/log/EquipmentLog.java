@@ -8,7 +8,12 @@ import static jakarta.persistence.FetchType.LAZY;
 
 @Entity
 @Getter
-public class EquipmentLog extends BaseLog {
+public class EquipmentLog extends SessionLog {
+
+    @Id
+    @GeneratedValue
+    @Column(name = "equipment_log_id")
+    private Long id;
 
     @ManyToOne(fetch = LAZY)
     @JoinColumn(name = "equipment_id")

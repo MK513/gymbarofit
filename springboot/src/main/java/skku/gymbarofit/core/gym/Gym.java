@@ -3,11 +3,9 @@ package skku.gymbarofit.core.gym;
 import jakarta.persistence.*;
 import lombok.Getter;
 import skku.gymbarofit.core.global.domain.BaseTimeEntity;
-import skku.gymbarofit.core.user.owner.Owner;
+import skku.gymbarofit.core.gym.enums.GymCrowdLevel;
 
 import java.time.LocalTime;
-
-import static jakarta.persistence.FetchType.*;
 
 @Entity
 @Getter
@@ -21,6 +19,14 @@ public class Gym extends BaseTimeEntity {
     private String name;
 
     private String address;
+
+    private int currentOccupancy;
+
+    private int maxCapacity;
+
+    @Enumerated(EnumType.STRING)
+    @Column(name = "crowd_level")
+    private GymCrowdLevel crowdLevel;
 
     private LocalTime openAt;
 
