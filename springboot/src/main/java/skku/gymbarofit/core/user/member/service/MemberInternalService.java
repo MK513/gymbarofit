@@ -10,6 +10,8 @@ import skku.gymbarofit.core.user.exception.UserException;
 import skku.gymbarofit.core.user.member.MemberRepository;
 import skku.gymbarofit.core.user.member.Member;
 
+import java.util.Optional;
+
 @Transactional
 @RequiredArgsConstructor
 @Service
@@ -29,5 +31,9 @@ public class MemberInternalService {
         }
 
         return memberRepository.save(Member.from(requestDto, encodedPassword));
+    }
+
+    public Optional<Member> findById(Long memberId) {
+        return memberRepository.findById(memberId);
     }
 }

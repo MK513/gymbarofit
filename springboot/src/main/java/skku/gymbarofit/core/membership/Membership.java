@@ -1,7 +1,8 @@
 package skku.gymbarofit.core.membership;
 
 import jakarta.persistence.*;
-import lombok.Getter;
+import lombok.*;
+import skku.gymbarofit.core.global.domain.BaseTimeEntity;
 import skku.gymbarofit.core.gym.Gym;
 import skku.gymbarofit.core.membership.enums.MembershipStatus;
 import skku.gymbarofit.core.user.enums.UserRole;
@@ -12,8 +13,17 @@ import java.time.LocalDateTime;
 import static jakarta.persistence.FetchType.*;
 
 @Entity
+@Table(
+        uniqueConstraints = @UniqueConstraint(
+                name = "uk_membership_member_gym",
+                columnNames = {"user_id", "gym_id"}
+        )
+)
 @Getter
-public class Membership {
+@Builder
+@AllArgsConstructor
+@NoArgsConstructor(access = AccessLevel.PROTECTED)
+public class Membership extends BaseTimeEntity {
 
     @Id
     @GeneratedValue
@@ -30,8 +40,6 @@ public class Membership {
 
     @Enumerated(EnumType.STRING)
     private MembershipStatus status;
-
-    private LocalDateTime joinedAt;
 
     private LocalDateTime expiredAt;
 

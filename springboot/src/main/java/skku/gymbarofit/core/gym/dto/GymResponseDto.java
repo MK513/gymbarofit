@@ -6,8 +6,6 @@ import lombok.Getter;
 import lombok.ToString;
 import skku.gymbarofit.core.gym.Gym;
 
-import java.util.List;
-
 @Getter
 @Builder
 @AllArgsConstructor
@@ -16,12 +14,13 @@ public class GymResponseDto {
 
     private Long id;
     private String name;
+    private String address;
 
-    public static GymResponseDto of(Gym gym) {
+    public static GymResponseDto from(Gym gym) {
         return GymResponseDto.builder()
                 .id(gym.getId())
                 .name(gym.getName())
+                .address(gym.getAddress())
                 .build();
     }
-
 }

@@ -11,13 +11,31 @@ export function call(api, method, request) {
     headers.append("Authorization", "Bearer " + accessToken);
   }
 
+  // URL 설정
+  let url = API_BASE_URL + api;
+  let body = null;
+
+  // GET 방식이면 request를 Query Parameter로 변환
+  if (method.toUpperCase() === "GET") {
+    if (request) {
+      const queryParams = new URLSearchParams(request).toString();
+      url += `?${queryParams}`;
+    }
+  } 
+  // GET이 아니면(POST, PUT 등) Body에 JSON 담기
+  else {
+    if (request) {
+      body = JSON.stringify(request);
+    }
+  }
+
   const options = {
     headers,
     method,
-    body: request ? JSON.stringify(request) : null,
+    body: body,
   };
 
-  return fetch(API_BASE_URL + api, options).then(async (response) => {
+  return fetch(url, options).then(async (response) => {
     const isJson = response.headers
       .get("content-type")
       ?.includes("application/json");
@@ -37,6 +55,15 @@ export async function getMembershipInfo() {
   return res;
 }
 
+export async function searchGym(dto) {
+  const res = await call("/gyms/search", "GET", dto);
+  return res;
+}
+
+export async function registerMembership(dto) {
+  const res = await call("/memberships/register", "POST", dto);
+  return res;
+}
 
 /* ===== 로그인 ===== */
 export async function loginMember(dto) {

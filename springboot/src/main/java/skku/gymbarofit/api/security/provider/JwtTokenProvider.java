@@ -27,7 +27,8 @@ public class JwtTokenProvider {
     @Value("${app.jwt.secretKey}")
     private String secretKey;
 
-    private static final long EXPIRATION_TIME = 60 * 60; // 1시간
+    @Value("${app.jwt.token.expireTime}")
+    private long EXPIRATION_TIME;
 
     /**
      * JWT 토큰 생성
@@ -99,7 +100,7 @@ public class JwtTokenProvider {
         Claims claims = getClaims(token);
 
         Instant expInstant = claims.getExpiration().toInstant();
-        return expInstant.atOffset(ZoneId.of("Asia/Seoul").getRules().getOffset(expInstant)).plusSeconds(EXPIRATION_TIME);
+        return expInstant.atZone(ZoneId.of("Asia/Seoul")).toOffsetDateTime();
     }
 
     public Claims getClaims(String token) {

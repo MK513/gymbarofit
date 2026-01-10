@@ -27,6 +27,7 @@ import {
 import { useNavigate, Link } from "react-router-dom";
 import { useAuth } from "../../context/AuthContext";
 import { getMembershipInfo } from "../../api/Api";
+import { useNotification } from "../../context/NotificationContext";
 
 // ▼▼▼ 아이콘 Import ▼▼▼
 import LogoutIcon from "@mui/icons-material/Logout";
@@ -43,11 +44,12 @@ import PeopleAltIcon from '@mui/icons-material/PeopleAlt';
 import CheckCircleIcon from '@mui/icons-material/CheckCircle';
 import LocationOnIcon from '@mui/icons-material/LocationOn';
 import KeyboardArrowDownIcon from '@mui/icons-material/KeyboardArrowDown';
-import AddCircleOutlineIcon from '@mui/icons-material/AddCircleOutline'; // 추가 버튼 아이콘
+import AddCircleOutlineIcon from '@mui/icons-material/AddCircleOutline';
 
 export default function Dashboard() {
   const navigate = useNavigate();
   const { user, logout } = useAuth();
+  const { showNotification } = useNotification();
 
   // 기존 상태들
   const [lockerStatus] = useState({ use: true, number: 103, expiry: "2024-02-20" });
@@ -121,7 +123,7 @@ export default function Dashboard() {
   // [추가] 헬스장 등록 페이지 이동
   const handleGoToRegister = () => {
     setAnchorEl(null);
-    navigate('/members/gym/register'); // 헬스장 등록 라우트로 이동
+    navigate('/memberships/register'); // 헬스장 등록 라우트로 이동
   };
 
   return (

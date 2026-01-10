@@ -17,3 +17,5 @@ app:
     header:
       name: Authorization
       prefix: Bearer
+    token:
+      expireTime: 86400000 # 24시간 (ms)
