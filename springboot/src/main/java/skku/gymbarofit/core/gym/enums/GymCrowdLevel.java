@@ -27,6 +27,9 @@ public enum GymCrowdLevel {
                 return level;
             }
         }
+
+        if (percent >= 100) return VERY_CROWDED;
+
         throw new IllegalArgumentException("Invalid crowd percent: " + percent);
     }
 }

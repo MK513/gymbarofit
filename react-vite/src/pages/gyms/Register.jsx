@@ -22,7 +22,7 @@ import {
   CircularProgress
 } from "@mui/material";
 import { useNavigate } from "react-router-dom";
-import { searchGym, registerMembership } from "../../api/Api";
+import { searchGym, registerGym } from "../../api/Api";
 import { useNotification } from "../../context/NotificationContext";
 
 // 아이콘
@@ -79,9 +79,9 @@ export default function Register() {
   const handleRegisterConfirm = async () => {
     try {
       if (!selectedGym) return;
-      
-      const dto = { gymId: selectedGym.id };
-      const res = await registerMembership(dto);
+
+      const pathVarable = { gymId: selectedGym.id}
+      const res = await registerGym(pathVarable);
       
       showNotification("등록이 완료되었습니다!", "success");
       navigate("/"); // 대시보드로 복귀

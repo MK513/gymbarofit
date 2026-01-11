@@ -1,7 +1,8 @@
 import { API_BASE_URL } from "../api-config";
 
 /* 공통 fetch */
-export function call(api, method, request) {
+// pathVariables 파라미터 추가 (기본값 null)
+export function call(api, method, request, pathVariables) {
   const headers = new Headers({
     "Content-Type": "application/json",
   });
@@ -9,6 +10,16 @@ export function call(api, method, request) {
   const accessToken = localStorage.getItem("ACCESS_TOKEN");
   if (accessToken) {
     headers.append("Authorization", "Bearer " + accessToken);
+  }
+
+  // Path Variable 처리 (URL 치환)
+  // 예: api가 "/gyms/{gymId}"이고 pathVariables가 { gymId: 1 } 이면 -> "/gyms/1"로 변환
+  if (pathVariables) {
+    for (const key in pathVariables) {
+      // 정규식으로 {key} 형태를 찾아 값으로 치환 (모든 발생 부분 치환)
+      const regex = new RegExp(`{${key}}`, "g");
+      api = api.replace(regex, pathVariables[key]);
+    }
   }
 
   // URL 설정
@@ -50,18 +61,19 @@ export function call(api, method, request) {
 }
 
 /* ===== 대시보드 ===== */
-export async function getMembershipInfo() {
-  const res = await call("/memberships/info", "GET", null);
+export async function getMembershipInfo(pathVarable) {
+  const res = await call("/memberships/{gymId}/info", "GET", null, pathVarable);
   return res;
 }
 
+/* ===== 헬스장 ===== */
 export async function searchGym(dto) {
   const res = await call("/gyms/search", "GET", dto);
   return res;
 }
 
-export async function registerMembership(dto) {
-  const res = await call("/memberships/register", "POST", dto);
+export async function registerGym(pathVarable) {
+  const res = await call("/gyms/{gymId}/memberships", "POST", null, pathVarable);
   return res;
 }
 

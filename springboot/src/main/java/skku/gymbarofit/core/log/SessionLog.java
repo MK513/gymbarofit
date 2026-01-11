@@ -36,7 +36,6 @@ public abstract class SessionLog {
         if (startAt == null || endAt == null) return Duration.ZERO;
         return Duration.between(startAt, endAt);
     }
-
     @Transient
     public void end(LocalDateTime now) {
         if (this.endAt != null) return; // 이미 종료된 세션이면 무시 or 예외

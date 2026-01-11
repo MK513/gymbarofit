@@ -17,6 +17,9 @@ public class GymResponseDto {
     private String address;
 
     public static GymResponseDto from(Gym gym) {
+        if (gym == null) {
+            return null;
+        }
         return GymResponseDto.builder()
                 .id(gym.getId())
                 .name(gym.getName())

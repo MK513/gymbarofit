@@ -57,26 +57,72 @@ export default function Dashboard() {
   const [attendance, setAttendance] = useState({ streak: 3, checkedToday: false }); 
   const [openQr, setOpenQr] = useState(false); 
 
-  // [수정] 지점 관리 상태
+  // 지점 관리 상태
   const [myGyms, setMyGyms] = useState([]); // 서버에서 가져온 헬스장 목록
   const [currentGym, setCurrentGym] = useState(null); // 현재 선택된 헬스장 객체
   const [anchorEl, setAnchorEl] = useState(null);
   const openMenu = Boolean(anchorEl);
 
+  // 혼잡도 상태
+  const [crowdStatus, setCrowdStatus] = useState({
+    label: "정보 없음",
+    bgColor: "#f5f5f5",
+    color: "#9e9e9e",
+    borderColor: "#e0e0e0"
+  });
+
+  // 혼잡도 매핑 헬퍼 함수
+  const getCrowdLevelInfo = (level) => {
+    switch (level) {
+      case "VERY_COMFORTABLE":
+        // 파란색 계열: 아주 널널함
+        return { label: "매우 쾌적 🔵", bgColor: "#e3f2fd", color: "#1565c0", borderColor: "#90caf9" };
+      
+      case "COMFORTABLE":
+        // 초록색 계열: 적당히 여유로움
+        return { label: "쾌적 🟢", bgColor: "#e8f5e9", color: "#2e7d32", borderColor: "#c8e6c9" };
+      
+      case "NORMAL":
+        // 노란색 계열: 보통
+        return { label: "보통 🟡", bgColor: "#fff3e0", color: "#ef6c00", borderColor: "#ffe0b2" };
+      
+      case "CROWDED":
+        // 주황색 계열: 붐비기 시작함
+        return { label: "혼잡 🟠", bgColor: "#fbe9e7", color: "#d84315", borderColor: "#ffccbc" };
+      
+      case "VERY_CROWDED":
+        // 빨간색 계열: 꽉 참
+        return { label: "매우 혼잡 🔴", bgColor: "#ffebee", color: "#c62828", borderColor: "#ffcdd2" };
+      
+      default:
+        return { label: "정보 없음 ⚪", bgColor: "#f5f5f5", color: "#9e9e9e", borderColor: "#e0e0e0" };
+    }
+  };
+
   useEffect(() => {
     const fetchMembershipInfo = async () => {
       try {
-        const res = await getMembershipInfo();
+        if (user?.gym != null) {
+          const pathVariable = { gymId: user.gym.id };
+          const res = await getMembershipInfo(pathVariable);
 
-        if (res?.gymList?.length > 0) {
           setMyGyms(res.gymList);
-          setCurrentGym(res.gymList[0]);
-        } else {
+          setCurrentGym(user.gym);
+
+          // 혼잡도 정보 처리
+          if (res?.crowdLevel) {
+            const status = getCrowdLevelInfo(res.crowdLevel);
+            setCrowdStatus(status);
+          }
+        }
+        else {
           setMyGyms([]);
           setCurrentGym(null);
         }
+
       } catch (error) {
-        console.error("헬스장 목록 로딩 실패", error);
+        console.error("개인 정보 로딩 실패", error);
+        showNotification("정보를 불러오지 못했습니다.", "error");
       }
     };
 
@@ -94,7 +140,7 @@ export default function Dashboard() {
 
   const handleLogout = () => {
     logout();
-    alert("로그아웃 되었습니다.");
+    showNotification("로그아웃 되었습니다.", "info");
     navigate("/login");
   };
 
@@ -108,22 +154,42 @@ export default function Dashboard() {
   const handleOpenQr = () => setOpenQr(true);
   const handleCloseQr = () => setOpenQr(false);
 
-  // [수정] 지점 선택 핸들러
+  // 지점 선택 핸들러
   const handleGymMenuOpen = (event) => setAnchorEl(event.currentTarget);
   
-  const handleGymSelect = (gym) => {
-    setCurrentGym(gym);
-    setAnchorEl(null);
-    // TODO: 선택된 지점에 따라 대시보드 데이터(출석, 예약 등) 다시 불러오기
-    // fetchDashboardData(gym.id); 
+  // TODO: 선택된 지점에 따라 대시보드 데이터(출석, 예약 등) 다시 불러오기
+  const handleGymSelect = async (gym) => {
+    try {
+      if (user?.gym != null) {
+          setAnchorEl(null);
+          user.gym = gym;
+
+          const pathVariable = { gymId: user.gym.id };
+          const res = await getMembershipInfo(pathVariable);
+
+          // 혼잡도 정보 처리
+          if (res?.crowdLevel) {
+            const status = getCrowdLevelInfo(res.crowdLevel);
+            setCrowdStatus(status);
+          }
+        }
+        else {
+          setMyGyms([]);
+          setCurrentGym(null);
+        }
+
+      } catch (error) {
+        console.error("개인 정보 로딩 실패", error);
+        showNotification("정보를 불러오지 못했습니다.", "error");
+      }
   };
 
   const handleGymMenuClose = () => setAnchorEl(null);
 
-  // [추가] 헬스장 등록 페이지 이동
+  // 헬스장 등록 페이지 이동
   const handleGoToRegister = () => {
     setAnchorEl(null);
-    navigate('/memberships/register'); // 헬스장 등록 라우트로 이동
+    navigate('/gyms/register');
   };
 
   return (
@@ -221,16 +287,19 @@ export default function Dashboard() {
                 </MenuItem>
               </Menu>
 
+              {/* 혼잡도 Chip */}
               <Chip 
-                icon={<PeopleAltIcon fontSize="small" />} 
-                label="현재 헬스장: 쾌적 🟢" 
+                icon={<PeopleAltIcon fontSize="small" style={{ color: crowdStatus.color }} />} 
+                label={`현재 헬스장: ${crowdStatus.label}`} 
                 size="small"
                 sx={{ 
-                  bgcolor: "#e8f5e9", 
-                  color: "#2e7d32", 
+                  bgcolor: crowdStatus.bgColor, 
+                  color: crowdStatus.color, 
                   fontWeight: "bold",
-                  border: '1px solid #c8e6c9',
-                  height: 32
+                  border: `1px solid ${crowdStatus.borderColor}`,
+                  height: 32,
+                  // 아이콘 색상 강제 오버라이드 방지
+                  '& .MuiChip-icon': { color: 'inherit' }
                 }} 
               />
             </Box>

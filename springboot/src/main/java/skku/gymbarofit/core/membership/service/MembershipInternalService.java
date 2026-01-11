@@ -8,6 +8,7 @@ import skku.gymbarofit.core.membership.Membership;
 import skku.gymbarofit.core.membership.repository.MembershipRepository;
 
 import java.util.List;
+import java.util.Optional;
 
 @Transactional
 @Service
@@ -23,5 +24,16 @@ public class MembershipInternalService {
     @Transactional(readOnly = true)
     public boolean existsByMemberIdAndGymId(Long memberId, Long gymId) {
         return membershipRepository.existsByMemberIdAndGymId(memberId, gymId);
+    }
+
+    @Transactional(readOnly = true)
+    public List<Gym> findGymByMemberId(Long memberId) {
+        return membershipRepository.findGymByMemberId(memberId);
+    }
+
+    @Transactional(readOnly = true)
+    public Optional<Gym> findFirstGymByMemberId(Long memberId) {
+        return membershipRepository.findFirstByMember_Id(memberId)
+                .map(Membership::getGym);
     }
 }
