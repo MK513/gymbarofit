@@ -19,8 +19,8 @@ public class Locker{
     @JoinColumn(name = "lockerzone_id")
     private LockerZone lockerZone;
 
-    private int lockerNumber;
-
     @Embedded
     private ItemInfo itemInfo;
+
+    private int lockerNumber;
 }

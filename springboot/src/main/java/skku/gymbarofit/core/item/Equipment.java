@@ -2,6 +2,7 @@ package skku.gymbarofit.core.item;
 
 import jakarta.persistence.*;
 import lombok.Getter;
+import skku.gymbarofit.core.gym.Gym;
 
 @Entity
 @Getter
@@ -12,9 +13,11 @@ public class Equipment{
     @Column(name = "equipment_id")
     private Long id;
 
-    private String modelName;
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "gym_id")
+    private Gym gym;
 
-    private int serialNumber;
+    private String serialNumber;
 
     @Embedded
     private ItemInfo itemInfo;

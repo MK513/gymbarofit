@@ -2,18 +2,16 @@ package skku.gymbarofit.core.item;
 
 import jakarta.persistence.*;
 import lombok.Getter;
-import skku.gymbarofit.core.gym.Gym;
-import skku.gymbarofit.core.item.enums.ItemCondition;
+import skku.gymbarofit.core.item.enums.ItemStatus;
 
 @Embeddable
 @Getter
 public class ItemInfo {
 
-    @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "gym_id")
-    private Gym gym;
+    private String name;
 
+    // TODO 이후 아이템 고장 상태 등 업데이트 기능
     @Enumerated(EnumType.STRING)
-    private ItemCondition condition;
+    private ItemStatus status;
 
 }

@@ -150,7 +150,7 @@ export default function Dashboard() {
     alert(`출석체크 완료! 🔥\n${attendance.streak + 1}일 연속 운동 중입니다.`);
   };
 
-  const handleNewReservation = () => navigate('/locker/reservation');
+  const handleNewReservation = () => navigate('/lockers/rent');
   const handleOpenQr = () => setOpenQr(true);
   const handleCloseQr = () => setOpenQr(false);
 
@@ -536,11 +536,11 @@ export default function Dashboard() {
             </Box>
 
             <Stack direction="row" spacing={2}>
-              <Button fullWidth variant="outlined" color="secondary" component={Link} to="/locker/extension" sx={{ py: 1.5, borderRadius: 2, fontWeight: 'bold' }}>
+              <Button fullWidth variant="outlined" color="secondary" component={Link} to="/lockers/extension" sx={{ py: 1.5, borderRadius: 2, fontWeight: 'bold' }}>
                 기간 연장
               </Button>
               <Button fullWidth variant="contained" color="secondary" onClick={handleNewReservation} disableElevation sx={{ py: 1.5, borderRadius: 2, fontWeight: 'bold' }}>
-                신규 예약
+                신규 대여
               </Button>
             </Stack>
           </Paper>

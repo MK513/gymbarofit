@@ -1,5 +1,5 @@
 package skku.gymbarofit.core.item.enums;
 
-public enum ItemCondition {
+public enum ItemStatus {
     OK, BROKEN, MAINTENANCE, RETIRED
 }

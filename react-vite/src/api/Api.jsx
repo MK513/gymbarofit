@@ -66,6 +66,17 @@ export async function getMembershipInfo(pathVarable) {
   return res;
 }
 
+/* ===== 보관함 ===== */
+export async function getLockerZone(dto) {
+  const res = await call("/lockers/zones", "GET", dto);
+  return res;
+}
+
+export async function getLockerList(pathVarable) {
+  const res = await call("/lockers/zones/{zoneId}", "GET", null, pathVarable);
+  return res;
+}
+
 /* ===== 헬스장 ===== */
 export async function searchGym(dto) {
   const res = await call("/gyms/search", "GET", dto);

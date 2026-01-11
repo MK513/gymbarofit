@@ -25,10 +25,12 @@ public class LockerZone {
     @Enumerated(EnumType.STRING)
     private SizeStatus lockerSize;
 
-    private int totalCount;
-
     private int rowCount;
 
     private int columnCount;
 
+    @Transient
+    public int getTotalCount() {
+        return rowCount * columnCount;
+    }
 }
