@@ -6,6 +6,8 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import skku.gymbarofit.core.gym.Gym;
+import skku.gymbarofit.core.gym.exceptions.GymErrorCode;
+import skku.gymbarofit.core.gym.exceptions.GymException;
 import skku.gymbarofit.core.gym.repository.GymRepository;
 import skku.gymbarofit.core.membership.repository.MembershipRepository;
 
@@ -23,7 +25,8 @@ public class GymInternalService {
         return gymRepository.findByKeyword(keyword, pageable);
     }
 
-    public Optional<Gym> findById(Long id) {
-        return gymRepository.findById(id);
+    public Gym findById(Long id) {
+        return gymRepository.findById(id)
+                .orElseThrow(() -> new GymException(GymErrorCode.GYM_NOT_FOUND));
     }
 }

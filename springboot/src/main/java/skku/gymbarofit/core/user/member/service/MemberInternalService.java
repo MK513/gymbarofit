@@ -33,7 +33,8 @@ public class MemberInternalService {
         return memberRepository.save(Member.from(requestDto, encodedPassword));
     }
 
-    public Optional<Member> findById(Long memberId) {
-        return memberRepository.findById(memberId);
+    public Member findById(Long memberId) {
+        return memberRepository.findById(memberId)
+                .orElseThrow(() -> new UserException(UserErrorCode.USER_NOT_FOUND));
     }
 }

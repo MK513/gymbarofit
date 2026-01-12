@@ -51,8 +51,7 @@ export default function Dashboard() {
   const { user, logout } = useAuth();
   const { showNotification } = useNotification();
 
-  // 기존 상태들
-  const [lockerStatus] = useState({ use: true, number: 103, expiry: "2024-02-20" });
+  const [lockerStatus, setLockerStatus] = useState({ use: false, number: 0, expiry: "" });
   const [equipStatus] = useState({ use: false, name: "", time: "" });
   const [attendance, setAttendance] = useState({ streak: 3, checkedToday: false }); 
   const [openQr, setOpenQr] = useState(false); 
@@ -70,6 +69,15 @@ export default function Dashboard() {
     color: "#9e9e9e",
     borderColor: "#e0e0e0"
   });
+
+  // 날짜 배열 변환 헬퍼 함수
+  const formatDateFromArray = (dateArr) => {
+    if (!dateArr || dateArr.length < 3) return "";
+    const year = dateArr[0];
+    const month = String(dateArr[1]).padStart(2, "0");
+    const day = String(dateArr[2]).padStart(2, "0");
+    return `${year}-${month}-${day}`;
+  };
 
   // 혼잡도 매핑 헬퍼 함수
   const getCrowdLevelInfo = (level) => {
@@ -114,10 +122,29 @@ export default function Dashboard() {
             const status = getCrowdLevelInfo(res.crowdLevel);
             setCrowdStatus(status);
           }
-        }
-        else {
+
+          // 개인 보관함(lockerUsage) 정보 처리 로직 추가
+          if (res.lockerUsage) {
+            // 사용 중일 때
+            setLockerStatus({
+              use: true,
+              number: res.lockerUsage.lockerNumber,
+              expiry: formatDateFromArray(res.lockerUsage.endDate), // 날짜 포맷 변환
+            });
+          } else {
+            // 미사용(null)일 때
+            setLockerStatus({
+              use: false,
+              number: 0,
+              expiry: "",
+            });
+          }
+
+        } else {
           setMyGyms([]);
           setCurrentGym(null);
+          // 헬스장이 없으면 보관함 정보도 초기화
+          setLockerStatus({ use: false, number: 0, expiry: "" });
         }
 
       } catch (error) {
@@ -190,6 +217,15 @@ export default function Dashboard() {
   const handleGoToRegister = () => {
     setAnchorEl(null);
     navigate('/gyms/register');
+  };
+
+  // 환불 버튼 핸들러
+  const handleRefund = () => {
+    // 실제로는 여기에 환불 API 호출 로직이 들어갑니다.
+    if (window.confirm(`보관함(No.${lockerStatus.number}) 이용을 환불하시겠습니까?\n환불 시 즉시 이용이 종료됩니다.`)) {
+      alert("환불 신청이 접수되었습니다.");
+      // 이후 로직: API 호출 -> 성공 시 lockerStatus 초기화 등
+    }
   };
 
   return (
@@ -510,38 +546,96 @@ export default function Dashboard() {
 
           {/* 4. 개인 보관함 (Stack Item) */}
           <Paper elevation={0} sx={{ p: 3, borderRadius: 4, border: '1px solid #eef2f6' }}>
-            <Box display="flex" alignItems="center" mb={2}>
-              <Avatar sx={{ bgcolor: "secondary.light", color: "secondary.main", mr: 2 }}>
-                <LockIcon />
-              </Avatar>
-              <Typography variant="h6" fontWeight="bold">
-                개인 보관함
-              </Typography>
+            <Box display="flex" alignItems="center" mb={2} justifyContent="space-between">
+              <Box display="flex" alignItems="center">
+                <Avatar sx={{ bgcolor: "secondary.light", color: "secondary.main", mr: 2 }}>
+                  <LockIcon />
+                </Avatar>
+                <Typography variant="h6" fontWeight="bold">
+                  개인 보관함
+                </Typography>
+              </Box>
+              {/* 이용 중일 때만 상태 칩 표시 */}
+              {lockerStatus.use && (
+                <Chip label="이용중" color="secondary" size="small" sx={{ fontWeight: 'bold' }} />
+              )}
             </Box>
             
             <Box sx={{ bgcolor: "#f3e5f5", p: 3, borderRadius: 3, mb: 3, textAlign: 'center', border: '1px dashed #ce93d8' }}>
               {lockerStatus.use ? (
                 <>
-                  <Typography variant="body2" color="text.secondary" gutterBottom>현재 이용 중</Typography>
+                  <Typography variant="body2" color="text.secondary" gutterBottom>
+                    나의 보관함
+                  </Typography>
                   <Typography variant="h4" fontWeight="800" color="secondary.main" sx={{ mb: 1 }}>
                     No. {lockerStatus.number}
                   </Typography>
-                  <Chip label={`~ ${lockerStatus.expiry} 까지`} size="small" color="secondary" variant="filled" sx={{ borderRadius: 1 }} />
+                  <Typography variant="subtitle2" color="text.secondary" sx={{ fontWeight: 'bold' }}>
+                    ~ {lockerStatus.expiry} 까지
+                  </Typography>
                 </>
               ) : (
-                <Typography variant="body1" color="text.secondary" sx={{ py: 3 }}>
-                  이용 중인 보관함이 없습니다.
-                </Typography>
+                <Box py={1}>
+                  <Typography variant="body1" color="text.secondary" fontWeight="500">
+                    이용 중인 보관함이 없습니다.
+                  </Typography>
+                  <Typography variant="caption" color="text.disabled">
+                    무거운 짐은 보관함에 맡기세요!
+                  </Typography>
+                </Box>
               )}
             </Box>
 
-            <Stack direction="row" spacing={2}>
-              <Button fullWidth variant="outlined" color="secondary" component={Link} to="/lockers/extension" sx={{ py: 1.5, borderRadius: 2, fontWeight: 'bold' }}>
-                기간 연장
-              </Button>
-              <Button fullWidth variant="contained" color="secondary" onClick={handleNewReservation} disableElevation sx={{ py: 1.5, borderRadius: 2, fontWeight: 'bold' }}>
-                신규 대여
-              </Button>
+            {/* 버튼 그룹: 상태에 따라 조건부 렌더링 */}
+            <Stack direction="row" spacing={1.5}>
+              {lockerStatus.use ? (
+                <>
+                  {/* Case 1: 이용 중일 때 -> [환불] [연장] */}
+                  <Button 
+                    fullWidth 
+                    variant="outlined" 
+                    color="error" 
+                    onClick={handleRefund}
+                    sx={{ 
+                      py: 1.5, 
+                      borderRadius: 2, 
+                      fontWeight: 'bold',
+                      borderWidth: '2px',
+                      '&:hover': { borderWidth: '2px', bgcolor: '#ffebee' }
+                    }}
+                  >
+                    환불 신청
+                  </Button>
+                  <Button 
+                    fullWidth 
+                    variant="contained" 
+                    color="secondary" 
+                    component={Link} 
+                    to="/lockers/extension" 
+                    disableElevation
+                    sx={{ 
+                      py: 1.5, 
+                      borderRadius: 2, 
+                      fontWeight: 'bold' 
+                    }}
+                  >
+                    기간 연장
+                  </Button>
+                </>
+              ) : (
+                /* Case 2: 미이용 중일 때 -> [신규 대여] 하나만 꽉 차게 */
+                <Button 
+                  fullWidth 
+                  variant="contained" 
+                  color="secondary" 
+                  onClick={handleNewReservation} 
+                  disableElevation 
+                  startIcon={<AddCircleOutlineIcon />}
+                  sx={{ py: 1.5, borderRadius: 2, fontWeight: 'bold' }}
+                >
+                  보관함 신규 대여
+                </Button>
+              )}
             </Stack>
           </Paper>
 

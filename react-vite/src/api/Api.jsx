@@ -77,6 +77,12 @@ export async function getLockerList(pathVarable) {
   return res;
 }
 
+export async function rentLocker(dto) {
+  const res = await call("/lockers/usages", "POST", dto);
+  return res;
+}
+
+
 /* ===== 헬스장 ===== */
 export async function searchGym(dto) {
   const res = await call("/gyms/search", "GET", dto);

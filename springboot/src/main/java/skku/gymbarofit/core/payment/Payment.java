@@ -1,8 +1,13 @@
 package skku.gymbarofit.core.payment;
 
 import jakarta.persistence.*;
+import lombok.AllArgsConstructor;
+import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
+import skku.gymbarofit.core.item.locker.dto.LockerRentRequestDto;
+import skku.gymbarofit.core.payment.enums.PaymentMethod;
+import skku.gymbarofit.core.payment.enums.PaymentStatus;
 import skku.gymbarofit.core.user.member.Member;
 
 import java.time.LocalDateTime;
@@ -11,6 +16,8 @@ import static jakarta.persistence.FetchType.LAZY;
 
 @Entity
 @Getter
+@Builder
+@AllArgsConstructor
 @NoArgsConstructor
 @Table(name = "payment",
         indexes = {
@@ -48,15 +55,15 @@ public class Payment {
     @Column(name = "paid_at", nullable = false)
     private LocalDateTime paidAt;
 
-    public Payment(Member member,
-                   int amount,
-                   PaymentMethod paymentMethod) {
 
-        this.member = member;
-        this.amount = amount;
-        this.paymentMethod = paymentMethod;
-        this.status = PaymentStatus.PAID;
-        this.paidAt = LocalDateTime.now();
+    public static Payment from(Member member, LockerRentRequestDto request) {
+        return Payment.builder()
+                .member(member)
+                .amount(request.plan().getAmount())
+                .paymentMethod(request.paymentMethod())
+                .status(PaymentStatus.PAID)
+                .paidAt(LocalDateTime.now())
+                .build();
     }
 
     /* ================= 비즈니스 메서드 ================= */

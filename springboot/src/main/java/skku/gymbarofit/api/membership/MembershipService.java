@@ -8,13 +8,12 @@ import org.springframework.transaction.annotation.Transactional;
 import skku.gymbarofit.api.membership.dto.MembershipInfoResponseDto;
 import skku.gymbarofit.core.gym.Gym;
 import skku.gymbarofit.core.gym.dto.GymResponseDto;
-import skku.gymbarofit.core.gym.exceptions.GymErrorCode;
-import skku.gymbarofit.core.gym.exceptions.GymException;
 import skku.gymbarofit.core.gym.service.GymInternalService;
+import skku.gymbarofit.core.item.locker.LockerUsage;
+import skku.gymbarofit.core.item.locker.service.LockerUsageInternalService;
 import skku.gymbarofit.core.membership.service.MembershipInternalService;
 
 import java.util.List;
-import java.util.Optional;
 
 @Slf4j
 @Transactional
@@ -24,18 +23,20 @@ public class MembershipService {
 
     private final GymInternalService gymInternalService;
     private final MembershipInternalService membershipInternalService;
+    private final LockerUsageInternalService lockerUsageInternalService;
 
     @Transactional(readOnly = true)
     public MembershipInfoResponseDto info(Long gymId, Long memberId) {
 
-        Gym gym = gymInternalService.findById(gymId)
-                .orElseThrow(() -> new GymException(GymErrorCode.GYM_NOT_FOUND));
+        Gym gym = gymInternalService.findById(gymId);
 
         List<Gym> gymList = membershipInternalService.findGymByMemberId(memberId);
         List<GymResponseDto> gymResponseDtoList = gymList.stream()
                 .map(GymResponseDto::from)
                 .toList();
 
-        return new MembershipInfoResponseDto(gymResponseDtoList, gym);
+        LockerUsage lockerUsage = lockerUsageInternalService.findByGymIdAndMemberId(gymId, memberId).orElse(null);
+
+        return MembershipInfoResponseDto.from(gymResponseDtoList, gym, lockerUsage);
     }
 }

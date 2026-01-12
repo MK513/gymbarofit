@@ -45,8 +45,8 @@ public class GymService {
     public GymMembershipResponseDto register(Long memberId, Long gymId) {
 
 
-        Member member = memberInternalService.findById(memberId).orElseThrow(() -> new UserException(UserErrorCode.USER_NOT_FOUND));
-        Gym gym = gymInternalService.findById(gymId).orElseThrow(() -> new GymException(GymErrorCode.GYM_NOT_FOUND));
+        Member member = memberInternalService.findById(memberId);
+        Gym gym = gymInternalService.findById(gymId);
 
         if (membershipInternalService.existsByMemberIdAndGymId(memberId, gymId)) {
             throw new MembershipException(MembershipErrorCode.MEMBERSHIP_ALREADY_EXISTS);

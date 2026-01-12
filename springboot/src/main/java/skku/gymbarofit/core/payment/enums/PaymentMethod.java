@@ -1,4 +1,4 @@
-package skku.gymbarofit.core.payment;
+package skku.gymbarofit.core.payment.enums;
 
 public enum PaymentMethod {
     CARD,

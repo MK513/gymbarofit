@@ -4,6 +4,8 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import skku.gymbarofit.core.item.locker.Locker;
+import skku.gymbarofit.core.item.locker.exception.LockerErrorCode;
+import skku.gymbarofit.core.item.locker.exception.LockerException;
 import skku.gymbarofit.core.item.locker.repository.LockerRepository;
 
 import java.util.List;
@@ -18,5 +20,10 @@ public class LockerInternalService {
     @Transactional(readOnly = true)
     public List<Locker> findAllByZoneId(Long zoneId) {
         return LockerRepository.findAllByLockerZoneId(zoneId);
+    }
+
+    public Locker findById(Long lockerId) {
+        return LockerRepository.findById(lockerId)
+                .orElseThrow(() -> new LockerException(LockerErrorCode.LOCKER_NOT_FOUND));
     }
 }

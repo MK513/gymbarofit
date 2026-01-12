@@ -5,6 +5,7 @@ import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
+import skku.gymbarofit.core.item.locker.dto.LockerRentRequestDto;
 import skku.gymbarofit.core.item.locker.enums.LockerPlan;
 import skku.gymbarofit.core.item.locker.enums.LockerUsageStatus;
 import skku.gymbarofit.core.payment.Payment;
@@ -48,6 +49,19 @@ public class LockerUsage {
 
     @Enumerated(EnumType.STRING)
     private LockerUsageStatus status;
+
+    public static LockerUsage from(Member member, Payment payment, Locker locker, LockerRentRequestDto request) {
+        return LockerUsage.builder()
+                .member(member)
+                .locker(locker)
+                .payment(payment)
+                .plan(request.plan())
+                .startDate(LocalDate.now())
+                .endDate(LocalDate.now().plusMonths(request.plan().getMonths()))
+                .status(LockerUsageStatus.ACTIVE)
+                .build();
+    }
+
 
 
     /* ================= 비즈니스 메서드 ================= */
