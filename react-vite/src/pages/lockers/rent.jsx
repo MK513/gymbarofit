@@ -52,6 +52,7 @@ export default function LockerRent() {
   const { user } = useAuth();
 
   const [zones, setZones] = useState([]);
+  const [hasNoZones, setHasNoZones] = useState(false);
   const [lockers, setLockers] = useState([]);
   const [loading, setLoading] = useState(false);
 
@@ -63,27 +64,36 @@ export default function LockerRent() {
   const [duration, setDuration] = useState(1);
   const [paymentMethod, setPaymentMethod] = useState('CARD'); // 기본값 카드
   
-  // [삭제됨] 로컬 toast 상태 제거
-  // const [toast, setToast] = useState({ open: false, message: "" });
-  
   const [gridConfig, setGridConfig] = useState({ rows: 4, cols: 4, lockerType: "1x1" });
   
   // 1. 초기 구역 정보 가져오기
   useEffect(() => {
-    const fetchZones = async () => {
-      try {
-        const dto = { gymId: user.gym.id };
-        const res = await getLockerZone(dto);
-        if (res && res.zones) {
-          setZones(res.zones);
-        }
-      } catch (error) {
-        console.error("구역 정보를 불러오는데 실패했습니다:", error);
-        showNotification("구역 정보를 불러오지 못했습니다.", "error");
+  const fetchZones = async () => {
+    try {
+      const dto = { gymId: user.gym.id };
+      const res = await getLockerZone(dto);
+
+
+      // 구역이 0개인 경우 처리
+      if (res.zoneCount === 0) {
+
+        setHasNoZones(true);
+        setLoading(false); // 로딩 끝냄
+        return; // 더 이상 진행하지 않음
       }
-    };
-    fetchZones();
-  }, []);
+
+      if (res && res.zones) {
+        setZones(res.zones);
+        setHasNoZones(false);
+      }
+    } catch (error) {
+      console.error("구역 정보를 불러오는데 실패했습니다:", error);
+      showNotification("구역 정보를 불러오지 못했습니다.", "error");
+      setHasNoZones(true); 
+    }
+  };
+  fetchZones();
+}, []);
 
   // 2. 탭(구역) 변경 시 -> 해당 구역 설정 및 리스트 조회
   useEffect(() => {
@@ -216,6 +226,42 @@ export default function LockerRent() {
       showNotification(error.response?.data?.message || "보관함 대여 중 오류가 발생했습니다.", "error");
     }
   };
+
+  if (hasNoZones) {
+    return (
+      <Box sx={{ bgcolor: "#f5f7fa", minHeight: "100vh" }}>
+        {/* 상단 바는 그대로 유지하여 '뒤로가기'가 가능하게 함 */}
+        <AppBar position="sticky" color="inherit" elevation={0} sx={{ borderBottom: '1px solid #e0e0e0', bgcolor: "white" }}>
+          <Toolbar>
+            <IconButton edge="start" color="inherit" onClick={() => navigate(-1)} sx={{ mr: 1 }}>
+              <ArrowBackIcon />
+            </IconButton>
+            <Typography variant="h6" sx={{ flexGrow: 1, fontWeight: "bold" }}>
+              보관함 배정
+            </Typography>
+          </Toolbar>
+        </AppBar>
+
+        {/* 안내 메시지 및 아이콘 */}
+        <Container maxWidth="sm" sx={{ mt: 10, display: 'flex', flexDirection: 'column', alignItems: 'center', opacity: 0.7 }}>
+          <LockIcon sx={{ fontSize: 80, color: '#bdbdbd', mb: 2 }} />
+          <Typography variant="h6" gutterBottom color="textSecondary" fontWeight="bold">
+            등록된 보관함 구역이 없습니다.
+          </Typography>
+          <Typography variant="body2" color="textSecondary" align="center" sx={{ mb: 4 }}>
+            관리자에게 문의해주세요.
+          </Typography>
+          <Button 
+            variant="contained" 
+            onClick={() => navigate(-1)}
+            sx={{ borderRadius: 2, px: 4, py: 1 }}
+          >
+            뒤로 가기
+          </Button>
+        </Container>
+      </Box>
+    );
+  }
 
   return (
     <Box sx={{ bgcolor: "#f5f7fa", minHeight: "100vh", pb: 24 }}>
