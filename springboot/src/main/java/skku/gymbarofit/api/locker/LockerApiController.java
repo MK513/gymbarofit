@@ -3,6 +3,8 @@ package skku.gymbarofit.api.locker;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+import skku.gymbarofit.api.locker.service.LockerFacade;
+import skku.gymbarofit.api.locker.service.LockerService;
 import skku.gymbarofit.api.membership.annotation.CurrentUserId;
 import skku.gymbarofit.core.item.locker.dto.LockerListResponseDto;
 import skku.gymbarofit.core.item.locker.dto.LockerRentRequestDto;
@@ -15,6 +17,7 @@ import skku.gymbarofit.core.item.locker.dto.ZoneListResponseDto;
 public class LockerApiController {
 
     private final LockerService lockerService;
+    private final LockerFacade lockerFacade;
 
     @GetMapping("/zones")
     public ResponseEntity<ZoneListResponseDto> zones(
@@ -36,6 +39,16 @@ public class LockerApiController {
             @CurrentUserId Long memberId,
             @RequestBody LockerRentRequestDto request
     ) {
-        return ResponseEntity.ok(lockerService.rent(memberId, request));
+        return ResponseEntity.ok(lockerFacade.rent(memberId, request));
     }
+
+    @DeleteMapping("/usages/{usageId}")
+    public ResponseEntity<Void> refundLocker(
+            @CurrentUserId Long memberId,
+            @PathVariable Long usageId
+    ) {
+        lockerFacade.refund(memberId, usageId);
+        return ResponseEntity.noContent().build();
+    }
+
 }

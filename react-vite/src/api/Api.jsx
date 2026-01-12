@@ -82,6 +82,10 @@ export async function rentLocker(dto) {
   return res;
 }
 
+export async function refundLocker(pathVarable) {
+  const res = await call("/lockers/usages/{usageId}", "DELETE", null, pathVarable);
+  return res;
+}
 
 /* ===== 헬스장 ===== */
 export async function searchGym(dto) {

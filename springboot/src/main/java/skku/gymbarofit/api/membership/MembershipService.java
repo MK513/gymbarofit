@@ -35,7 +35,7 @@ public class MembershipService {
                 .map(GymResponseDto::from)
                 .toList();
 
-        LockerUsage lockerUsage = lockerUsageInternalService.findByGymIdAndMemberId(gymId, memberId).orElse(null);
+        LockerUsage lockerUsage = lockerUsageInternalService.findActiveByGymIdAndMemberId(gymId, memberId).orElse(null);
 
         return MembershipInfoResponseDto.from(gymResponseDtoList, gym, lockerUsage);
     }

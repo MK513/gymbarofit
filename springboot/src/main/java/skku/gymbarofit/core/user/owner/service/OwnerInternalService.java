@@ -4,7 +4,7 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import skku.gymbarofit.core.user.owner.dto.OwnerRegisterRequestDto;
-import skku.gymbarofit.core.user.exception.code.UserErrorCode;
+import skku.gymbarofit.core.user.exception.UserErrorCode;
 import skku.gymbarofit.core.user.exception.UserException;
 import skku.gymbarofit.core.user.owner.OwnerRepository;
 import skku.gymbarofit.core.user.owner.Owner;

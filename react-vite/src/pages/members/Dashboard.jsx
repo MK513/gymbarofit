@@ -22,11 +22,12 @@ import {
   DialogActions,
   Menu,
   MenuItem,
-  Divider, // 구분선 추가
+  Divider,
+  DialogContentText,
 } from "@mui/material";
 import { useNavigate, Link } from "react-router-dom";
 import { useAuth } from "../../context/AuthContext";
-import { getMembershipInfo } from "../../api/Api";
+import { getMembershipInfo, refundLocker } from "../../api/Api";
 import { useNotification } from "../../context/NotificationContext";
 
 // ▼▼▼ 아이콘 Import ▼▼▼
@@ -51,10 +52,11 @@ export default function Dashboard() {
   const { user, logout } = useAuth();
   const { showNotification } = useNotification();
 
-  const [lockerStatus, setLockerStatus] = useState({ use: false, number: 0, expiry: "" });
+  const [lockerStatus, setLockerStatus] = useState({ use: false, number: 0, expiry: "", id: null });
   const [equipStatus] = useState({ use: false, name: "", time: "" });
   const [attendance, setAttendance] = useState({ streak: 3, checkedToday: false }); 
-  const [openQr, setOpenQr] = useState(false); 
+  const [openQr, setOpenQr] = useState(false);
+  const [openRefundDialog, setOpenRefundDialog] = useState(false);
 
   // 지점 관리 상태
   const [myGyms, setMyGyms] = useState([]); // 서버에서 가져온 헬스장 목록
@@ -125,18 +127,18 @@ export default function Dashboard() {
 
           // 개인 보관함(lockerUsage) 정보 처리 로직 추가
           if (res.lockerUsage) {
-            // 사용 중일 때
             setLockerStatus({
               use: true,
               number: res.lockerUsage.lockerNumber,
-              expiry: formatDateFromArray(res.lockerUsage.endDate), // 날짜 포맷 변환
+              expiry: formatDateFromArray(res.lockerUsage.endDate),
+              id: res.lockerUsage.usageId,
             });
           } else {
-            // 미사용(null)일 때
             setLockerStatus({
               use: false,
               number: 0,
               expiry: "",
+              id: null,
             });
           }
 
@@ -219,13 +221,38 @@ export default function Dashboard() {
     navigate('/gyms/register');
   };
 
-  // 환불 버튼 핸들러
-  const handleRefund = () => {
-    // 실제로는 여기에 환불 API 호출 로직이 들어갑니다.
-    if (window.confirm(`보관함(No.${lockerStatus.number}) 이용을 환불하시겠습니까?\n환불 시 즉시 이용이 종료됩니다.`)) {
-      alert("환불 신청이 접수되었습니다.");
-      // 이후 로직: API 호출 -> 성공 시 lockerStatus 초기화 등
+  // "환불 신청" 버튼 클릭 시 실행 (모달 열기)
+  const handleRefundClick = () => {
+    if (!lockerStatus.id) {
+      showNotification("보관함 정보를 찾을 수 없습니다.", "error");
+      return;
     }
+    setOpenRefundDialog(true); // 모달 오픈
+  };
+
+  // 모달 안에서 "환불하기" 클릭 시 실행 
+  const handleRefundConfirm = async () => {
+    try {
+      // 실제 API 호출
+        const pathVarable = {usageId: lockerStatus.id}
+        await refundLocker(pathVarable);
+      
+      // 성공 처리
+      showNotification("환불 처리가 완료되었습니다.", "success");
+      setLockerStatus({ use: false, number: 0, expiry: "", id: null });
+      setOpenRefundDialog(false); // 모달 닫기
+      
+    } catch (error) {
+      console.error("환불 실패", error);
+      const msg = error.response?.data?.message || "환불 처리에 실패했습니다. 다시 시도해주세요.";
+      showNotification(msg, "error");
+      setOpenRefundDialog(false); // 에러 나도 모달은 닫기
+    }
+  };
+
+  // 모달 닫기 핸들러
+  const handleRefundCancel = () => {
+    setOpenRefundDialog(false);
   };
 
   return (
@@ -595,7 +622,7 @@ export default function Dashboard() {
                     fullWidth 
                     variant="outlined" 
                     color="error" 
-                    onClick={handleRefund}
+                    onClick={handleRefundClick}
                     sx={{ 
                       py: 1.5, 
                       borderRadius: 2, 
@@ -659,6 +686,43 @@ export default function Dashboard() {
         <DialogActions sx={{ justifyContent: 'center', pb: 3 }}>
           <Button onClick={handleCloseQr} variant="outlined" sx={{ borderRadius: 4 }}>
             닫기
+          </Button>
+        </DialogActions>
+      </Dialog>
+
+      {/* 환불 확인 커스텀 모달 */}
+      <Dialog
+        open={openRefundDialog}
+        onClose={handleRefundCancel}
+        aria-labelledby="refund-dialog-title"
+        aria-describedby="refund-dialog-description"
+        PaperProps={{ sx: { borderRadius: 3, p: 1 } }} // 둥근 모서리 디자인
+      >
+        <DialogTitle id="refund-dialog-title" sx={{ fontWeight: "bold" }}>
+          환불 하시겠습니까?
+        </DialogTitle>
+        <DialogContent>
+          <DialogContentText id="refund-dialog-description" sx={{ color: "#333" }}>
+            보관함(No.<strong>{lockerStatus.number}</strong>) 이용이 즉시 종료됩니다.<br />
+            정말 환불하시겠습니까?
+          </DialogContentText>
+        </DialogContent>
+        <DialogActions sx={{ p: 2 }}>
+          <Button 
+            onClick={handleRefundCancel} 
+            color="inherit" 
+            sx={{ fontWeight: "bold", color: "#666" }}
+          >
+            취소
+          </Button>
+          <Button 
+            onClick={handleRefundConfirm} 
+            color="error" 
+            variant="contained" 
+            autoFocus
+            sx={{ fontWeight: "bold", borderRadius: 2, boxShadow: "none" }}
+          >
+            환불하기
           </Button>
         </DialogActions>
       </Dialog>

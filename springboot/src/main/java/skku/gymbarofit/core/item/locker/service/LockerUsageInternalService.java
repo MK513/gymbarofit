@@ -5,6 +5,8 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import skku.gymbarofit.core.item.locker.LockerUsage;
 import skku.gymbarofit.core.item.locker.enums.LockerUsageStatus;
+import skku.gymbarofit.core.item.locker.exception.LockerErrorCode;
+import skku.gymbarofit.core.item.locker.exception.LockerException;
 import skku.gymbarofit.core.item.locker.repository.LockerUsageRepository;
 
 import java.util.List;
@@ -26,17 +28,29 @@ public class LockerUsageInternalService {
         return lockerUsageRepository.existsByLocker_Id(lockerId);
     }
 
-    public LockerUsage save(LockerUsage lockerUsage) {
-        return lockerUsageRepository.save(lockerUsage);
+    public LockerUsage saveAndFlush(LockerUsage lockerUsage) {
+        return lockerUsageRepository.saveAndFlush(lockerUsage);
     }
 
     @Transactional(readOnly = true)
-    public Optional<LockerUsage> findByGymIdAndMemberId(Long gymId, Long memberId) {
-        return lockerUsageRepository.findByGymIdAndMemberId(gymId, memberId);
+    public Optional<LockerUsage> findActiveByGymIdAndMemberId(Long gymId, Long memberId) {
+        return lockerUsageRepository.findActiveByGymIdAndMemberId(gymId, memberId);
     }
 
     @Transactional(readOnly = true)
     public Boolean existsByGymIdAndMemberId(Long gymId, Long memberId) {
         return lockerUsageRepository.existsByGymIdAndMemberId(gymId, memberId);
+    }
+
+    @Transactional(readOnly = true)
+    public LockerUsage findById(Long usageId) {
+        return lockerUsageRepository.findById(usageId)
+                .orElseThrow(() -> new LockerException(LockerErrorCode.USAGE_NOT_FOUND));
+    }
+
+    @Transactional(readOnly = true)
+    public LockerUsage findActiveByIdForUpdate(Long usageId) {
+        return lockerUsageRepository.findActiveByIdForUpdate(usageId)
+                .orElseThrow(() -> new LockerException(LockerErrorCode.USAGE_NOT_FOUND));
     }
 }

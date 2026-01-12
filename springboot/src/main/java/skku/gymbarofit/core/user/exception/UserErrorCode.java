@@ -1,4 +1,4 @@
-package skku.gymbarofit.core.user.exception.code;
+package skku.gymbarofit.core.user.exception;
 
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;

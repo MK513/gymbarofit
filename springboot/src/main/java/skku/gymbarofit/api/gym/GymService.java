@@ -9,16 +9,12 @@ import org.springframework.transaction.annotation.Transactional;
 import skku.gymbarofit.api.gym.dto.GymMembershipResponseDto;
 import skku.gymbarofit.core.gym.Gym;
 import skku.gymbarofit.core.gym.dto.GymResponseDto;
-import skku.gymbarofit.core.gym.exceptions.GymErrorCode;
-import skku.gymbarofit.core.gym.exceptions.GymException;
 import skku.gymbarofit.core.gym.service.GymInternalService;
 import skku.gymbarofit.core.membership.Membership;
 import skku.gymbarofit.core.membership.enums.MembershipStatus;
 import skku.gymbarofit.core.membership.exceptions.MembershipErrorCode;
 import skku.gymbarofit.core.membership.exceptions.MembershipException;
 import skku.gymbarofit.core.membership.service.MembershipInternalService;
-import skku.gymbarofit.core.user.exception.UserException;
-import skku.gymbarofit.core.user.exception.code.UserErrorCode;
 import skku.gymbarofit.core.user.member.Member;
 import skku.gymbarofit.core.user.member.service.MemberInternalService;
 
