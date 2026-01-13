@@ -5,9 +5,12 @@ import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
+import skku.gymbarofit.core.item.locker.LockerUsage;
+import skku.gymbarofit.core.item.locker.dto.LockerExtendRequestDto;
 import skku.gymbarofit.core.item.locker.dto.LockerRentRequestDto;
 import skku.gymbarofit.core.payment.enums.PaymentMethod;
 import skku.gymbarofit.core.payment.enums.PaymentStatus;
+import skku.gymbarofit.core.payment.enums.PaymentTargetType;
 import skku.gymbarofit.core.user.member.Member;
 
 import java.time.LocalDateTime;
@@ -37,6 +40,11 @@ public class Payment {
     @JoinColumn(name = "member_id", nullable = false)
     private Member member;
 
+    @Enumerated(EnumType.STRING)
+    private PaymentTargetType targetType;
+
+    private Long targetId;
+
     /** 결제 금액 */
     @Column(nullable = false)
     private int amount;
@@ -52,26 +60,52 @@ public class Payment {
     private PaymentMethod paymentMethod;
 
     /** 결제 완료 시각 */
-    @Column(name = "paid_at", nullable = false)
+    @Column(name = "paid_at")
     private LocalDateTime paidAt;
 
 
-    public static Payment from(Member member, LockerRentRequestDto request) {
+    public static Payment from(Member member, LockerRentRequestDto request, LockerUsage usage) {
         return Payment.builder()
                 .member(member)
                 .amount(request.plan().getAmount())
                 .paymentMethod(request.paymentMethod())
-                .status(PaymentStatus.PAID)
-                .paidAt(LocalDateTime.now())
+                .status(PaymentStatus.PENDING)
+                .targetType(PaymentTargetType.LOCKER_USAGE)
+                .targetId(usage.getId())
+                .build();
+    }
+
+    public static Payment from(Member member, LockerExtendRequestDto request, LockerUsage usage) {
+        return Payment.builder()
+                .member(member)
+                .amount(request.plan().getAmount())
+                .paymentMethod(request.paymentMethod())
+                .status(PaymentStatus.PENDING)
+                .targetType(PaymentTargetType.LOCKER_USAGE)
+                .targetId(usage.getId())
                 .build();
     }
 
     /* ================= 비즈니스 메서드 ================= */
 
     public void refund() {
-        if (this.status == PaymentStatus.REFUNDED) {
+        if (this.status == PaymentStatus.PAID) {
+            this.status = PaymentStatus.REFUNDED;
+        }
+    }
+
+    public void pay() {
+        if (this.status == PaymentStatus.PAID) {
             return;
         }
-        this.status = PaymentStatus.REFUNDED;
+        this.status = PaymentStatus.PAID;
+        this.paidAt = LocalDateTime.now();
+    }
+
+    public void fail() {
+        if (this.status != PaymentStatus.PENDING) {
+            return;
+        }
+        this.status = PaymentStatus.FAILED;
     }
 }

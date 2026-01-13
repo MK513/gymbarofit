@@ -77,6 +77,11 @@ export async function getLockerList(pathVarable) {
   return res;
 }
 
+export async function getLockerInfo(pathVarable) {
+  const res = await call("/lockers/usages/{usageId}/extend", "GET", null, pathVarable);
+  return res;
+}
+
 export async function rentLocker(dto) {
   const res = await call("/lockers/usages", "POST", dto);
   return res;
@@ -86,6 +91,12 @@ export async function refundLocker(pathVarable) {
   const res = await call("/lockers/usages/{usageId}", "DELETE", null, pathVarable);
   return res;
 }
+
+export async function extendLocker(dto, pathVarable) {
+  const res = await call("/lockers/usages/{usageId}/extend", "POST", dto, pathVarable);
+  return res;
+}
+
 
 /* ===== 헬스장 ===== */
 export async function searchGym(dto) {

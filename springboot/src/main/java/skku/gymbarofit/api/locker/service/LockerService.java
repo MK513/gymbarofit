@@ -4,6 +4,9 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import skku.gymbarofit.api.locker.enums.LockerPayProcess;
+import skku.gymbarofit.api.payment.MockPaymentService;
+import skku.gymbarofit.core.item.locker.dto.*;
 import skku.gymbarofit.core.payment.dto.RefundDecision;
 import skku.gymbarofit.api.locker.exception.LockerExceptionMapper;
 import skku.gymbarofit.core.gym.Gym;
@@ -11,17 +14,14 @@ import skku.gymbarofit.core.gym.service.GymInternalService;
 import skku.gymbarofit.core.item.locker.Locker;
 import skku.gymbarofit.core.item.locker.LockerUsage;
 import skku.gymbarofit.core.item.locker.LockerZone;
-import skku.gymbarofit.core.item.locker.dto.LockerListResponseDto;
-import skku.gymbarofit.core.item.locker.dto.LockerRentRequestDto;
-import skku.gymbarofit.core.item.locker.dto.LockerRentResponseDto;
-import skku.gymbarofit.core.item.locker.dto.ZoneListResponseDto;
 import skku.gymbarofit.core.item.locker.exception.LockerErrorCode;
 import skku.gymbarofit.core.item.locker.exception.LockerException;
 import skku.gymbarofit.core.item.locker.service.LockerInternalService;
 import skku.gymbarofit.core.item.locker.service.LockerUsageInternalService;
 import skku.gymbarofit.core.item.locker.service.LockerZoneInternalService;
 import skku.gymbarofit.core.payment.Payment;
-import skku.gymbarofit.core.payment.service.MockPaymentInternalService;
+import skku.gymbarofit.core.payment.enums.PaymentTargetType;
+import skku.gymbarofit.core.payment.service.PaymentInternalService;
 import skku.gymbarofit.core.user.member.Member;
 import skku.gymbarofit.core.user.member.service.MemberInternalService;
 
@@ -36,9 +36,10 @@ public class LockerService {
     private final LockerZoneInternalService lockerZoneInternalService;
     private final LockerInternalService lockerInternalService;
     private final LockerUsageInternalService lockerUsageInternalService;
-    private final MockPaymentInternalService paymentInternalService;
-    private final MemberInternalService memberInternalService;
     private final GymInternalService gymInternalService;
+    private final MemberInternalService memberInternalService;
+    private final PaymentInternalService paymentInternalService;
+    private final MockPaymentService paymentService;
 
     @Transactional(readOnly = true)
     public ZoneListResponseDto getZoneList(Long gymId) {
@@ -50,42 +51,51 @@ public class LockerService {
     public LockerListResponseDto getLockerList(Long zoneId) {
 
         List<Locker> lockers = lockerInternalService.findAllByZoneId(zoneId);
-        List<LockerUsage> usages = lockerUsageInternalService.findAllActiveByZoneId(zoneId);
+        List<LockerUsage> unavailableUsage = lockerUsageInternalService.findUnavailableByZoneId(zoneId);
 
-        return LockerListResponseDto.of(lockers, usages);
+        return LockerListResponseDto.from(lockers, unavailableUsage);
     }
 
-    public Long reserve(Member member, LockerRentRequestDto request) {
+    public Long reserve(Long memberId, LockerRentRequestDto request) {
         try {
+            Member member = memberInternalService.findById(memberId);
             Locker locker = lockerInternalService.findById(request.lockerId());
             Gym gym = gymInternalService.findById(request.gymId());
 
-            LockerUsage usage = lockerUsageInternalService.saveAndFlush(
-                    LockerUsage.from(member, locker, gym, request)
-            );
+            LockerUsage usage = lockerUsageInternalService.save(LockerUsage.from(member, locker, gym, request));
+            Payment payment = paymentService.pend(Payment.from(member, request, usage));
 
-            return usage.getId();
+            return payment.getId();
 
         } catch (DataIntegrityViolationException e) {
             throw LockerExceptionMapper.map(e);
         }
     }
 
-    public void cancel(Long usageId) {
-        LockerUsage usage = lockerUsageInternalService.findActiveByIdForUpdate(usageId);
+    public void fail(Long paymentId, LockerPayProcess process) {
+        Payment payment = paymentInternalService.findByIdForUpdate(paymentId);
+        LockerUsage lockerUsage = lockerUsageInternalService.findActiveByIdForUpdate(payment.getTargetId());
 
-        if (!usage.isActive()) return;
+        if (!lockerUsage.isActive()) return;
 
-        usage.cancel();
+        lockerUsage.cancel(process);
+        payment.fail();
     }
 
-    public void confirm(Long usageId, Payment payment) {
-        lockerUsageInternalService.findActiveByIdForUpdate(usageId).confirm(payment);
+    public void confirm(Long paymentId) {
+        Payment payment = paymentInternalService.findByIdForUpdate(paymentId);
+        LockerUsage lockerUsage = lockerUsageInternalService.findActiveByIdForUpdate(payment.getTargetId());
+
+        payment.pay();
+        lockerUsage.confirm();
     }
 
     @Transactional(readOnly = true)
-    public LockerRentResponseDto getDto(Long usageId) {
-        return LockerRentResponseDto.from(lockerUsageInternalService.findById(usageId));
+    public LockerRentResponseDto getDto(Long paymentId) {
+        Payment payment = paymentInternalService.findById(paymentId);
+        LockerUsage lockerUsage = lockerUsageInternalService.findById(payment.getTargetId());
+
+        return LockerRentResponseDto.from(lockerUsage);
     }
 
     public RefundDecision beforeRefundTx(Long memberId, Long usageId) {
@@ -100,7 +110,8 @@ public class LockerService {
             return RefundDecision.skip();
         }
 
-        return RefundDecision.doRefund(lockerUsage.getPayment().getId());
+        List<Payment> payments = paymentInternalService.findByTarget(usageId, PaymentTargetType.LOCKER_USAGE);
+        return RefundDecision.doRefund(payments);
     }
 
     public void afterRefundTx(Long memberId, Long usageId) {
@@ -115,8 +126,34 @@ public class LockerService {
             return;
         }
 
-        lockerUsage.cancel();
+        lockerUsage.cancel(LockerPayProcess.REFUND);
     }
 
 
+    public Long beforeExtendTx(Long usageId, LockerExtendRequestDto request) {
+        LockerUsage lockerUsage = lockerUsageInternalService.findActiveByIdForUpdate(usageId);
+
+        if (!lockerUsage.isActive()) {
+            throw new LockerException(LockerErrorCode.INACTIVE_CANNOT_EXTEND);
+        }
+
+        lockerUsage.pending();
+
+        Payment payment = paymentService.pend(Payment.from(lockerUsage.getMember(), request, lockerUsage));
+
+        return payment.getId();
+    }
+
+    @Transactional(readOnly = true)
+    public LockerRentResponseDto getLockerInfo(Long usageId) {
+        return LockerRentResponseDto.from(lockerUsageInternalService.findById(usageId));
+    }
+
+    public void extend(Long paymentId, LockerExtendRequestDto request) {
+        Payment payment = paymentInternalService.findByIdForUpdate(paymentId);
+        LockerUsage lockerUsage = lockerUsageInternalService.findActiveByIdForUpdate(payment.getTargetId());
+
+        payment.pay();
+        lockerUsage.extend(request.plan());
+    }
 }

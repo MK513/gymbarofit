@@ -2,6 +2,7 @@ package skku.gymbarofit.core.item.locker;
 
 import jakarta.persistence.*;
 import lombok.*;
+import skku.gymbarofit.api.locker.enums.LockerPayProcess;
 import skku.gymbarofit.core.gym.Gym;
 import skku.gymbarofit.core.item.locker.dto.LockerRentRequestDto;
 import skku.gymbarofit.core.item.locker.enums.LockerPlan;
@@ -38,10 +39,6 @@ public class LockerUsage {
     @ManyToOne(fetch = LAZY)
     @JoinColumn(name = "locker_id")
     private Locker locker;
-
-    @ManyToOne(fetch = LAZY)
-    @JoinColumn(name = "payment_id")
-    private Payment payment;
 
     @ManyToOne(fetch = LAZY)
     @JoinColumn(name = "gym_id")
@@ -83,9 +80,11 @@ public class LockerUsage {
     }
 
     /** 중도 취소 */
-    public void cancel() {
-        this.status = LockerUsageStatus.CANCELLED;
-        this.active = null;
+    public void cancel(LockerPayProcess process) {
+        if (process == LockerPayProcess.RENT) {
+            this.status = LockerUsageStatus.CANCELLED;
+            this.active = null;
+        }
     }
 
     /** 연장 (같은 플랜 or 다른 플랜 가능) */
@@ -94,13 +93,16 @@ public class LockerUsage {
         this.endDate = this.endDate.plusMonths(newPlan.getMonths());
     }
 
-    public void confirm(Payment payment) {
-        this.payment = payment;
+    public void confirm() {
         this.status = LockerUsageStatus.ACTIVE;
         this.active = 1;
     }
 
     public boolean isActive() {
         return Integer.valueOf(1).equals(this.active);
+    }
+
+    public void pending() {
+        this.status = LockerUsageStatus.PENDING;
     }
 }

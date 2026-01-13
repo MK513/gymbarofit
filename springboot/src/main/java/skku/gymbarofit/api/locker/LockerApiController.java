@@ -6,10 +6,7 @@ import org.springframework.web.bind.annotation.*;
 import skku.gymbarofit.api.locker.service.LockerFacade;
 import skku.gymbarofit.api.locker.service.LockerService;
 import skku.gymbarofit.api.membership.annotation.CurrentUserId;
-import skku.gymbarofit.core.item.locker.dto.LockerListResponseDto;
-import skku.gymbarofit.core.item.locker.dto.LockerRentRequestDto;
-import skku.gymbarofit.core.item.locker.dto.LockerRentResponseDto;
-import skku.gymbarofit.core.item.locker.dto.ZoneListResponseDto;
+import skku.gymbarofit.core.item.locker.dto.*;
 
 @RequestMapping("/lockers")
 @RequiredArgsConstructor
@@ -26,7 +23,6 @@ public class LockerApiController {
         return ResponseEntity.ok(lockerService.getZoneList(gymId));
     }
 
-    // TODO Pageable로 바꾸기?
     @GetMapping("/zones/{zoneId}")
     public ResponseEntity<LockerListResponseDto> lockers(
             @PathVariable Long zoneId
@@ -49,6 +45,21 @@ public class LockerApiController {
     ) {
         lockerFacade.refund(memberId, usageId);
         return ResponseEntity.noContent().build();
+    }
+
+    @GetMapping("/usages/{usageId}/extend")
+    public ResponseEntity<LockerRentResponseDto> lockerInfo(
+            @PathVariable Long usageId
+    ) {
+        return ResponseEntity.ok(lockerService.getLockerInfo(usageId));
+    }
+
+    @PostMapping("/usages/{usageId}/extend")
+    public ResponseEntity<LockerRentResponseDto> extendLocker(
+            @PathVariable Long usageId,
+            @RequestBody LockerExtendRequestDto request
+    ) {
+        return ResponseEntity.ok(lockerFacade.extend(usageId, request));
     }
 
 }

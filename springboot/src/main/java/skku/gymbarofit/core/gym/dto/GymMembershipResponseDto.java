@@ -1,4 +1,4 @@
-package skku.gymbarofit.api.gym.dto;
+package skku.gymbarofit.core.gym.dto;
 
 import lombok.Builder;
 import lombok.Getter;
@@ -14,7 +14,7 @@ public class GymMembershipResponseDto {
     private String email;
     private String name;
 
-    public static GymMembershipResponseDto of(Membership membership) {
+    public static GymMembershipResponseDto from(Membership membership) {
         return GymMembershipResponseDto.builder()
                 .id(membership.getMember().getId())
                 .email(membership.getMember().getEmail())

@@ -6,9 +6,9 @@ import skku.gymbarofit.core.item.locker.LockerZone;
 
 import java.util.List;
 
-public record ZoneListResponseDto(List<ZoneResponseDto> zones) {
+public record ZoneListResponseDto(int zoneCount, List<ZoneResponseDto> zones) {
 
     public static ZoneListResponseDto of(List<LockerZone> zones) {
-        return new ZoneListResponseDto(zones.stream().map(ZoneResponseDto::of).toList());
+        return new ZoneListResponseDto(zones.size(), zones.stream().map(ZoneResponseDto::of).toList());
     }
 }

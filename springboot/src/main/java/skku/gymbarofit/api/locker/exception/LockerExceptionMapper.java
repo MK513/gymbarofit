@@ -12,7 +12,13 @@ public class LockerExceptionMapper {
         Throwable cause = e.getCause();
 
         if (cause instanceof ConstraintViolationException cve) {
-            return switch (cve.getConstraintName()) {
+            String constraintName = cve.getConstraintName();
+
+            if (constraintName == null || constraintName.isBlank()) {
+                return new LockerException(LockerErrorCode.UNKNOWN_ERROR);
+            }
+
+            return switch (constraintName) {
                 case "uk_gym_member_active" ->
                         new LockerException(LockerErrorCode.USER_ALREADY_HAS_LOCKER);
                 case "uk_locker_active" ->

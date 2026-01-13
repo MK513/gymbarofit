@@ -5,7 +5,7 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-import skku.gymbarofit.api.membership.dto.MembershipInfoResponseDto;
+import skku.gymbarofit.core.membership.dto.MembershipInfoResponseDto;
 import skku.gymbarofit.core.gym.Gym;
 import skku.gymbarofit.core.gym.dto.GymResponseDto;
 import skku.gymbarofit.core.gym.service.GymInternalService;

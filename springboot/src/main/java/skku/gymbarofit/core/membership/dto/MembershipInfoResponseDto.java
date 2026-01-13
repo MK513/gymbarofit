@@ -1,8 +1,6 @@
-package skku.gymbarofit.api.membership.dto;
+package skku.gymbarofit.core.membership.dto;
 
 import lombok.Builder;
-import lombok.Getter;
-import lombok.ToString;
 import skku.gymbarofit.core.gym.Gym;
 import skku.gymbarofit.core.gym.dto.GymResponseDto;
 import skku.gymbarofit.core.gym.enums.GymCrowdLevel;

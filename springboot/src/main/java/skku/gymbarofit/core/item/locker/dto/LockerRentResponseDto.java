@@ -9,8 +9,8 @@ import java.time.LocalDate;
 public record LockerRentResponseDto(
         Long usageId,
         Long lockerId,
-        Long paymentId,
         String name,
+        String zoneName,
         int lockerNumber,
         LocalDate startDate,
         LocalDate endDate
@@ -22,8 +22,8 @@ public record LockerRentResponseDto(
         return LockerRentResponseDto.builder()
                 .usageId(lockerUsage.getId())
                 .lockerId(lockerUsage.getLocker().getId())
-                .paymentId(lockerUsage.getPayment().getId())
                 .name(lockerUsage.getLocker().getItemInfo().getName())
+                .zoneName(lockerUsage.getLocker().getLockerZone().getName())
                 .lockerNumber(lockerUsage.getLocker().getLockerNumber())
                 .startDate(lockerUsage.getStartDate())
                 .endDate(lockerUsage.getEndDate())

@@ -3,5 +3,5 @@ package skku.gymbarofit.core.payment.enums;
 public enum PaymentStatus {
     PENDING,
     PAID,
-    REFUNDED
+    FAILED, REFUNDED
 }

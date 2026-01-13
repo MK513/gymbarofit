@@ -4,7 +4,7 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import skku.gymbarofit.api.membership.annotation.CurrentUserId;
-import skku.gymbarofit.api.membership.dto.MembershipInfoResponseDto;
+import skku.gymbarofit.core.membership.dto.MembershipInfoResponseDto;
 
 @RestController
 @RequestMapping("/memberships")

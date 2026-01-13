@@ -1,56 +1,85 @@
 package skku.gymbarofit.api.locker.service;
 
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
+import skku.gymbarofit.api.locker.enums.LockerPayProcess;
+import skku.gymbarofit.api.payment.MockPaymentService;
+import skku.gymbarofit.core.item.locker.dto.LockerExtendRequestDto;
 import skku.gymbarofit.core.payment.dto.RefundDecision;
 import skku.gymbarofit.core.item.locker.dto.LockerRentRequestDto;
 import skku.gymbarofit.core.item.locker.dto.LockerRentResponseDto;
 import skku.gymbarofit.core.payment.Payment;
-import skku.gymbarofit.core.payment.service.MockPaymentInternalService;
-import skku.gymbarofit.core.user.member.Member;
+import skku.gymbarofit.core.payment.service.PaymentInternalService;
 import skku.gymbarofit.core.user.member.service.MemberInternalService;
 
+@Slf4j
 @Service
 @RequiredArgsConstructor
+@Transactional(propagation = Propagation.NOT_SUPPORTED)
 public class LockerFacade {
 
     private final LockerService lockerService;
-    private final MockPaymentInternalService paymentInternalService;
-    private final MemberInternalService memberInternalService;
+    private final MockPaymentService paymentService;
 
-    @Transactional(propagation = Propagation.NOT_SUPPORTED)
     public LockerRentResponseDto rent(Long memberId, LockerRentRequestDto request) {
-        Member member = memberInternalService.findById(memberId);
-        Long usageId = lockerService.reserve(member, request);
+        Long paymentId = lockerService.reserve(memberId, request);
+        LockerPayProcess process = LockerPayProcess.RENT;
 
-        Payment payment;
         try {
-            payment = paymentInternalService.pay(Payment.from(member, request));
+            paymentService.pay(paymentId);
         } catch (RuntimeException e) {
-            lockerService.cancel(usageId);
+            lockerService.fail(paymentId, process);
             throw e;
         }
 
         try {
-            lockerService.confirm(usageId, payment);
-            return lockerService.getDto(usageId);
+            lockerService.confirm(paymentId);
+            return lockerService.getDto(paymentId);
         } catch (RuntimeException e) {
-            try { paymentInternalService.refund(payment.getId()); } catch (Exception ignore) {}
-            lockerService.cancel(usageId);
+            try { paymentService.refund(paymentId); } catch (Exception ignore) {}
+            lockerService.fail(paymentId, process);
             throw e;
         }
     }
 
-    @Transactional(propagation = Propagation.NOT_SUPPORTED)
     public void refund(Long memberId, Long usageId) {
         RefundDecision decision = lockerService.beforeRefundTx(memberId, usageId);
 
         if (!decision.shouldRefund()) return;
 
-        paymentInternalService.refund(decision.paymentId());
+        long totalRefundAmount = decision.paymentIds().stream()
+                .mapToLong(paymentService::refund) // 각 payment 환불 금액
+                .sum();
+
+        log.info("총 {}원 환불되었습니다", totalRefundAmount);
 
         lockerService.afterRefundTx(memberId, usageId);
+    }
+
+    public LockerRentResponseDto extend(Long usageId, LockerExtendRequestDto request) {
+        Long paymentId = lockerService.beforeExtendTx(usageId, request);
+        LockerPayProcess process = LockerPayProcess.EXTEND;
+
+        Payment payment;
+        try {
+            paymentService.pay(paymentId);
+        } catch (RuntimeException e) {
+            lockerService.fail(paymentId, process);
+            throw e;
+        }
+
+        try {
+            lockerService.extend(paymentId, request);
+            return lockerService.getDto(paymentId);
+        } catch (RuntimeException e) {
+            try {
+                paymentService.refund(paymentId);
+            } catch (Exception ignore) {}
+            lockerService.fail(paymentId, process);
+            throw e;
+        }
     }
 }

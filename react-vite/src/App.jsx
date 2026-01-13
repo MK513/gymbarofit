@@ -6,7 +6,7 @@ import Signup from "./pages/Signup";
 import MemberDashboard from "./pages/members/Dashboard"
 import MembershipRegister from "./pages/gyms/Register"
 import LockerRent from "./pages/lockers/rent"
-import LockerExtension from "./pages/lockers/extension"
+import LockerExtend from "./pages/lockers/extend"
 
 export default function App() {
   return (
@@ -24,7 +24,7 @@ export default function App() {
           <Route path="/gyms/register" element={<MembershipRegister />} />
 
           <Route path="/lockers/rent" element={<LockerRent />} />
-          <Route path="/lockers/extension" element={<LockerExtension />} />
+          <Route path="/lockers/extend/:usageId" element={<LockerExtend />} />
         </Routes>
 
       </NotificationProvider>

@@ -55,7 +55,7 @@ export default function LockerCard({ lockerStatus, onRefundClick, onNewReservati
               variant="contained" 
               color="secondary" 
               component={Link} 
-              to="/lockers/extension" 
+              to={`/lockers/extend/${lockerStatus.id}`} 
               disableElevation
               sx={{ py: 1.5, borderRadius: 2, fontWeight: 'bold' }}
             >

@@ -7,19 +7,19 @@ import skku.gymbarofit.core.item.locker.enums.LockerUsageStatus;
 public record LockerResponseDto(
         Long id,
         String name,
-        ItemStatus condition,
-        LockerUsageStatus status,
+        ItemStatus itemStatus,
+        LockerUsageStatus usageStatus,
         int lockerNumber
 ) {
 
-    public static LockerResponseDto of(Locker locker, LockerUsageStatus status) {
-        ItemStatus condition = locker.getItemInfo().getStatus();
+    public static LockerResponseDto of(Locker locker, LockerUsageStatus usageStatus) {
+        ItemStatus itemStatus = locker.getItemInfo().getStatus();
 
         return new LockerResponseDto(
             locker.getId(),
             locker.getItemInfo().getName(),
-            condition,
-            status ,
+            itemStatus,
+            usageStatus,
             locker.getLockerNumber()
             );
     }

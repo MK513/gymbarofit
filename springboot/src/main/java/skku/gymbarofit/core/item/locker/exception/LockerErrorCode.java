@@ -17,7 +17,8 @@ public enum LockerErrorCode implements ErrorCode{
     USAGE_NOT_ACTIVE(HttpStatus.CONFLICT, "유효하지 않은 대여 상태입니다"),
     UNKNOWN_ERROR(HttpStatus.INTERNAL_SERVER_ERROR, "알 수 없는 에러가 발생했습니다"),
     UNAUTHORIZED_REFUND(HttpStatus.FORBIDDEN, "권한이 없는 환불 요청입니다"),
-    PROCESSED_REFUND(HttpStatus.CONFLICT, "이미 처리된 환불 요청입니다");
+    PROCESSED_REFUND(HttpStatus.CONFLICT, "이미 처리된 환불 요청입니다"),
+    INACTIVE_CANNOT_EXTEND(HttpStatus.CONFLICT, "활성화되지 않은 사용권은 연장할 수 없습니다");
 
     private final HttpStatus status;
     private final String message;

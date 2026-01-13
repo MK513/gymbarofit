@@ -19,8 +19,14 @@ public class LockerUsageInternalService {
     private final LockerUsageRepository lockerUsageRepository;
 
     @Transactional(readOnly = true)
-    public List<LockerUsage> findAllActiveByZoneId(Long zoneId) {
-        return lockerUsageRepository.findAllByLocker_LockerZone_IdAndStatus(zoneId, LockerUsageStatus.ACTIVE);
+    public List<LockerUsage> findUnavailableByZoneId(Long zoneId) {
+        return lockerUsageRepository.findAllByLocker_LockerZone_IdAndStatusIn(
+                zoneId,
+                List.of(
+                        LockerUsageStatus.ACTIVE,
+                        LockerUsageStatus.PENDING
+                )
+        );
     }
 
     @Transactional(readOnly = true)
@@ -28,7 +34,7 @@ public class LockerUsageInternalService {
         return lockerUsageRepository.existsByLocker_Id(lockerId);
     }
 
-    public LockerUsage saveAndFlush(LockerUsage lockerUsage) {
+    public LockerUsage save(LockerUsage lockerUsage) {
         return lockerUsageRepository.saveAndFlush(lockerUsage);
     }
 

@@ -6,7 +6,7 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-import skku.gymbarofit.api.gym.dto.GymMembershipResponseDto;
+import skku.gymbarofit.core.gym.dto.GymMembershipResponseDto;
 import skku.gymbarofit.core.gym.Gym;
 import skku.gymbarofit.core.gym.dto.GymResponseDto;
 import skku.gymbarofit.core.gym.service.GymInternalService;
@@ -57,6 +57,6 @@ public class GymService {
 
         membershipInternalService.register(membership);
 
-        return GymMembershipResponseDto.of(membership);
+        return GymMembershipResponseDto.from(membership);
     }
 }

@@ -8,14 +8,15 @@ import org.springframework.data.repository.query.Param;
 import skku.gymbarofit.core.item.locker.LockerUsage;
 import skku.gymbarofit.core.item.locker.enums.LockerUsageStatus;
 
+import java.util.Collection;
 import java.util.List;
 import java.util.Optional;
 
 public interface LockerUsageRepository extends JpaRepository<LockerUsage, Long> {
 
-    List<LockerUsage> findAllByLocker_LockerZone_IdAndStatus(
+    List<LockerUsage> findAllByLocker_LockerZone_IdAndStatusIn(
             Long zoneId,
-            LockerUsageStatus status
+            Collection<LockerUsageStatus> statuses
     );
 
     Boolean existsByLocker_Id(Long lockerId);
