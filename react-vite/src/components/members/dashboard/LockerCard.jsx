@@ -22,7 +22,7 @@ export default function LockerCard({ lockerStatus, onRefundClick, onNewReservati
       <Box sx={{ bgcolor: "#f3e5f5", p: 3, borderRadius: 3, mb: 3, textAlign: 'center', border: '1px dashed #ce93d8' }}>
         {lockerStatus.use ? (
           <>
-            <Typography variant="body2" color="text.secondary" gutterBottom>나의 보관함</Typography>
+            <Typography variant="body2" color="text.secondary" gutterBottom>{lockerStatus.zoneName}</Typography>
             <Typography variant="h4" fontWeight="800" color="secondary.main" sx={{ mb: 1 }}>
               No. {lockerStatus.number}
             </Typography>

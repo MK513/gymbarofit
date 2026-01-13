@@ -6,14 +6,14 @@ import { getMembershipInfo, refundLocker } from "../../api/Api";
 import { useNotification } from "../../context/NotificationContext";
 
 // 분리된 하위 컴포넌트 임포트
-import DashboardHeader from "../../components/dashboard/DashboardHeader";
-import GymInfoSection from "../../components/dashboard/GymInfoSection";
-import AttendanceCard from "../../components/dashboard/AttendanceCard";
-import StatsCard from "../../components/dashboard/StatsCard";
-import MachineReservationCard from "../../components/dashboard/MachineReservationCard";
-import LockerCard from "../../components/dashboard/LockerCard";
-import QrCodeDialog from "../../components/dashboard/QrCodeDialog";
-import RefundDialog from "../../components/dashboard/RefundDialog";
+import DashboardHeader from "../../components/members/dashboard/DashboardHeader";
+import GymInfoSection from "../../components/members/dashboard/GymInfoSection";
+import AttendanceCard from "../../components/members/dashboard/AttendanceCard";
+import StatsCard from "../../components/members/dashboard/StatsCard";
+import MachineReservationCard from "../../components/members/dashboard/MachineReservationCard";
+import LockerCard from "../../components/members/dashboard/LockerCard";
+import QrCodeDialog from "../../components/members/dashboard/QrCodeDialog";
+import RefundDialog from "../../components/members/dashboard/RefundDialog";
 
 export default function Dashboard() {
   const navigate = useNavigate();
@@ -21,7 +21,7 @@ export default function Dashboard() {
   const { showNotification } = useNotification();
 
   // --- 상태 관리 ---
-  const [lockerStatus, setLockerStatus] = useState({ use: false, number: 0, expiry: "", id: null });
+  const [lockerStatus, setLockerStatus] = useState({ use: false, number: 0, expiry: "", id: null, zoneName: "" });
   const [equipStatus] = useState({ use: false, name: "", time: "" });
   const [attendance, setAttendance] = useState({ streak: 3, checkedToday: false });
   const [openQr, setOpenQr] = useState(false);
@@ -73,9 +73,10 @@ export default function Dashboard() {
             number: res.lockerUsage.lockerNumber,
             expiry: formatDateFromArray(res.lockerUsage.endDate),
             id: res.lockerUsage.usageId,
+            zoneName: res.lockerUsage.zoneName,
           });
         } else {
-          setLockerStatus({ use: false, number: 0, expiry: "", id: null });
+          setLockerStatus({ use: false, number: 0, expiry: "", id: null, zoneName: "" });
         }
       } catch (error) {
         console.error("정보 로딩 실패", error);
@@ -124,7 +125,7 @@ export default function Dashboard() {
     try {
       await refundLocker({ usageId: lockerStatus.id });
       showNotification("환불 처리가 완료되었습니다.", "success");
-      setLockerStatus({ use: false, number: 0, expiry: "", id: null });
+      setLockerStatus({ use: false, number: 0, expiry: "", id: null, zoneName: "" });
       setOpenRefundDialog(false);
     } catch (error) {
       console.error("환불 실패", error);
