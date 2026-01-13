@@ -22,6 +22,7 @@ import org.springframework.security.web.header.writers.StaticHeadersWriter;
 import org.springframework.web.cors.CorsConfiguration;
 import org.springframework.web.cors.CorsConfigurationSource;
 import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
+import skku.gymbarofit.api.security.filter.JwtExceptionFilter;
 import skku.gymbarofit.api.security.filter.JwtTokenFilter;
 import skku.gymbarofit.api.security.provider.JwtTokenProvider;
 import skku.gymbarofit.api.security.provider.MemberAuthenticationProvider;
@@ -34,11 +35,10 @@ import java.util.List;
 @Configuration
 @EnableWebSecurity
 @RequiredArgsConstructor
-//@EnableJpaRepositories("skku.gymbarofit")
 public class SecurityConfig {
 
-    @Value("${app.jwt.secretKey}")
-    private String secretKey;
+    private final JwtExceptionFilter jwtExceptionFilter;
+    private final JwtTokenFilter jwtTokenFilter;
 
     @Bean
     public WebSecurityCustomizer webSecurityCustomizer() {
@@ -46,7 +46,7 @@ public class SecurityConfig {
     }
 
     @Bean
-    SecurityFilterChain filterChain(HttpSecurity http, JwtTokenFilter jwtTokenFilter) throws Exception {
+    SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
 
         http.cors(cors -> cors.configurationSource(corsConfigurationSource()))
                 .csrf(AbstractHttpConfigurer::disable)
@@ -76,16 +76,17 @@ public class SecurityConfig {
                         .requestMatchers(org.springframework.http.HttpMethod.OPTIONS, "/**").permitAll()
                         .requestMatchers("/members/register", "/members/login").permitAll()
                         .requestMatchers("/owners/register", "/owners/login").permitAll()
+                        .requestMatchers("/memberships/**").hasRole("MEMBER")
                         .requestMatchers("/members/**").hasRole("MEMBER")
                         .requestMatchers("/owners/**").hasRole("OWNER")
                         .requestMatchers(
-                               "/", "/index.html", "/assets/**", "/*.ico",
-                               "/**/*.css", "/**/*.js", "/**/*.png", "/**/*.svg", "/error"
+                                "/", "/index.html", "/assets/**", "/*.ico", "/error"
                         ).permitAll()
-//                        .anyRequest().permitAll()
-                        .anyRequest().authenticated()
+                        .anyRequest().permitAll()
+//                        .anyRequest().authenticated()
                 )
-                .addFilterBefore(jwtTokenFilter, UsernamePasswordAuthenticationFilter.class);
+                .addFilterBefore(jwtTokenFilter, UsernamePasswordAuthenticationFilter.class)
+                .addFilterBefore(jwtExceptionFilter, JwtTokenFilter.class);
 
         return http.build();
     }
@@ -100,8 +101,6 @@ public class SecurityConfig {
                 ownerAuthenticationProvider
         ));
     }
-
-
 
     public CorsConfigurationSource corsConfigurationSource () {
         CorsConfiguration configuration = new CorsConfiguration();

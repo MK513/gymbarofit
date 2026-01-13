@@ -4,10 +4,22 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-import skku.gymbarofit.core.dto.MemberDetailResponseDto;
-import skku.gymbarofit.core.dto.MemberRegisterRequestDto;
-import skku.gymbarofit.core.service.MemberInternalService;
-import skku.gymbarofit.core.user.Member;
+import skku.gymbarofit.api.security.dto.JwtTokenDto;
+import skku.gymbarofit.api.security.service.AuthService;
+import skku.gymbarofit.api.security.token.MemberUsernamePasswordAuthenticationToken;
+import skku.gymbarofit.api.security.userdetail.CustomUserDetails;
+import skku.gymbarofit.core.gym.Gym;
+import skku.gymbarofit.core.membership.Membership;
+import skku.gymbarofit.core.membership.service.MembershipInternalService;
+import skku.gymbarofit.core.user.dto.LoginRequestDto;
+import skku.gymbarofit.api.user.dto.LoginResponseDto;
+import skku.gymbarofit.core.user.member.dto.MemberDetailResponseDto;
+import skku.gymbarofit.core.user.member.dto.MemberRegisterRequestDto;
+import skku.gymbarofit.core.user.member.service.MemberInternalService;
+import skku.gymbarofit.core.user.member.Member;
+
+import java.util.List;
+import java.util.Optional;
 
 @Service
 @Transactional
@@ -15,7 +27,9 @@ import skku.gymbarofit.core.user.Member;
 public class MemberService {
 
     private final MemberInternalService memberInternalService;
+    private final MembershipInternalService membershipInternalService;
     private final BCryptPasswordEncoder bCryptPasswordEncoder;
+    private final AuthService authService;
 
     public MemberDetailResponseDto register(MemberRegisterRequestDto requestDto) {
         String encodedPassword = bCryptPasswordEncoder.encode(requestDto.getPassword());
@@ -23,6 +37,22 @@ public class MemberService {
         Member member = memberInternalService.save(requestDto, encodedPassword);
 
         return MemberDetailResponseDto.of(member);
+    }
+
+    public LoginResponseDto login(LoginRequestDto loginRequestDto) {
+
+        CustomUserDetails customUserDetails = authService.authenticateUser(
+                new MemberUsernamePasswordAuthenticationToken(
+                        loginRequestDto.getEmail(),
+                        loginRequestDto.getPassword()
+                )
+        );
+
+        JwtTokenDto jwtToken = authService.createJwtToken(customUserDetails);
+        Member member = memberInternalService.findByEmail(loginRequestDto.getEmail());
+        Gym gym = membershipInternalService.findFirstGymByMemberId(member.getId()).orElse(null);
+
+        return new LoginResponseDto(jwtToken, member, gym);
     }
 
 }

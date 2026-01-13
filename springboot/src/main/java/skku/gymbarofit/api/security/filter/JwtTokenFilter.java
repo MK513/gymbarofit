@@ -54,6 +54,8 @@ public class JwtTokenFilter extends OncePerRequestFilter {
 
                 String jwt = getJwtTokenFromRequest(request);
 
+                log.warn("JWT Token Validation Succeeded. {}", jwt);
+
                 if (StringUtils.hasText(jwt)) {
 //                    String clientUuid = getClientUuid(request);
 //                    String userAgent = request.getHeader("User-Agent");
@@ -85,11 +87,10 @@ public class JwtTokenFilter extends OncePerRequestFilter {
     }
 
     private String getJwtTokenFromRequest(HttpServletRequest request) {
-        String rawToken = request.getHeader("Authorization");
+        String authHeader = request.getHeader("Authorization");
 
-        if (StringUtils.hasText(rawToken) && rawToken.startsWith(tokenRequestHeaderPrefix)) {
-            log.info("Extracted Token: " + rawToken);
-            return rawToken.replace(tokenRequestHeaderPrefix, "");
+        if (StringUtils.hasText(authHeader) && authHeader.startsWith(tokenRequestHeaderPrefix)) {
+            return authHeader.substring(7).trim();
         }
         return null;
     }

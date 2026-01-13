@@ -1,0 +1,32 @@
+package skku.gymbarofit.core.gym.service;
+
+import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
+import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
+import skku.gymbarofit.core.gym.Gym;
+import skku.gymbarofit.core.gym.exceptions.GymErrorCode;
+import skku.gymbarofit.core.gym.exceptions.GymException;
+import skku.gymbarofit.core.gym.repository.GymRepository;
+import skku.gymbarofit.core.membership.repository.MembershipRepository;
+
+import java.util.List;
+import java.util.Optional;
+
+@Transactional
+@Service
+@RequiredArgsConstructor
+public class GymInternalService {
+
+    private final GymRepository gymRepository;
+
+    public Page<Gym> findByKeyword(String keyword, Pageable pageable) {
+        return gymRepository.findByKeyword(keyword, pageable);
+    }
+
+    public Gym findById(Long id) {
+        return gymRepository.findById(id)
+                .orElseThrow(() -> new GymException(GymErrorCode.GYM_NOT_FOUND));
+    }
+}

@@ -1,15 +1,16 @@
 package skku.gymbarofit.api.security.service;
 
-import jakarta.servlet.http.HttpServletResponse;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
+import skku.gymbarofit.api.security.dto.JwtTokenDto;
 import skku.gymbarofit.api.security.provider.JwtTokenProvider;
 import skku.gymbarofit.api.security.userdetail.CustomUserDetails;
-import skku.gymbarofit.core.dto.LoginResponseDto;
+
+import java.time.OffsetDateTime;
 
 @Service
 @RequiredArgsConstructor
@@ -30,9 +31,10 @@ public class AuthService {
     }
 
 
-    public LoginResponseDto createJwtToken(CustomUserDetails customUserDetails, HttpServletResponse response) {
-        String jwtAccessToken = jwtTokenProvider.generateAccessToken(customUserDetails, response);
+    public JwtTokenDto createJwtToken(CustomUserDetails customUserDetails) {
+        String jwtAccessToken = jwtTokenProvider.generateAccessToken(customUserDetails);
+        OffsetDateTime expiresAt = jwtTokenProvider.getExpiresAt(jwtAccessToken);
 
-        return new LoginResponseDto(jwtAccessToken, jwtTokenProvider.getAccessTokenExpiryDuration());
+        return new JwtTokenDto(jwtAccessToken, expiresAt);
     }
 }
