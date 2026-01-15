@@ -3,8 +3,8 @@ package skku.gymbarofit.api.payment;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-import skku.gymbarofit.core.item.locker.LockerUsage;
-import skku.gymbarofit.core.item.locker.service.LockerUsageInternalService;
+import skku.gymbarofit.core.usage.locker.LockerUsage;
+import skku.gymbarofit.core.usage.locker.service.LockerUsageInternalService;
 import skku.gymbarofit.core.payment.Payment;
 import skku.gymbarofit.core.payment.service.PaymentInternalService;
 

@@ -13,6 +13,8 @@ import skku.gymbarofit.core.item.locker.dto.*;
 @RestController
 public class LockerApiController {
 
+    //TODO API 경로 수정
+
     private final LockerService lockerService;
     private final LockerFacade lockerFacade;
 

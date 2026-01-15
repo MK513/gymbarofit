@@ -3,8 +3,8 @@ package skku.gymbarofit.core.item.locker.dto;
 import lombok.extern.slf4j.Slf4j;
 import skku.gymbarofit.core.item.enums.ItemStatus;
 import skku.gymbarofit.core.item.locker.Locker;
-import skku.gymbarofit.core.item.locker.LockerUsage;
-import skku.gymbarofit.core.item.locker.enums.LockerUsageStatus;
+import skku.gymbarofit.core.usage.locker.LockerUsage;
+import skku.gymbarofit.core.usage.locker.enums.LockerUsageStatus;
 
 import java.util.List;
 import java.util.Map;

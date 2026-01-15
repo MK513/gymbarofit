@@ -1,13 +1,14 @@
-package skku.gymbarofit.core.item.locker;
+package skku.gymbarofit.core.usage.locker;
 
 import jakarta.persistence.*;
 import lombok.*;
 import skku.gymbarofit.api.locker.enums.LockerPayProcess;
 import skku.gymbarofit.core.gym.Gym;
+import skku.gymbarofit.core.item.locker.Locker;
 import skku.gymbarofit.core.item.locker.dto.LockerRentRequestDto;
-import skku.gymbarofit.core.item.locker.enums.LockerPlan;
-import skku.gymbarofit.core.item.locker.enums.LockerUsageStatus;
-import skku.gymbarofit.core.payment.Payment;
+import skku.gymbarofit.core.usage.BaseUsage;
+import skku.gymbarofit.core.usage.locker.enums.LockerPlan;
+import skku.gymbarofit.core.usage.locker.enums.LockerUsageStatus;
 import skku.gymbarofit.core.user.member.Member;
 
 import java.time.LocalDate;
@@ -25,24 +26,15 @@ import static jakarta.persistence.FetchType.*;
 @Getter
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
 @AllArgsConstructor
-@Builder
-public class LockerUsage {
+public class LockerUsage extends BaseUsage {
 
     @Id @GeneratedValue
     @Column(name = "locker_usage_id")
     private Long id;
 
     @ManyToOne(fetch = LAZY)
-    @JoinColumn(name = "user_id")
-    private Member member;
-
-    @ManyToOne(fetch = LAZY)
     @JoinColumn(name = "locker_id")
     private Locker locker;
-
-    @ManyToOne(fetch = LAZY)
-    @JoinColumn(name = "gym_id")
-    private Gym gym;
 
     @Enumerated(EnumType.STRING)
     private LockerPlan plan;
@@ -57,6 +49,17 @@ public class LockerUsage {
     private LockerUsageStatus status;
 
     private Integer active;
+
+    @Builder
+    public LockerUsage(Member member, Gym gym, Locker locker, LockerPlan plan, LocalDate startDate, LocalDate endDate, LockerUsageStatus status, Integer active) {
+        super(member, gym); // 부모 생성자 호출
+        this.locker = locker;
+        this.plan = plan;
+        this.startDate = startDate;
+        this.endDate = endDate;
+        this.status = status;
+        this.active = active;
+    }
 
     public static LockerUsage from(Member member, Locker locker, Gym gym, LockerRentRequestDto request) {
         return LockerUsage.builder()

@@ -5,7 +5,7 @@ import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
-import skku.gymbarofit.core.item.locker.LockerUsage;
+import skku.gymbarofit.core.usage.locker.LockerUsage;
 import skku.gymbarofit.core.item.locker.dto.LockerExtendRequestDto;
 import skku.gymbarofit.core.item.locker.dto.LockerRentRequestDto;
 import skku.gymbarofit.core.payment.enums.PaymentMethod;

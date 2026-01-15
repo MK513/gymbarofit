@@ -10,7 +10,7 @@ import DashboardHeader from "../../components/members/dashboard/DashboardHeader"
 import GymInfoSection from "../../components/members/dashboard/GymInfoSection";
 import AttendanceCard from "../../components/members/dashboard/AttendanceCard";
 import StatsCard from "../../components/members/dashboard/StatsCard";
-import MachineReservationCard from "../../components/members/dashboard/MachineReservationCard";
+import EquipmentCard from "../../components/members/dashboard/EquipmentCard";
 import LockerCard from "../../components/members/dashboard/LockerCard";
 import QrCodeDialog from "../../components/members/dashboard/QrCodeDialog";
 import RefundDialog from "../../components/members/dashboard/RefundDialog";
@@ -134,6 +134,11 @@ export default function Dashboard() {
     }
   };
 
+  const handleEquipmentReservationClick = () => {
+    const url = '/gyms/' + user.gym.id + '/equipments'
+    navigate(url)
+  }
+
   return (
     <Box sx={{ flexGrow: 1, bgcolor: "#f5f7fa", minHeight: "100vh" }}>
       <DashboardHeader onLogout={handleLogout} />
@@ -158,7 +163,10 @@ export default function Dashboard() {
 
           <StatsCard weeklyProgress={70} />
 
-          <MachineReservationCard equipStatus={equipStatus} />
+          <EquipmentCard
+            equipStatus={equipStatus}
+            onReservationClick={handleEquipmentReservationClick}
+          />
 
           <LockerCard 
             lockerStatus={lockerStatus} 

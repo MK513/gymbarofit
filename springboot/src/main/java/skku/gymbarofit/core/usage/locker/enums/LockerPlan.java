@@ -1,4 +1,4 @@
-package skku.gymbarofit.core.item.locker.enums;
+package skku.gymbarofit.core.usage.locker.enums;
 
 import lombok.Getter;
 

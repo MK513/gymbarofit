@@ -1,13 +1,13 @@
-package skku.gymbarofit.core.item.locker.service;
+package skku.gymbarofit.core.usage.locker.service;
 
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-import skku.gymbarofit.core.item.locker.LockerUsage;
-import skku.gymbarofit.core.item.locker.enums.LockerUsageStatus;
+import skku.gymbarofit.core.usage.locker.LockerUsage;
+import skku.gymbarofit.core.usage.locker.repository.LockerUsageRepository;
+import skku.gymbarofit.core.usage.locker.enums.LockerUsageStatus;
 import skku.gymbarofit.core.item.locker.exception.LockerErrorCode;
 import skku.gymbarofit.core.item.locker.exception.LockerException;
-import skku.gymbarofit.core.item.locker.repository.LockerUsageRepository;
 
 import java.util.List;
 import java.util.Optional;

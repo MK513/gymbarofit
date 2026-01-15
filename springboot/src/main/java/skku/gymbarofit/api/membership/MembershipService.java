@@ -9,8 +9,8 @@ import skku.gymbarofit.core.membership.dto.MembershipInfoResponseDto;
 import skku.gymbarofit.core.gym.Gym;
 import skku.gymbarofit.core.gym.dto.GymResponseDto;
 import skku.gymbarofit.core.gym.service.GymInternalService;
-import skku.gymbarofit.core.item.locker.LockerUsage;
-import skku.gymbarofit.core.item.locker.service.LockerUsageInternalService;
+import skku.gymbarofit.core.usage.locker.LockerUsage;
+import skku.gymbarofit.core.usage.locker.service.LockerUsageInternalService;
 import skku.gymbarofit.core.membership.service.MembershipInternalService;
 
 import java.util.List;
