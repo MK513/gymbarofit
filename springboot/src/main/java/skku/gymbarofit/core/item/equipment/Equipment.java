@@ -1,8 +1,9 @@
-package skku.gymbarofit.core.item;
+package skku.gymbarofit.core.item.equipment;
 
 import jakarta.persistence.*;
 import lombok.Getter;
 import skku.gymbarofit.core.gym.Gym;
+import skku.gymbarofit.core.item.ItemInfo;
 
 @Entity
 @Getter
@@ -17,6 +18,10 @@ public class Equipment{
     @JoinColumn(name = "gym_id")
     private Gym gym;
 
+    private String type;
+    
+    private String imageUrl;
+
     private String serialNumber;
 
     @Embedded
@@ -24,6 +29,4 @@ public class Equipment{
 
     //TODO: 일단 string인데 이후에 리액트 보고 좌표값으로 수정 필요
     private String location;
-
-    private String displayName;
 }

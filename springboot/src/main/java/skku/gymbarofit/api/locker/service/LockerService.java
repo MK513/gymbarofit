@@ -6,9 +6,10 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import skku.gymbarofit.api.locker.enums.LockerPayProcess;
 import skku.gymbarofit.api.payment.MockPaymentService;
+import skku.gymbarofit.core.item.enums.ItemStatus;
 import skku.gymbarofit.core.item.locker.dto.*;
 import skku.gymbarofit.core.payment.dto.RefundDecision;
-import skku.gymbarofit.api.locker.exception.LockerExceptionMapper;
+import skku.gymbarofit.core.global.exception.mapper.LockerExceptionMapper;
 import skku.gymbarofit.core.gym.Gym;
 import skku.gymbarofit.core.gym.service.GymInternalService;
 import skku.gymbarofit.core.item.locker.Locker;
@@ -17,6 +18,7 @@ import skku.gymbarofit.core.item.locker.LockerZone;
 import skku.gymbarofit.core.item.locker.exception.LockerErrorCode;
 import skku.gymbarofit.core.item.locker.exception.LockerException;
 import skku.gymbarofit.core.item.locker.service.LockerInternalService;
+import skku.gymbarofit.core.usage.locker.enums.LockerUsageStatus;
 import skku.gymbarofit.core.usage.locker.service.LockerUsageInternalService;
 import skku.gymbarofit.core.item.locker.service.LockerZoneInternalService;
 import skku.gymbarofit.core.payment.Payment;
@@ -26,7 +28,9 @@ import skku.gymbarofit.core.user.member.Member;
 import skku.gymbarofit.core.user.member.service.MemberInternalService;
 
 import java.util.List;
+import java.util.Map;
 import java.util.Objects;
+import java.util.stream.Collectors;
 
 @Transactional
 @Service
@@ -50,26 +54,44 @@ public class LockerService {
     @Transactional(readOnly = true)
     public LockerListResponseDto getLockerList(Long zoneId) {
 
+        // 사용불가 상태 맵
         List<Locker> lockers = lockerInternalService.findAllByZoneId(zoneId);
         List<LockerUsage> unavailableUsage = lockerUsageInternalService.findUnavailableByZoneId(zoneId);
 
-        return LockerListResponseDto.from(lockers, unavailableUsage);
+        Map<Long, LockerUsageStatus> usageStatusMap = unavailableUsage.stream()
+                .collect(Collectors.toMap(
+                        u -> u.getLocker().getId(),
+                        LockerUsage::getStatus
+                ));
+
+        // DTO 리스트
+        List<LockerResponseDto> listDto = lockers.stream()
+                .map(l -> LockerResponseDto.of(l, usageStatusMap.get(l.getId())))
+                .toList();
+
+        // available 카운트
+        long availableCount = lockers.stream()
+                .filter(l -> isAvailable(l, usageStatusMap.get(l.getId())))
+                .count();
+        long unavailableCount = lockers.size() - availableCount;
+
+        return LockerListResponseDto.of(availableCount, unavailableCount, listDto);
+    }
+
+    private boolean isAvailable(Locker locker, LockerUsageStatus usageStatus) {
+        ItemStatus itemStatus = locker.getItemInfo().getStatus();
+        return usageStatus == null && itemStatus == ItemStatus.OK;
     }
 
     public Long reserve(Long memberId, LockerRentRequestDto request) {
-        try {
-            Member member = memberInternalService.findById(memberId);
-            Locker locker = lockerInternalService.findById(request.lockerId());
-            Gym gym = gymInternalService.findById(request.gymId());
+        Member member = memberInternalService.findById(memberId);
+        Locker locker = lockerInternalService.findById(request.lockerId());
+        Gym gym = gymInternalService.findById(request.gymId());
 
-            LockerUsage usage = lockerUsageInternalService.save(LockerUsage.from(member, locker, gym, request));
-            Payment payment = paymentService.pend(Payment.from(member, request, usage));
+        LockerUsage usage = lockerUsageInternalService.save(LockerUsage.from(member, locker, gym, request));
+        Payment payment = paymentService.pend(Payment.from(member, request, usage));
 
-            return payment.getId();
-
-        } catch (DataIntegrityViolationException e) {
-            throw LockerExceptionMapper.map(e);
-        }
+        return payment.getId();
     }
 
     public void fail(Long paymentId, LockerPayProcess process) {

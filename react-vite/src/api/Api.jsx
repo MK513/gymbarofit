@@ -97,6 +97,12 @@ export async function extendLocker(dto, pathVarable) {
   return res;
 }
 
+/* ===== 기구 ===== */
+export async function startUsage(pathVarable) {
+  const res = await call("/equipments/{equipmentId}/start", "POST", null, pathVarable);
+  return res;
+}
+
 
 /* ===== 헬스장 ===== */
 export async function searchGym(dto) {
@@ -106,6 +112,11 @@ export async function searchGym(dto) {
 
 export async function registerGym(pathVarable) {
   const res = await call("/gyms/{gymId}/memberships", "POST", null, pathVarable);
+  return res;
+}
+
+export async function getEquipments(pathVarable) {
+  const res = await call("/gyms/{gymId}/equipments", "GET", null, pathVarable);
   return res;
 }
 

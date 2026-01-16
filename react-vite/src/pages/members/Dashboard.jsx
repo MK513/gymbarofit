@@ -22,6 +22,7 @@ export default function Dashboard() {
 
   // --- 상태 관리 ---
   const [lockerStatus, setLockerStatus] = useState({ use: false, number: 0, expiry: "", id: null, zoneName: "" });
+  const [equipmentInfo, setEquipmentInfo] = useState({ usage: null, reservation: null });
   const [equipStatus] = useState({ use: false, name: "", time: "" });
   const [attendance, setAttendance] = useState({ streak: 3, checkedToday: false });
   const [openQr, setOpenQr] = useState(false);
@@ -54,6 +55,7 @@ export default function Dashboard() {
           setMyGyms([]);
           setCurrentGym(null);
           setLockerStatus({ use: false, number: 0, expiry: "" });
+          setEquipmentInfo({ usage: null, reservation: null }); // 초기화
           return;
         }
 
@@ -67,6 +69,7 @@ export default function Dashboard() {
           setCrowdStatus(getCrowdLevelInfo(res.crowdLevel));
         }
 
+        // 1. 라커 정보 처리
         if (res.lockerUsage) {
           setLockerStatus({
             use: true,
@@ -78,6 +81,29 @@ export default function Dashboard() {
         } else {
           setLockerStatus({ use: false, number: 0, expiry: "", id: null, zoneName: "" });
         }
+
+        // 2. 운동 기구 정보 처리 (inUse -> usage, waiting -> reservation)
+        const newEquipInfo = { usage: null, reservation: null };
+
+        if (res.inUse) {
+          newEquipInfo.usage = {
+            id: res.inUse.id,
+            name: res.inUse.name,
+            imageUrl: res.inUse.imageUrl,
+            time: "현재 이용 중", 
+          };
+        }
+
+        if (res.waiting) {
+          newEquipInfo.reservation = {
+            id: res.inUse.id,
+            name: res.waiting.name,
+            imageUrl: res.inUse.imageUrl,
+            time: `대기 ${res.waiting.waitingCount}명`, // 대기 인원 표시
+          };
+        }
+        setEquipmentInfo(newEquipInfo);
+
       } catch (error) {
         console.error("정보 로딩 실패", error);
         showNotification("정보를 불러오지 못했습니다.", "error");
@@ -87,7 +113,7 @@ export default function Dashboard() {
   useEffect(() => {
     if (user?.gym) loadGymData(user.gym);
     else loadGymData(null);
-  }, []); // eslint-disable-line react-hooks/exhaustive-deps
+  }, []); 
 
   useEffect(() => {
     if (!user) navigate("/login");
@@ -164,7 +190,8 @@ export default function Dashboard() {
           <StatsCard weeklyProgress={70} />
 
           <EquipmentCard
-            equipStatus={equipStatus}
+            usageData={equipmentInfo.usage}
+            reservationData={equipmentInfo.reservation}
             onReservationClick={handleEquipmentReservationClick}
           />
 

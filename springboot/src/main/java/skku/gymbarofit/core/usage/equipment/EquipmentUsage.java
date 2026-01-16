@@ -6,17 +6,26 @@ import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import skku.gymbarofit.core.gym.Gym;
-import skku.gymbarofit.core.item.Equipment;
+import skku.gymbarofit.core.item.equipment.Equipment;
 import skku.gymbarofit.core.usage.BaseUsage;
 import skku.gymbarofit.core.usage.equipment.enums.EquipmentUsageStatus;
 import skku.gymbarofit.core.user.member.Member;
 
+import java.time.Duration;
 import java.time.LocalDateTime;
 
 import static jakarta.persistence.FetchType.LAZY;
 
 @Entity
-@Table(name = "equipment_usage")
+@Table(
+    name = "equipment_usage",
+    uniqueConstraints = {
+        @UniqueConstraint(
+                name = "uk_equipment_usage_member_status",
+                columnNames = {"user_id", "active_status"}
+        )
+    }
+)
 @Getter
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
 public class EquipmentUsage extends BaseUsage {
@@ -33,18 +42,33 @@ public class EquipmentUsage extends BaseUsage {
     @Enumerated(EnumType.STRING)
     private EquipmentUsageStatus status;
 
-    private LocalDateTime startTime; // 기구는 '시간(분/초)' 기준
+    private LocalDateTime startTime;
+
     private LocalDateTime endTime;
 
-    // 예상 사용 시간 (대기 시간 계산용)
+    // 최종 사용 시간
     private int durationMinutes;
 
+    private String activeStatus;
+
+    @PrePersist
+    @PreUpdate
+    private void syncActiveStatus() {
+        if (status == EquipmentUsageStatus.WAITING
+                || status == EquipmentUsageStatus.IN_USE
+                || status == EquipmentUsageStatus.CALLED) {
+            this.activeStatus = status.name();
+        } else {
+            this.activeStatus = null;
+        }
+    }
+
     @Builder
-    public EquipmentUsage(Member member, Gym gym, Equipment equipment, EquipmentUsageStatus status, int durationMinutes) {
+    public EquipmentUsage(Member member, Gym gym, Equipment equipment, EquipmentUsageStatus status, LocalDateTime startTime) {
         super(member, gym);
         this.equipment = equipment;
         this.status = status;
-        this.durationMinutes = durationMinutes;
+        this.startTime = startTime;
     }
 
     // [1] 줄서기 신청 (대기열 진입)
@@ -54,11 +78,20 @@ public class EquipmentUsage extends BaseUsage {
                 .gym(gym)
                 .equipment(equipment)
                 .status(EquipmentUsageStatus.WAITING)
-                .durationMinutes(40) // 기본 40분 설정 (정책에 따라 변경)
                 .build();
     }
 
-    // [2] 사용 시작 (QR 태그 시점)
+    public static EquipmentUsage of(Member member, Gym gym, Equipment equipment) {
+        return EquipmentUsage.builder()
+                .member(member)
+                .gym(gym)
+                .equipment(equipment)
+                .status(EquipmentUsageStatus.IN_USE)
+                .startTime(LocalDateTime.now())
+                .build();
+    }
+
+    // 사용 시작
     public void startUse() {
         if (this.status == EquipmentUsageStatus.WAITING) {
             this.status = EquipmentUsageStatus.IN_USE;
@@ -66,10 +99,11 @@ public class EquipmentUsage extends BaseUsage {
         }
     }
 
-    // [3] 사용 종료
+    // 사용 종료
     public void completeUse() {
         this.status = EquipmentUsageStatus.COMPLETED;
         this.endTime = LocalDateTime.now();
+        this.durationMinutes = (int) Duration.between(startTime, LocalDateTime.now()).toMinutes();
     }
 
 }

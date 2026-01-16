@@ -4,6 +4,7 @@ import lombok.Builder;
 import skku.gymbarofit.core.gym.Gym;
 import skku.gymbarofit.core.gym.dto.GymResponseDto;
 import skku.gymbarofit.core.gym.enums.GymCrowdLevel;
+import skku.gymbarofit.core.usage.equipment.dto.EquipmentUsageResponseDto;
 import skku.gymbarofit.core.usage.locker.LockerUsage;
 import skku.gymbarofit.core.item.locker.dto.LockerRentResponseDto;
 
@@ -14,15 +15,25 @@ public record MembershipInfoResponseDto (
         int gymCount,
         List<GymResponseDto> gymList,
         GymCrowdLevel crowdLevel,
-        LockerRentResponseDto lockerUsage
+        LockerRentResponseDto lockerUsage,
+        EquipmentUsageResponseDto inUse,
+        EquipmentUsageResponseDto waiting
 ) {
 
-    public static MembershipInfoResponseDto from(List<GymResponseDto> gymResponseDtoList, Gym gym, LockerUsage lockerUsage) {
+    public static MembershipInfoResponseDto from(
+            List<GymResponseDto> gymResponseDtoList,
+            Gym gym,
+            LockerUsage lockerUsage,
+            EquipmentUsageResponseDto inUseDto,
+            EquipmentUsageResponseDto waitingDto
+    ) {
         return MembershipInfoResponseDto.builder()
                 .gymList(gymResponseDtoList)
                 .gymCount(gymResponseDtoList.size())
                 .crowdLevel(gym.getCrowdLevel())
                 .lockerUsage(LockerRentResponseDto.from(lockerUsage))
+                .inUse(inUseDto)
+                .waiting(waitingDto)
                 .build();
     }
 }

@@ -14,10 +14,10 @@ public class MembershipApiController {
     private final MembershipService membershipService;
 
     @GetMapping("/{gymId}/info")
-    public ResponseEntity<MembershipInfoResponseDto> info(
+    public ResponseEntity<MembershipInfoResponseDto> getInfo(
             @CurrentUserId Long memberId,
             @PathVariable Long gymId
     ) {
-        return ResponseEntity.ok(membershipService.info(gymId, memberId));
+        return ResponseEntity.ok(membershipService.getInfo(gymId, memberId));
     }
 }

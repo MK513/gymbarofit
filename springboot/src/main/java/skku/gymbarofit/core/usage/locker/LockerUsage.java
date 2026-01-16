@@ -19,8 +19,8 @@ import static jakarta.persistence.FetchType.*;
 @Table(
     name = "locker_usage",
     uniqueConstraints = {
-        @UniqueConstraint(name = "uk_locker_active", columnNames = {"locker_id", "active"}),
-        @UniqueConstraint(name = "uk_gym_member_active", columnNames = {"gym_id", "user_id", "active"})
+        @UniqueConstraint(name = "uk_locker_usage_locker_active", columnNames = {"locker_id", "active"}),
+        @UniqueConstraint(name = "uk_locker_usage_gym_member_active", columnNames = {"gym_id", "user_id", "active"})
     }
 )
 @Getter

@@ -2,7 +2,7 @@ package skku.gymbarofit.core.log;
 
 import jakarta.persistence.*;
 import lombok.Getter;
-import skku.gymbarofit.core.item.Equipment;
+import skku.gymbarofit.core.item.equipment.Equipment;
 
 import static jakarta.persistence.FetchType.LAZY;
 
