@@ -156,15 +156,21 @@ export default function Dashboard() {
 
   const handleEquipmentReservationClick = () => {
     const url = '/gyms/' + user.gym.id + '/equipments'
-    navigate(url)
+    navigate(url, {
+      state: {
+        usage: equipmentInfo.usage,
+      },
+    });
   }
 
   const handleEndUsage = async () => {
     try {
       const pathVarable = {equipmentId: equipmentInfo.usage.eid};
       await endUsage(pathVarable);
-      window.location.reload();
       showNotification("기구 사용이 종료되었습니다.", "success");
+
+      await loadGymData();
+
     } catch (e) {
       console.error("기구 사용 종료 실패", error);
       showNotification("기구 사용 종료에 실패했습니다.", "error");

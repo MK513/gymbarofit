@@ -20,8 +20,7 @@ public record EquipmentResponseDto (
         String imageUrl,
         Integer waitingCount,
         ItemStatus itemStatus,
-        EquipmentUsageStatus usageStatus,
-        LocalDateTime expiredAt
+        EquipmentUsageStatus usageStatus
 ) {
 
     public static EquipmentResponseDto of(Equipment equipment) {
@@ -61,11 +60,6 @@ public record EquipmentResponseDto (
             usageStatus = EquipmentUsageStatus.AVAILABLE;
         }
 
-        LocalDateTime expiredAt = null;
-        if (inUse != null && inUse.getStartTime() != null) {
-            expiredAt = inUse.getStartTime().plusMinutes(inUse.getDurationMinutes());
-        }
-
         return EquipmentResponseDto.builder()
                 .id(equipment.getId())
                 .name(equipment.getItemInfo().getName())
@@ -75,7 +69,6 @@ public record EquipmentResponseDto (
                 .waitingCount(waitingCount)
                 .itemStatus(equipment.getItemInfo().getStatus())
                 .usageStatus(usageStatus)
-                .expiredAt(expiredAt)
                 .build();
     }
 }
