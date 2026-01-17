@@ -48,6 +48,14 @@ public class EquipmentService {
     }
 
     public void joinQueue(Long memberId, Long equipmentId) {
+
+        Member member = memberInternalService.findById(memberId);
+        Equipment equipment = equipmentInternalService.findById(equipmentId);
+        Gym gym = equipment.getGym();
+
+        EquipmentUsage equipmentUsage = EquipmentUsage.createQueue(member, gym, equipment);
+
+        equipmentUsageInternalService.save(equipmentUsage);
     }
 
     public void startUsage(Long memberId, Long equipmentId) {
@@ -56,7 +64,7 @@ public class EquipmentService {
         Equipment equipment = equipmentInternalService.findById(equipmentId);
         Gym gym = equipment.getGym();
 
-        EquipmentUsage equipmentUsage = EquipmentUsage.of(member, gym, equipment);
+        EquipmentUsage equipmentUsage = EquipmentUsage.createUse(member, gym, equipment);
 
         equipmentUsageInternalService.save(equipmentUsage);
     }
@@ -69,6 +77,8 @@ public class EquipmentService {
         EquipmentUsage firstWaiting = equipmentUsageInternalService.findFirstWaitingByEquipmentId(equipmentId);
         if (firstWaiting != null) {
             firstWaiting.startUse();
+
+            //TODO 알림 보내기
         }
     }
 }

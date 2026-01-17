@@ -96,28 +96,28 @@ export default function EquipmentCard({
             <AccessTimeIcon sx={{ fontSize: 14, mr: 0.5 }} /> {data.time}
           </Typography>
 
-          {/* [디자인 수정됨] 작고 예쁜 액션 버튼 */}
+          {/* 액션 버튼 */}
           <Button
             size="small"
             onClick={onAction}
             fullWidth
             disableElevation
             sx={{
-              bgcolor: "white", // 배경을 흰색으로 하여 깔끔하게
+              bgcolor: "white", 
               color: isPrimary ? "warning.dark" : "text.primary", // 글자색
               border: '1px solid',
               borderColor: isPrimary ? "warning.light" : "grey.300",
-              borderRadius: 2.5, // 둥근 모서리 (Pill shape 느낌)
-              py: 0.5,           // 상하 패딩을 줄여 슬림하게
+              borderRadius: 2.5, // 둥근 모서리
+              py: 0.5,
               fontSize: "0.8rem",
               fontWeight: "bold",
-              boxShadow: "0px 2px 4px rgba(0,0,0,0.02)", // 아주 은은한 그림자
+              boxShadow: "0px 2px 4px rgba(0,0,0,0.02)",
               transition: "all 0.2s",
               '&:hover': {
                  bgcolor: isPrimary ? "#fff3e0" : "#f5f5f5",
                  borderColor: isPrimary ? "warning.main" : "grey.400",
                  boxShadow: "0px 2px 8px rgba(0,0,0,0.05)",
-                 transform: "translateY(-1px)" // 호버 시 살짝 떠오르는 효과
+                 transform: "translateY(-1px)"
               }
             }}
           >

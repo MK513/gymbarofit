@@ -108,6 +108,12 @@ export async function endUsage(pathVarable) {
   return res;
 }
 
+export async function createQueue(pathVarable) {
+  const res = await call("/equipments/{equipmentId}/queue", "POST", null, pathVarable);
+  return res;
+}
+
+
 
 /* ===== 헬스장 ===== */
 export async function searchGym(dto) {

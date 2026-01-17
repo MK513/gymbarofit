@@ -48,11 +48,13 @@ public interface EquipmentUsageRepository extends JpaRepository<EquipmentUsage, 
         select count(u)
         from EquipmentUsage u
         where u.status = 'WAITING'
-          and u.member.id = :memberId
+          and u.equipment.id = :equipmentId
           and u.createdAt < (
-              select eu.createdAt
-              from EquipmentUsage eu
-              where eu.equipment.id = :equipmentId
+              select myEu.createdAt
+              from EquipmentUsage myEu
+              where myEu.equipment.id = :equipmentId
+                and myEu.member.id = :memberId
+                and myEu.status = 'WAITING'
           )
     """)
     int countWaitingForMember(Long equipmentId, Long memberId);

@@ -99,7 +99,7 @@ export default function Dashboard() {
             eid: res.inUse.equipmentId,
             name: res.waiting.name,
             imageUrl: res.inUse.imageUrl,
-            time: `대기 ${res.waiting.waitingCount}명`, // 대기 인원 표시
+            time: `내 앞 대기 인원 ${res.waiting.waitingCount}명`, // 대기 인원 표시
           };
         }
         setEquipmentInfo(newEquipInfo);

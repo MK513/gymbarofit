@@ -15,7 +15,7 @@ public class EquipmentApiController {
 
     private final EquipmentService equipmentService;
 
-    // 2. 줄서기 (Waiting)
+    // 대기 줄서기
     @PostMapping("/{equipmentId}/queue")
     public ResponseEntity<Void> joinQueue(
             @CurrentUserId Long memberId,

@@ -12,7 +12,7 @@ import {
 } from "@mui/icons-material";
 import { useNavigate, useLocation } from "react-router-dom";
 import { useNotification } from "../../context/NotificationContext";
-import { getEquipments, startUsage } from "../../api/Api";
+import { getEquipments, startUsage, createQueue } from "../../api/Api";
 import { useAuth } from "../../context/AuthContext";
 import { BUCKET_BASE_URL } from "../../api-config";
 
@@ -114,9 +114,10 @@ export default function EquipmentReservation() {
       navigate("/");
     } catch (e) { showNotification(`${selectedMachine.name} 사용에 실패했습니다.`, "error"); }
   };
-  const handleJoinQueue = () => {
-    setMachines(prev => prev.map(m => m.id === selectedMachine.id ? { ...m, queue: m.queue + 1 } : m));
-    setIsDrawerOpen(false);
+  const handleJoinQueue = async () => {
+    //setMachines(prev => prev.map(m => m.id === selectedMachine.id ? { ...m, queue: m.queue + 1 } : m));
+    await createQueue({equipmentId: selectedMachine.id});
+    navigate("/");
     showNotification(`${selectedMachine.name} 대기열에 등록되었습니다.`, "success");
   };
   const getStatusColor = (machine) => {

@@ -71,7 +71,7 @@ public class EquipmentUsage extends BaseUsage {
         this.startTime = startTime;
     }
 
-    // [1] 줄서기 신청 (대기열 진입)
+    // 줄서기 신청
     public static EquipmentUsage createQueue(Member member, Gym gym, Equipment equipment) {
         return EquipmentUsage.builder()
                 .member(member)
@@ -81,7 +81,7 @@ public class EquipmentUsage extends BaseUsage {
                 .build();
     }
 
-    public static EquipmentUsage of(Member member, Gym gym, Equipment equipment) {
+    public static EquipmentUsage createUse(Member member, Gym gym, Equipment equipment) {
         return EquipmentUsage.builder()
                 .member(member)
                 .gym(gym)
@@ -94,7 +94,7 @@ public class EquipmentUsage extends BaseUsage {
     // 사용 시작
     public void startUse() {
         if (this.status == EquipmentUsageStatus.WAITING) {
-            this.status = EquipmentUsageStatus.IN_USE;
+            this.status = EquipmentUsageStatus.CALLED;
             this.startTime = LocalDateTime.now();
         }
     }
