@@ -21,12 +21,14 @@ import KeyIcon from "@mui/icons-material/Key";
 import PersonIcon from "@mui/icons-material/Person";
 import StoreIcon from "@mui/icons-material/Store";
 
+
 import { loginMember, loginOwner } from "../api/Api";
 import { useAuth } from "../context/AuthContext";
 
 export default function Login() {
   const navigate = useNavigate();
   const { login } = useAuth();
+  
   const [role, setRole] = useState("member"); // member | owner
 
   const handleRoleChange = (event, newRole) => {
@@ -45,16 +47,19 @@ export default function Login() {
       const dto = { email, password: pw };
 
       if (role === "member") {
-        const userInfo = await loginMember(dto);
+        const res = await loginMember(dto);
 
-        login(userInfo);
+        login(res.userInfo, res.token.accessToken);
 
         navigate("/members/dashboard");
       } else {
-        response = await loginOwner(dto);
+        await loginOwner(dto);
+
+        login(res.userInfo, res.token.accessToken);
       }
-    } catch {
-      alert("로그인 실패: 이메일과 비밀번호를 확인해주세요.");
+    } catch (e) {
+      console.log("error", e);
+      alert("로그인에 실패했습니다.");
     }
   };
 
