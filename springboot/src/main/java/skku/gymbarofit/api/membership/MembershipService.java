@@ -45,17 +45,17 @@ public class MembershipService {
         LockerUsage lockerUsage = lockerUsageInternalService.findActiveByGymIdAndMemberId(gymId, memberId).orElse(null);
 
         EquipmentUsageResponseDto inUseDto = getInUseUsageDto(memberId);
-        EquipmentUsageResponseDto waitingDto =  getWaitingEquipmentUsage(memberId);
+        EquipmentUsageResponseDto waitingDto =  getWaitingUsageDto(memberId);
 
         return MembershipInfoResponseDto.from(gymResponseDtoList, gym, lockerUsage, inUseDto, waitingDto);
     }
 
-    private EquipmentUsageResponseDto getWaitingEquipmentUsage(Long memberId) {
+    private EquipmentUsageResponseDto getWaitingUsageDto(Long memberId) {
         EquipmentUsage waitingEquipmentUsage = equipmentUsageInternalService.findWaitingByMemberId(memberId).orElse(null);
         Equipment waitingEquipment = waitingEquipmentUsage != null ? waitingEquipmentUsage.getEquipment() : null;
         int waitingCount = 0;
         if (waitingEquipmentUsage != null) {
-            waitingCount = equipmentUsageInternalService.countWaitingById(waitingEquipmentUsage.getId(), memberId);
+            waitingCount = equipmentUsageInternalService.countWaiting(waitingEquipment.getId(), memberId);
         }
 
         return EquipmentUsageResponseDto.from(waitingEquipmentUsage, waitingEquipment, waitingCount);

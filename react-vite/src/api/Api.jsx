@@ -103,6 +103,11 @@ export async function startUsage(pathVarable) {
   return res;
 }
 
+export async function endUsage(pathVarable) {
+  const res = await call("/equipments/{equipmentId}/end", "POST", null, pathVarable);
+  return res;
+}
+
 
 /* ===== 헬스장 ===== */
 export async function searchGym(dto) {
@@ -131,8 +136,7 @@ export async function loginOwner(dto) {
 
 async function login(url, dto) {
   const res = await call(url, "POST", dto);
-  localStorage.setItem("ACCESS_TOKEN", res.token.accessToken);
-  return res.userInfo;
+  return res;
 }
 
 /* ===== 회원가입 ===== */

@@ -25,7 +25,7 @@ public class EquipmentApiController {
         return ResponseEntity.ok().build();
     }
 
-    // 3. 사용 시작 (QR 스캔 / Start)
+    // 기구 사용 시작
     @PostMapping("/{equipmentId}/start")
     public ResponseEntity<Void> startUsage(
             @CurrentUserId Long memberId,
@@ -35,7 +35,7 @@ public class EquipmentApiController {
         return ResponseEntity.ok().build();
     }
 
-    // 4. 사용 종료
+    // 기구 사용 종료
     @PostMapping("/{equipmentId}/end")
     public ResponseEntity<Void> endUsage(
             @CurrentUserId Long memberId,

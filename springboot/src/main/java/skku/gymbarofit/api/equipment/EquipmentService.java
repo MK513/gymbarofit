@@ -62,6 +62,14 @@ public class EquipmentService {
     }
 
     public void endUsage(Long memberId, Long equipmentId) {
+
+        EquipmentUsage currentUsage = equipmentUsageInternalService.findInUseByEquipmentIdAndMemberId(equipmentId, memberId);
+        currentUsage.completeUse();
+
+        EquipmentUsage firstWaiting = equipmentUsageInternalService.findFirstWaitingByEquipmentId(equipmentId);
+        if (firstWaiting != null) {
+            firstWaiting.startUse();
+        }
     }
 }
 

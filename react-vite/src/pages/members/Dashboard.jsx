@@ -2,7 +2,7 @@ import React, { useState, useEffect } from "react";
 import { Box, Container, Stack } from "@mui/material";
 import { useNavigate } from "react-router-dom";
 import { useAuth } from "../../context/AuthContext";
-import { getMembershipInfo, refundLocker } from "../../api/Api";
+import { getMembershipInfo, refundLocker, endUsage } from "../../api/Api";
 import { useNotification } from "../../context/NotificationContext";
 
 // 분리된 하위 컴포넌트 임포트
@@ -21,7 +21,7 @@ export default function Dashboard() {
   const { showNotification } = useNotification();
 
   // --- 상태 관리 ---
-  const [lockerStatus, setLockerStatus] = useState({ use: false, number: 0, expiry: "", id: null, zoneName: "" });
+  const [lockerStatus, setLockerStatus] = useState({ use: false, number: 0, expiry: "", eid: null, zoneName: "" });
   const [equipmentInfo, setEquipmentInfo] = useState({ usage: null, reservation: null });
   const [equipStatus] = useState({ use: false, name: "", time: "" });
   const [attendance, setAttendance] = useState({ streak: 3, checkedToday: false });
@@ -87,7 +87,7 @@ export default function Dashboard() {
 
         if (res.inUse) {
           newEquipInfo.usage = {
-            id: res.inUse.id,
+            eid: res.inUse.equipmentId,
             name: res.inUse.name,
             imageUrl: res.inUse.imageUrl,
             time: "현재 이용 중", 
@@ -96,7 +96,7 @@ export default function Dashboard() {
 
         if (res.waiting) {
           newEquipInfo.reservation = {
-            id: res.inUse.id,
+            eid: res.inUse.equipmentId,
             name: res.waiting.name,
             imageUrl: res.inUse.imageUrl,
             time: `대기 ${res.waiting.waitingCount}명`, // 대기 인원 표시
@@ -114,12 +114,6 @@ export default function Dashboard() {
     if (user?.gym) loadGymData(user.gym);
     else loadGymData(null);
   }, []); 
-
-  useEffect(() => {
-    if (!user) navigate("/login");
-  }, [user, navigate]);
-
-  if (!user) return null;
 
   // --- 이벤트 핸들러 ---
   const handleLogout = () => {
@@ -155,7 +149,7 @@ export default function Dashboard() {
       setOpenRefundDialog(false);
     } catch (error) {
       console.error("환불 실패", error);
-      showNotification(error.response?.data?.message || "환불 실패", "error");
+      showNotification("환불에 실패했습니다.", "error");
       setOpenRefundDialog(false);
     }
   };
@@ -163,6 +157,18 @@ export default function Dashboard() {
   const handleEquipmentReservationClick = () => {
     const url = '/gyms/' + user.gym.id + '/equipments'
     navigate(url)
+  }
+
+  const handleEndUsage = async () => {
+    try {
+      const pathVarable = {equipmentId: equipmentInfo.usage.eid};
+      await endUsage(pathVarable);
+      window.location.reload();
+      showNotification("기구 사용이 종료되었습니다.", "success");
+    } catch (e) {
+      console.error("기구 사용 종료 실패", error);
+      showNotification("기구 사용 종료에 실패했습니다.", "error");
+    }
   }
 
   return (
@@ -173,7 +179,7 @@ export default function Dashboard() {
         <Stack spacing={3} sx={{ width: "100%" }}>
           
           <GymInfoSection 
-            userName={user.name || "회원"}
+            userName={user?.name ?? "회원"}
             currentGym={currentGym}
             myGyms={myGyms}
             crowdStatus={crowdStatus}
@@ -192,6 +198,7 @@ export default function Dashboard() {
           <EquipmentCard
             usageData={equipmentInfo.usage}
             reservationData={equipmentInfo.reservation}
+            onEndUsageClick={handleEndUsage}
             onReservationClick={handleEquipmentReservationClick}
           />
 

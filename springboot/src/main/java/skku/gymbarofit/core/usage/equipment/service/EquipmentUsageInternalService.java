@@ -1,6 +1,7 @@
 package skku.gymbarofit.core.usage.equipment.service;
 
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.PageRequest;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import skku.gymbarofit.core.item.equipment.exception.EquipmentErrorCode;
@@ -19,7 +20,7 @@ public class EquipmentUsageInternalService {
 
     @Transactional(readOnly = true)
     public List<EquipmentUsage> findActiveByGymId(Long gymId) {
-        return equipmentUsageRepository.findActiveByGym_id(gymId);
+        return equipmentUsageRepository.findActiveByGymId(gymId);
     }
 
     public EquipmentUsage save(EquipmentUsage equipmentUsage) {
@@ -28,7 +29,7 @@ public class EquipmentUsageInternalService {
 
     @Transactional(readOnly = true)
     public List<EquipmentUsage> findActiveByMemberId(Long memberId) {
-        return equipmentUsageRepository.findActiveByMember_id(memberId);
+        return equipmentUsageRepository.findActiveByMemberId(memberId);
     }
 
     @Transactional(readOnly = true)
@@ -42,7 +43,18 @@ public class EquipmentUsageInternalService {
     }
 
     @Transactional(readOnly = true)
-    public int countWaitingById(Long usageId, Long memberId) {
-        return equipmentUsageRepository.countWaitingById(usageId, memberId);
+    public int countWaiting(Long equipmentId, Long memberId) {
+        return equipmentUsageRepository.countWaitingForMember(equipmentId, memberId);
+    }
+
+    @Transactional(readOnly = true)
+    public EquipmentUsage findInUseByEquipmentIdAndMemberId(Long equipmentId, Long memberId) {
+        return equipmentUsageRepository.findInUseForUpdate(equipmentId, memberId)
+                .orElseThrow(() -> new EquipmentException(EquipmentErrorCode.EQUIPMENT_NOT_FOUND));
+    }
+
+    public EquipmentUsage findFirstWaitingByEquipmentId(Long equipmentId) {
+        return equipmentUsageRepository.findWaitingForUpdate(equipmentId, PageRequest.of(0, 1))
+                .stream().findFirst().orElse(null);
     }
 }

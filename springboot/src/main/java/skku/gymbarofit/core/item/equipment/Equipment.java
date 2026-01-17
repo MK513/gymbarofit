@@ -2,6 +2,7 @@ package skku.gymbarofit.core.item.equipment;
 
 import jakarta.persistence.*;
 import lombok.Getter;
+import lombok.ToString;
 import skku.gymbarofit.core.gym.Gym;
 import skku.gymbarofit.core.item.ItemInfo;
 

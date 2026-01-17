@@ -5,73 +5,124 @@ import EventAvailableIcon from "@mui/icons-material/EventAvailable";
 import AccessTimeIcon from '@mui/icons-material/AccessTime';
 import { BUCKET_BASE_URL } from "../../../api-config";
 
-export default function EquipmentCard({ usageData, reservationData, onReservationClick }) {
+export default function EquipmentCard({ 
+  usageData, 
+  reservationData, 
+  onReservationClick,
+  onEndUsageClick, 
+  onCancelReservationClick 
+}) {
 
   const isEmpty = !usageData && !reservationData;
 
-  // 기구 정보 섹션 컴포넌트 (내부에서 재사용)
-  const EquipmentSection = ({ data, titleIcon, titleText, statusLabel, statusVariant, isPrimary }) => (
+  // 기구 정보 섹션 컴포넌트
+  const EquipmentSection = ({ 
+    data, 
+    titleIcon, 
+    titleText, 
+    statusLabel, 
+    statusVariant, 
+    isPrimary,
+    actionLabel,
+    onAction
+  }) => (
     <Paper
       elevation={0}
       sx={{
         p: 2,
         borderRadius: 3,
-        bgcolor: isPrimary ? "#fff3e0" : "#fafafa", // 연한 주황색 / 연한 회색
+        // 배경색: Primary(이용중)는 연한 주황, 아니면 연한 회색
+        bgcolor: isPrimary ? "#fff8e1" : "#fafafa", 
         border: '1px solid',
-        borderColor: isPrimary ? "#ffb74d" : "#e0e0e0", // 주황색 / 회색 테두리
+        borderColor: isPrimary ? "#ffe0b2" : "#eeeeee",
       }}
     >
-      {/* 섹션 타이틀 (아이콘 + 텍스트) */}
+      {/* 섹션 타이틀 */}
       <Box display="flex" alignItems="center" mb={1.5}>
         <Box sx={{ color: isPrimary ? "warning.main" : "text.secondary", mr: 1, display: 'flex' }}>
           {titleIcon}
         </Box>
-        <Typography variant="subtitle2" fontWeight="bold" color={isPrimary ? "warning.main" : "text.secondary"}>
+        <Typography variant="subtitle2" fontWeight="bold" color={isPrimary ? "warning.dark" : "text.secondary"}>
           {titleText}
         </Typography>
       </Box>
       
-      {/* 기구 정보 (이미지 + 텍스트 + 상태 칩) */}
-      <Stack direction="row" spacing={2} alignItems="center">
+      {/* 기구 정보 컨텐츠 */}
+      <Stack direction="row" spacing={2} alignItems="flex-start">
+        {/* 기구 이미지 */}
         {data.imageUrl && (
           <Box 
             component="img"
             src={`${BUCKET_BASE_URL}${data.imageUrl}`}
             alt={data.name}
             sx={{ 
-              width: isPrimary ? 72 : 64, // 이용중일 때 이미지를 약간 더 크게
-              height: isPrimary ? 72 : 64, 
+              width: 60,
+              height: 60, 
               objectFit: 'contain', 
               bgcolor: 'white',
               borderRadius: 2,
               p: 0.5,
               border: '1px solid',
-              borderColor: 'grey.200'
+              borderColor: 'rgba(0,0,0,0.05)'
             }}
           />
         )}
+        
+        {/* 텍스트 정보 및 버튼 영역 */}
         <Box flexGrow={1}>
+          {/* 이름과 상태 칩 */}
           <Box display="flex" alignItems="center" justifyContent="space-between" mb={0.5}>
-            <Typography variant="h6" fontWeight="700" color="text.primary" sx={{ fontSize: isPrimary ? '1.125rem' : '1rem' }}>
+            <Typography variant="subtitle1" fontWeight="700" color="text.primary">
               {data.name}
             </Typography>
             {statusLabel && (
               <Chip 
                 label={statusLabel} 
-                color="warning"
+                color={isPrimary ? "warning" : "default"}
                 size="small" 
                 sx={{ 
                   fontWeight: 'bold', 
-                  color: statusVariant === 'filled' ? 'white' : undefined,
-                  height: 24
+                  height: 20,
+                  fontSize: '0.7rem',
+                  bgcolor: isPrimary ? 'warning.main' : 'rgba(0,0,0,0.08)',
+                  color: isPrimary ? 'white' : 'text.secondary'
                 }} 
-                variant={statusVariant}
               />
             )}
           </Box>
-          <Typography variant="body2" color="text.secondary" sx={{ display: 'flex', alignItems: 'center' }}>
-            <AccessTimeIcon sx={{ fontSize: 16, mr: 0.5 }} /> {data.time}
+
+          {/* 시간 표시 */}
+          <Typography variant="caption" color="text.secondary" sx={{ display: 'flex', alignItems: 'center', mb: 1.5, fontWeight: 500 }}>
+            <AccessTimeIcon sx={{ fontSize: 14, mr: 0.5 }} /> {data.time}
           </Typography>
+
+          {/* [디자인 수정됨] 작고 예쁜 액션 버튼 */}
+          <Button
+            size="small"
+            onClick={onAction}
+            fullWidth
+            disableElevation
+            sx={{
+              bgcolor: "white", // 배경을 흰색으로 하여 깔끔하게
+              color: isPrimary ? "warning.dark" : "text.primary", // 글자색
+              border: '1px solid',
+              borderColor: isPrimary ? "warning.light" : "grey.300",
+              borderRadius: 2.5, // 둥근 모서리 (Pill shape 느낌)
+              py: 0.5,           // 상하 패딩을 줄여 슬림하게
+              fontSize: "0.8rem",
+              fontWeight: "bold",
+              boxShadow: "0px 2px 4px rgba(0,0,0,0.02)", // 아주 은은한 그림자
+              transition: "all 0.2s",
+              '&:hover': {
+                 bgcolor: isPrimary ? "#fff3e0" : "#f5f5f5",
+                 borderColor: isPrimary ? "warning.main" : "grey.400",
+                 boxShadow: "0px 2px 8px rgba(0,0,0,0.05)",
+                 transform: "translateY(-1px)" // 호버 시 살짝 떠오르는 효과
+              }
+            }}
+          >
+            {actionLabel}
+          </Button>
         </Box>
       </Stack>
     </Paper>
@@ -100,6 +151,8 @@ export default function EquipmentCard({ usageData, reservationData, onReservatio
                 statusLabel="이용중"
                 statusVariant="filled"
                 isPrimary={true}
+                actionLabel="사용 종료"
+                onAction={onEndUsageClick}
               />
             )}
 
@@ -112,6 +165,8 @@ export default function EquipmentCard({ usageData, reservationData, onReservatio
                 statusLabel="예약중"
                 statusVariant="outlined"
                 isPrimary={false}
+                actionLabel="대기 취소"
+                onAction={onCancelReservationClick}
               />
             )}
           </>
@@ -138,7 +193,7 @@ export default function EquipmentCard({ usageData, reservationData, onReservatio
         )}
       </Stack>
 
-      {/* 3. 하단 버튼 영역 */}
+      {/* 3. 하단 메인 버튼 영역 */}
       <Button 
         fullWidth 
         variant="contained" 
@@ -148,9 +203,10 @@ export default function EquipmentCard({ usageData, reservationData, onReservatio
         disableElevation
         sx={{ 
           py: 1.5, 
-          borderRadius: 2, 
+          borderRadius: 3, 
           fontWeight: 'bold', 
-          color: 'white' 
+          color: 'white',
+          boxShadow: '0 4px 12px rgba(237, 108, 2, 0.2)' // 메인 버튼에 부드러운 그림자 추가
         }}
       >
         기구 예약하러 가기
