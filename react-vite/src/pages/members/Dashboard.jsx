@@ -1,11 +1,13 @@
 import React, { useState, useEffect } from "react";
 import { Box, Container, Stack } from "@mui/material";
 import { useNavigate } from "react-router-dom";
-import { useAuth } from "../../context/AuthContext";
-import { getMembershipInfo, refundLocker, endUsage } from "../../api/Api";
-import { useNotification } from "../../context/NotificationContext";
 
-// 분리된 하위 컴포넌트 임포트
+import { useAuth } from "../../context/AuthContext";
+import { getMembershipInfo, refundLocker, endUsage, leftQueue } from "../../api/Api";
+import { useNotification } from "../../context/NotificationContext";
+import { useSseNotifications } from "../../context/SseNotification";
+
+// 하위 컴포넌트
 import DashboardHeader from "../../components/members/dashboard/DashboardHeader";
 import GymInfoSection from "../../components/members/dashboard/GymInfoSection";
 import AttendanceCard from "../../components/members/dashboard/AttendanceCard";
@@ -19,6 +21,7 @@ export default function Dashboard() {
   const navigate = useNavigate();
   const { user, logout } = useAuth();
   const { showNotification } = useNotification();
+  const { notifications } = useSseNotifications(user?.id);
 
   // --- 상태 관리 ---
   const [lockerStatus, setLockerStatus] = useState({ use: false, number: 0, expiry: "", eid: null, zoneName: "" });
@@ -31,7 +34,7 @@ export default function Dashboard() {
   const [currentGym, setCurrentGym] = useState(null);
   const [crowdStatus, setCrowdStatus] = useState({ label: "정보 없음", bgColor: "#f5f5f5", color: "#9e9e9e", borderColor: "#e0e0e0" });
 
-  // --- 헬퍼 함수들 (포맷, 혼잡도 계산) ---
+  // --- 헬퍼 함수들 ---
   const formatDateFromArray = (dateArr) => {
     if (!dateArr || dateArr.length < 3) return "";
     return `${dateArr[0]}-${String(dateArr[1]).padStart(2, "0")}-${String(dateArr[2]).padStart(2, "0")}`;
@@ -85,7 +88,9 @@ export default function Dashboard() {
         // 2. 운동 기구 정보 처리 (inUse -> usage, waiting -> reservation)
         const newEquipInfo = { usage: null, reservation: null };
 
-        if (res.inUse) {
+        console.log(res.inUse);
+
+        if (res.inUse != null) {
           newEquipInfo.usage = {
             eid: res.inUse.equipmentId,
             name: res.inUse.name,
@@ -96,9 +101,9 @@ export default function Dashboard() {
 
         if (res.waiting) {
           newEquipInfo.reservation = {
-            eid: res.inUse.equipmentId,
+            eid: res.waiting.equipmentId,
             name: res.waiting.name,
-            imageUrl: res.inUse.imageUrl,
+            imageUrl: res.waiting.imageUrl,
             time: `내 앞 대기 인원 ${res.waiting.waitingCount}명`, // 대기 인원 표시
           };
         }
@@ -114,6 +119,14 @@ export default function Dashboard() {
     if (user?.gym) loadGymData(user.gym);
     else loadGymData(null);
   }, []); 
+
+  // --- [SSE] 새 알림 수신 시 Toast(Snackbar) 띄우기 ---
+  useEffect(() => {
+    if (notifications.length > 0) {
+      const latest = notifications[0];
+      showNotification(`${latest.title} ${latest.body}`, "info");
+    }
+  }, [notifications, showNotification]);
 
   // --- 이벤트 핸들러 ---
   const handleLogout = () => {
@@ -169,11 +182,25 @@ export default function Dashboard() {
       await endUsage(pathVarable);
       showNotification("기구 사용이 종료되었습니다.", "success");
 
-      await loadGymData();
+      await loadGymData(user.gym);
 
     } catch (e) {
       console.error("기구 사용 종료 실패", error);
       showNotification("기구 사용 종료에 실패했습니다.", "error");
+    }
+  }
+
+  const handleLeftQueue = async () => {
+    try {
+      const pathVarable = {equipmentId: equipmentInfo.reservation.eid};
+      await leftQueue(pathVarable);
+      showNotification("기구 예약이 취소되었습니다.", "success");
+
+      await loadGymData(user.gym);
+
+    } catch (e) {
+      console.error("기구 예약 취소 실패", error);
+      showNotification("기구 예약 취소에 실패했습니다.", "error");
     }
   }
 
@@ -183,7 +210,7 @@ export default function Dashboard() {
 
       <Container maxWidth="sm" sx={{ mt: 3, mb: 4, px: 3 }}>
         <Stack spacing={3} sx={{ width: "100%" }}>
-          
+
           <GymInfoSection 
             userName={user?.name ?? "회원"}
             currentGym={currentGym}
@@ -205,6 +232,7 @@ export default function Dashboard() {
             usageData={equipmentInfo.usage}
             reservationData={equipmentInfo.reservation}
             onEndUsageClick={handleEndUsage}
+            onCancelReservationClick={handleLeftQueue}
             onReservationClick={handleEquipmentReservationClick}
           />
 

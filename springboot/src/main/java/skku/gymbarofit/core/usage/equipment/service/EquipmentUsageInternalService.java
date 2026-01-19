@@ -7,6 +7,7 @@ import org.springframework.transaction.annotation.Transactional;
 import skku.gymbarofit.core.item.equipment.exception.EquipmentErrorCode;
 import skku.gymbarofit.core.item.equipment.exception.EquipmentException;
 import skku.gymbarofit.core.usage.equipment.EquipmentUsage;
+import skku.gymbarofit.core.usage.equipment.enums.EquipmentUsageStatus;
 import skku.gymbarofit.core.usage.equipment.repository.EquipmentUsageRepository;
 
 import java.util.List;
@@ -16,11 +17,19 @@ import java.util.Optional;
 @Service
 @RequiredArgsConstructor
 public class EquipmentUsageInternalService {
+
     private final EquipmentUsageRepository equipmentUsageRepository;
+
+    private static final List<EquipmentUsageStatus> WAITING_OR_CALLED =
+            List.of(EquipmentUsageStatus.WAITING, EquipmentUsageStatus.CALLED);
+
+    private static final List<EquipmentUsageStatus> INUSE_OR_WAITING_OR_CALLED =
+            List.of(EquipmentUsageStatus.IN_USE, EquipmentUsageStatus.WAITING, EquipmentUsageStatus.CALLED);
+
 
     @Transactional(readOnly = true)
     public List<EquipmentUsage> findActiveByGymId(Long gymId) {
-        return equipmentUsageRepository.findActiveByGymId(gymId);
+        return equipmentUsageRepository.findByGymIdAndStatusIn(gymId, INUSE_OR_WAITING_OR_CALLED);
     }
 
     public EquipmentUsage save(EquipmentUsage equipmentUsage) {
@@ -28,18 +37,13 @@ public class EquipmentUsageInternalService {
     }
 
     @Transactional(readOnly = true)
-    public List<EquipmentUsage> findActiveByMemberId(Long memberId) {
-        return equipmentUsageRepository.findActiveByMemberId(memberId);
-    }
-
-    @Transactional(readOnly = true)
     public Optional<EquipmentUsage> findInUseByMemberId(Long memberId) {
-        return equipmentUsageRepository.findInUseByMemberId(memberId);
+        return equipmentUsageRepository.findByMemberIdAndStatusIn(memberId, EquipmentUsageStatus.IN_USE);
     }
 
     @Transactional(readOnly = true)
     public Optional<EquipmentUsage> findWaitingByMemberId(Long memberId) {
-        return equipmentUsageRepository.findWaitingByMemberId(memberId);
+        return equipmentUsageRepository.findByMemberIdAndStatusIn(memberId, EquipmentUsageStatus.WAITING);
     }
 
     @Transactional(readOnly = true)
@@ -47,14 +51,17 @@ public class EquipmentUsageInternalService {
         return equipmentUsageRepository.countWaitingForMember(equipmentId, memberId);
     }
 
-    @Transactional(readOnly = true)
-    public EquipmentUsage findInUseByEquipmentIdAndMemberId(Long equipmentId, Long memberId) {
+    public EquipmentUsage findInUseForUpdate(Long equipmentId, Long memberId) {
         return equipmentUsageRepository.findInUseForUpdate(equipmentId, memberId)
                 .orElseThrow(() -> new EquipmentException(EquipmentErrorCode.EQUIPMENT_NOT_FOUND));
     }
 
-    public EquipmentUsage findFirstWaitingByEquipmentId(Long equipmentId) {
-        return equipmentUsageRepository.findWaitingForUpdate(equipmentId, PageRequest.of(0, 1))
+    public EquipmentUsage findFirstWaitingForUpdate(Long equipmentId) {
+        return equipmentUsageRepository.findFirstWaitingForUpdate(equipmentId, PageRequest.of(0, 1))
                 .stream().findFirst().orElse(null);
+    }
+
+    public Optional<EquipmentUsage> findWaitingOrCalledForUpdate(Long memberId, Long equipmentId) {
+        return equipmentUsageRepository.findWaitingOrCalledForUpdate(memberId, equipmentId, WAITING_OR_CALLED);
     }
 }

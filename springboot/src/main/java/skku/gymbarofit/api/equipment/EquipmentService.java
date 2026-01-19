@@ -3,6 +3,7 @@ package skku.gymbarofit.api.equipment;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import skku.gymbarofit.api.notification.NotificationFacade;
 import skku.gymbarofit.core.item.equipment.dto.EquipmentListResponseDto;
 import skku.gymbarofit.core.item.equipment.dto.EquipmentResponseDto;
 import skku.gymbarofit.core.gym.Gym;
@@ -16,6 +17,7 @@ import skku.gymbarofit.core.user.member.service.MemberInternalService;
 
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 import java.util.stream.Collectors;
 
 @Transactional
@@ -27,6 +29,7 @@ public class EquipmentService {
     private final EquipmentUsageInternalService equipmentUsageInternalService;
     private final MemberInternalService memberInternalService;
     private final GymInternalService gymInternalService;
+    private final NotificationFacade notificationFacade;
 
     public EquipmentListResponseDto getEquipments(Long gymId) {
 
@@ -58,6 +61,12 @@ public class EquipmentService {
         equipmentUsageInternalService.save(equipmentUsage);
     }
 
+    public void leftQueue(Long memberId, Long equipmentId) {
+        equipmentUsageInternalService
+                .findWaitingOrCalledForUpdate(memberId, equipmentId)
+                .ifPresent(EquipmentUsage::leftQueue);
+    }
+
     public void startUsage(Long memberId, Long equipmentId) {
 
         Member member = memberInternalService.findById(memberId);
@@ -71,15 +80,17 @@ public class EquipmentService {
 
     public void endUsage(Long memberId, Long equipmentId) {
 
-        EquipmentUsage currentUsage = equipmentUsageInternalService.findInUseByEquipmentIdAndMemberId(equipmentId, memberId);
-        currentUsage.completeUse();
+        EquipmentUsage currentUsage = equipmentUsageInternalService.findInUseForUpdate(equipmentId, memberId);
+        currentUsage.endUse();
 
-        EquipmentUsage firstWaiting = equipmentUsageInternalService.findFirstWaitingByEquipmentId(equipmentId);
+        EquipmentUsage firstWaiting = equipmentUsageInternalService.findFirstWaitingForUpdate(equipmentId);
         if (firstWaiting != null) {
             firstWaiting.startUse();
 
             //TODO 알림 보내기
+            notificationFacade.notifyWaitingAvailable(firstWaiting.getMember().getId(), equipmentId);
         }
     }
+
 }
 

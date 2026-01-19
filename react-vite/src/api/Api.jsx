@@ -99,17 +99,22 @@ export async function extendLocker(dto, pathVarable) {
 
 /* ===== 기구 ===== */
 export async function startUsage(pathVarable) {
-  const res = await call("/equipments/{equipmentId}/start", "POST", null, pathVarable);
+  const res = await call("/equipments/{equipmentId}/usage", "POST", null, pathVarable);
   return res;
 }
 
 export async function endUsage(pathVarable) {
-  const res = await call("/equipments/{equipmentId}/end", "POST", null, pathVarable);
+  const res = await call("/equipments/{equipmentId}/usage", "DELETE", null, pathVarable);
   return res;
 }
 
 export async function createQueue(pathVarable) {
   const res = await call("/equipments/{equipmentId}/queue", "POST", null, pathVarable);
+  return res;
+}
+
+export async function leftQueue(pathVarable) {
+  const res = await call("/equipments/{equipmentId}/queue", "DELETE", null, pathVarable);
   return res;
 }
 

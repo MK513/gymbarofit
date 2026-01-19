@@ -10,7 +10,6 @@ import org.springframework.web.bind.annotation.*;
 import skku.gymbarofit.api.equipment.EquipmentService;
 import skku.gymbarofit.core.item.equipment.dto.EquipmentListResponseDto;
 import skku.gymbarofit.api.membership.annotation.CurrentUserId;
-import skku.gymbarofit.core.gym.dto.GymMembershipResponseDto;
 import skku.gymbarofit.core.gym.dto.GymResponseDto;
 
 import static org.springframework.data.domain.Sort.*;
@@ -32,12 +31,12 @@ public class GymApiController {
     }
 
     @PostMapping("/{gymId}/memberships")
-    public ResponseEntity<GymMembershipResponseDto> register(
+    public ResponseEntity<GymResponseDto> register(
             @CurrentUserId Long memberId,
             @PathVariable Long gymId
     ) {
 
-        GymMembershipResponseDto response = gymService.register(memberId, gymId);
+        GymResponseDto response = gymService.register(memberId, gymId);
         return ResponseEntity.status(HttpStatus.CREATED).body(response);
     }
 

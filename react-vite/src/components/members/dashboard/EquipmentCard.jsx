@@ -13,7 +13,10 @@ export default function EquipmentCard({
   onCancelReservationClick 
 }) {
 
+  // 데이터 존재 여부 플래그
   const isEmpty = !usageData && !reservationData;
+  // 둘 다 꽉 차 있는 상태 (이용중 + 예약중) -> 버튼 숨김용
+  const isFullState = usageData && reservationData;
 
   // 기구 정보 섹션 컴포넌트
   const EquipmentSection = ({ 
@@ -31,13 +34,11 @@ export default function EquipmentCard({
       sx={{
         p: 2,
         borderRadius: 3,
-        // 배경색: Primary(이용중)는 연한 주황, 아니면 연한 회색
         bgcolor: isPrimary ? "#fff8e1" : "#fafafa", 
         border: '1px solid',
         borderColor: isPrimary ? "#ffe0b2" : "#eeeeee",
       }}
     >
-      {/* 섹션 타이틀 */}
       <Box display="flex" alignItems="center" mb={1.5}>
         <Box sx={{ color: isPrimary ? "warning.main" : "text.secondary", mr: 1, display: 'flex' }}>
           {titleIcon}
@@ -47,9 +48,7 @@ export default function EquipmentCard({
         </Typography>
       </Box>
       
-      {/* 기구 정보 컨텐츠 */}
       <Stack direction="row" spacing={2} alignItems="flex-start">
-        {/* 기구 이미지 */}
         {data.imageUrl && (
           <Box 
             component="img"
@@ -68,9 +67,7 @@ export default function EquipmentCard({
           />
         )}
         
-        {/* 텍스트 정보 및 버튼 영역 */}
         <Box flexGrow={1}>
-          {/* 이름과 상태 칩 */}
           <Box display="flex" alignItems="center" justifyContent="space-between" mb={0.5}>
             <Typography variant="subtitle1" fontWeight="700" color="text.primary">
               {data.name}
@@ -91,12 +88,10 @@ export default function EquipmentCard({
             )}
           </Box>
 
-          {/* 시간 표시 */}
           <Typography variant="caption" color="text.secondary" sx={{ display: 'flex', alignItems: 'center', mb: 1.5, fontWeight: 500 }}>
             <AccessTimeIcon sx={{ fontSize: 14, mr: 0.5 }} /> {data.time}
           </Typography>
 
-          {/* 액션 버튼 */}
           <Button
             size="small"
             onClick={onAction}
@@ -104,10 +99,10 @@ export default function EquipmentCard({
             disableElevation
             sx={{
               bgcolor: "white", 
-              color: isPrimary ? "warning.dark" : "text.primary", // 글자색
+              color: isPrimary ? "warning.dark" : "text.primary",
               border: '1px solid',
               borderColor: isPrimary ? "warning.light" : "grey.300",
-              borderRadius: 2.5, // 둥근 모서리
+              borderRadius: 2.5,
               py: 0.5,
               fontSize: "0.8rem",
               fontWeight: "bold",
@@ -138,40 +133,38 @@ export default function EquipmentCard({
         <Typography variant="h6" fontWeight="bold">운동 기구</Typography>
       </Box>
 
-      {/* 2. 메인 컨텐츠 영역 */}
+      {/* 2. 메인 컨텐츠 영역 - 각각 독립적으로 렌더링 */}
       <Stack spacing={2} mb={3}>
-        {!isEmpty ? (
-          <>
-            {/* 사용 중인 기구 정보 */}
-            {usageData && (
-              <EquipmentSection
-                data={usageData}
-                titleIcon={<FitnessCenterIcon sx={{ fontSize: 18 }} />}
-                titleText="현재 이용중"
-                statusLabel="이용중"
-                statusVariant="filled"
-                isPrimary={true}
-                actionLabel="사용 종료"
-                onAction={onEndUsageClick}
-              />
-            )}
+        {/* 사용 중인 기구 정보가 있으면 표시 */}
+        {usageData && (
+          <EquipmentSection
+            data={usageData}
+            titleIcon={<FitnessCenterIcon sx={{ fontSize: 18 }} />}
+            titleText="현재 이용중"
+            statusLabel="이용중"
+            statusVariant="filled"
+            isPrimary={true}
+            actionLabel="사용 종료"
+            onAction={onEndUsageClick}
+          />
+        )}
 
-            {/* 예약 중인 기구 정보 */}
-            {reservationData && (
-              <EquipmentSection
-                data={reservationData}
-                titleIcon={<EventAvailableIcon sx={{ fontSize: 18 }} />}
-                titleText="예약 대기"
-                statusLabel="예약중"
-                statusVariant="outlined"
-                isPrimary={false}
-                actionLabel="대기 취소"
-                onAction={onCancelReservationClick}
-              />
-            )}
-          </>
-        ) : (
-          // 데이터가 없을 때 (Empty State)
+        {/* 예약 중인 기구 정보가 있으면 표시 */}
+        {reservationData && (
+          <EquipmentSection
+            data={reservationData}
+            titleIcon={<EventAvailableIcon sx={{ fontSize: 18 }} />}
+            titleText="예약 대기"
+            statusLabel="예약중"
+            statusVariant="outlined"
+            isPrimary={false}
+            actionLabel="대기 취소"
+            onAction={onCancelReservationClick}
+          />
+        )}
+
+        {/* 둘 다 없을 때만 Empty State 표시 */}
+        {isEmpty && (
           <Box 
             sx={{ 
               p: 4, 
@@ -193,24 +186,26 @@ export default function EquipmentCard({
         )}
       </Stack>
 
-      {/* 3. 하단 메인 버튼 영역 */}
-      <Button 
-        fullWidth 
-        variant="contained" 
-        color="warning" 
-        size="large" 
-        onClick={onReservationClick}
-        disableElevation
-        sx={{ 
-          py: 1.5, 
-          borderRadius: 3, 
-          fontWeight: 'bold', 
-          color: 'white',
-          boxShadow: '0 4px 12px rgba(237, 108, 2, 0.2)' // 메인 버튼에 부드러운 그림자 추가
-        }}
-      >
-        기구 예약하러 가기
-      </Button>
+      {/* 3. 하단 메인 버튼 영역 - 둘 다 있을 때는(isFullState) 안보이게 처리 */}
+      {!isFullState && (
+        <Button 
+          fullWidth 
+          variant="contained" 
+          color="warning" 
+          size="large" 
+          onClick={onReservationClick}
+          disableElevation
+          sx={{ 
+            py: 1.5, 
+            borderRadius: 3, 
+            fontWeight: 'bold', 
+            color: 'white',
+            boxShadow: '0 4px 12px rgba(237, 108, 2, 0.2)'
+          }}
+        >
+          기구 예약하러 가기
+        </Button>
+      )}
     </Paper>
   );
 }

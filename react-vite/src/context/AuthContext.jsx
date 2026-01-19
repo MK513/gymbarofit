@@ -44,6 +44,22 @@ export function AuthProvider({ children }) {
   // ✅ 인증 여부는 "user && token" 기준 추천
   const isAuthed = !!user && !!accessToken;
 
+  const updateGym = (newGym) => {
+    setUser((prevUser) => {
+      if (!prevUser) return prevUser;
+
+      const updatedUser = {
+        ...prevUser,
+        gym: newGym,
+      };
+
+      // localStorage도 함께 갱신
+      localStorage.setItem("USER", JSON.stringify(updatedUser));
+
+      return updatedUser;
+    });
+  };
+
   const value = useMemo(
     () => ({
       initialized,
@@ -52,6 +68,7 @@ export function AuthProvider({ children }) {
       isAuthed,
       login,
       logout,
+      updateGym,
     }),
     [initialized, user, accessToken, isAuthed]
   );

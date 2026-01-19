@@ -91,6 +91,13 @@ public class EquipmentUsage extends BaseUsage {
                 .build();
     }
 
+    // 줄서기 취소
+    public void leftQueue() {
+        if (this.status == EquipmentUsageStatus.WAITING || this.status == EquipmentUsageStatus.CALLED) {
+            this.status = EquipmentUsageStatus.CANCELLED;
+        }
+    }
+
     // 사용 시작
     public void startUse() {
         if (this.status == EquipmentUsageStatus.WAITING) {
@@ -100,7 +107,7 @@ public class EquipmentUsage extends BaseUsage {
     }
 
     // 사용 종료
-    public void completeUse() {
+    public void endUse() {
         this.status = EquipmentUsageStatus.COMPLETED;
         this.endTime = LocalDateTime.now();
         this.durationMinutes = (int) Duration.between(startTime, LocalDateTime.now()).toMinutes();

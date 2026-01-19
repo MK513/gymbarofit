@@ -5,7 +5,9 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Lock;
 import org.springframework.data.jpa.repository.Query;
+import org.springframework.data.repository.query.Param;
 import skku.gymbarofit.core.usage.equipment.EquipmentUsage;
+import skku.gymbarofit.core.usage.equipment.enums.EquipmentUsageStatus;
 
 import java.util.List;
 import java.util.Optional;
@@ -16,33 +18,17 @@ public interface EquipmentUsageRepository extends JpaRepository<EquipmentUsage, 
         select u
         from EquipmentUsage u
         where u.gym.id = :gymId
-        and u.status in ('IN_USE', 'WAITING', 'CALLED')
+        and u.status in :statuses
     """)
-    List<EquipmentUsage> findActiveByGymId(Long gymId);
+    List<EquipmentUsage> findByGymIdAndStatusIn(Long gymId, List<EquipmentUsageStatus> statuses);
 
     @Query("""
         select u
         from EquipmentUsage u
         where u.member.id = :memberId
-        and u.status in ('IN_USE', 'WAITING', 'CALLED')
+        and u.status = :status
     """)
-    List<EquipmentUsage> findActiveByMemberId(Long memberId);
-
-    @Query("""
-        select u
-        from EquipmentUsage u
-        where u.member.id = :memberId
-        and u.status = 'IN_USE'
-    """)
-    Optional<EquipmentUsage> findInUseByMemberId(Long memberId);
-
-    @Query("""
-        select u
-        from EquipmentUsage u
-        where u.member.id = :memberId
-        and u.status = 'WAITING'
-    """)
-    Optional<EquipmentUsage> findWaitingByMemberId(Long memberId);
+    Optional<EquipmentUsage> findByMemberIdAndStatusIn(Long memberId, EquipmentUsageStatus status);
 
     @Query("""
         select count(u)
@@ -77,5 +63,19 @@ public interface EquipmentUsageRepository extends JpaRepository<EquipmentUsage, 
         and u.status = 'WAITING'
         order by u.createdAt asc
     """)
-    List<EquipmentUsage> findWaitingForUpdate(Long equipmentId, Pageable pageable);
+    List<EquipmentUsage> findFirstWaitingForUpdate(Long equipmentId, Pageable pageable);
+
+    @Lock(LockModeType.PESSIMISTIC_WRITE)
+    @Query("""
+        select u
+        from EquipmentUsage u
+        where u.member.id = :memberId
+          and u.equipment.id = :equipmentId
+          and u.status in :statuses
+    """)
+    Optional<EquipmentUsage> findWaitingOrCalledForUpdate(
+            @Param("memberId") Long memberId,
+            @Param("equipmentId") Long equipmentId,
+            @Param("statuses") List<EquipmentUsageStatus> statuses
+    );
 }

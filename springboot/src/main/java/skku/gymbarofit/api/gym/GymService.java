@@ -6,7 +6,6 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-import skku.gymbarofit.core.gym.dto.GymMembershipResponseDto;
 import skku.gymbarofit.core.gym.Gym;
 import skku.gymbarofit.core.gym.dto.GymResponseDto;
 import skku.gymbarofit.core.gym.service.GymInternalService;
@@ -38,7 +37,7 @@ public class GymService {
                 .map(GymResponseDto::from);
     }
 
-    public GymMembershipResponseDto register(Long memberId, Long gymId) {
+    public GymResponseDto register(Long memberId, Long gymId) {
 
 
         Member member = memberInternalService.findById(memberId);
@@ -57,6 +56,6 @@ public class GymService {
 
         membershipInternalService.register(membership);
 
-        return GymMembershipResponseDto.from(membership);
+        return GymResponseDto.from(membership.getGym());
     }
 }
