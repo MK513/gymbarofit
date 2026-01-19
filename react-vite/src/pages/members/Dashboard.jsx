@@ -3,7 +3,7 @@ import { Box, Container, Stack } from "@mui/material";
 import { useNavigate } from "react-router-dom";
 
 import { useAuth } from "../../context/AuthContext";
-import { getMembershipInfo, refundLocker, endUsage, leftQueue } from "../../api/Api";
+import { getMembershipInfo, refundLocker, startUsage, endUsage, leaveQueue } from "../../api/Api";
 import { useNotification } from "../../context/NotificationContext";
 import { useSseNotifications } from "../../context/SseNotification";
 
@@ -92,6 +92,7 @@ export default function Dashboard() {
 
         if (res.inUse != null) {
           newEquipInfo.usage = {
+            uid: res.inUse.usageId,
             eid: res.inUse.equipmentId,
             name: res.inUse.name,
             imageUrl: res.inUse.imageUrl,
@@ -101,6 +102,7 @@ export default function Dashboard() {
 
         if (res.waiting) {
           newEquipInfo.reservation = {
+            uid: res.waiting.usageId,
             eid: res.waiting.equipmentId,
             name: res.waiting.name,
             imageUrl: res.waiting.imageUrl,
@@ -120,11 +122,27 @@ export default function Dashboard() {
     else loadGymData(null);
   }, []); 
 
-  // --- [SSE] 새 알림 수신 시 Toast(Snackbar) 띄우기 ---
+  // --- [SSE] 새 알림 수신 시 처리 ---
   useEffect(() => {
     if (notifications.length > 0) {
       const latest = notifications[0];
-      showNotification(`${latest.title} ${latest.body}`, "info");
+
+      if (latest.type === "WAITING_AVAILABLE") {
+        showNotification(`${latest.title} ${latest.body}`, "info");
+
+        // SSE 수신 시 예약 상태를 'CALLED'로 변경하여 UI 업데이트
+        setEquipmentInfo(prev => {
+          if (!prev.reservation) return prev; // 예약 정보가 없으면 무시
+          return {
+            ...prev,
+            reservation: {
+              ...prev.reservation,
+              status: "CALLED", // 상태 변경
+              time: "지금 바로 사용 가능합니다!"
+            }
+          };
+        });
+      }
     }
   }, [notifications, showNotification]);
 
@@ -176,14 +194,26 @@ export default function Dashboard() {
     });
   }
 
+  const handleStartUsage = async () => {
+    try {
+        const pathVariable = { usageId: equipmentInfo.reservation.uid };
+        await startUsage(pathVariable); 
+        
+        showNotification("기구 사용을 시작합니다.", "success");
+        await loadGymData(user.gym);
+    } catch (e) {
+        console.error("운동 시작 실패", e);
+        showNotification("운동 시작 처리에 실패했습니다.", "error");
+    }
+  };
+
   const handleEndUsage = async () => {
     try {
-      const pathVarable = {equipmentId: equipmentInfo.usage.eid};
+      const pathVarable = {usageId: equipmentInfo.usage.uid};
       await endUsage(pathVarable);
+
       showNotification("기구 사용이 종료되었습니다.", "success");
-
       await loadGymData(user.gym);
-
     } catch (e) {
       console.error("기구 사용 종료 실패", error);
       showNotification("기구 사용 종료에 실패했습니다.", "error");
@@ -192,12 +222,11 @@ export default function Dashboard() {
 
   const handleLeftQueue = async () => {
     try {
-      const pathVarable = {equipmentId: equipmentInfo.reservation.eid};
-      await leftQueue(pathVarable);
+      const pathVarable = {usageId: equipmentInfo.reservation.uid};
+      await leaveQueue(pathVarable);
+
       showNotification("기구 예약이 취소되었습니다.", "success");
-
       await loadGymData(user.gym);
-
     } catch (e) {
       console.error("기구 예약 취소 실패", error);
       showNotification("기구 예약 취소에 실패했습니다.", "error");
@@ -231,6 +260,7 @@ export default function Dashboard() {
           <EquipmentCard
             usageData={equipmentInfo.usage}
             reservationData={equipmentInfo.reservation}
+            onStartUsageClick={handleStartUsage}
             onEndUsageClick={handleEndUsage}
             onCancelReservationClick={handleLeftQueue}
             onReservationClick={handleEquipmentReservationClick}

@@ -17,7 +17,6 @@ import skku.gymbarofit.core.user.member.service.MemberInternalService;
 
 import java.util.List;
 import java.util.Map;
-import java.util.Optional;
 import java.util.stream.Collectors;
 
 @Transactional
@@ -61,13 +60,13 @@ public class EquipmentService {
         equipmentUsageInternalService.save(equipmentUsage);
     }
 
-    public void leftQueue(Long memberId, Long equipmentId) {
+    public void leaveQueue(Long usageId) {
         equipmentUsageInternalService
-                .findWaitingOrCalledForUpdate(memberId, equipmentId)
-                .ifPresent(EquipmentUsage::leftQueue);
+                .findForUpdate(usageId)
+                .leaveQueue();
     }
 
-    public void startUsage(Long memberId, Long equipmentId) {
+    public void createUsage(Long memberId, Long equipmentId) {
 
         Member member = memberInternalService.findById(memberId);
         Equipment equipment = equipmentInternalService.findById(equipmentId);
@@ -78,19 +77,26 @@ public class EquipmentService {
         equipmentUsageInternalService.save(equipmentUsage);
     }
 
-    public void endUsage(Long memberId, Long equipmentId) {
+    public void endUsage(Long usageId) {
 
-        EquipmentUsage currentUsage = equipmentUsageInternalService.findInUseForUpdate(equipmentId, memberId);
+        EquipmentUsage currentUsage = equipmentUsageInternalService.findForUpdate(usageId);
         currentUsage.endUse();
+
+        Long equipmentId = currentUsage.getEquipment().getId();
 
         EquipmentUsage firstWaiting = equipmentUsageInternalService.findFirstWaitingForUpdate(equipmentId);
         if (firstWaiting != null) {
-            firstWaiting.startUse();
+            firstWaiting.call();
 
-            //TODO 알림 보내기
             notificationFacade.notifyWaitingAvailable(firstWaiting.getMember().getId(), equipmentId);
         }
     }
 
+    public void startUsage(Long usageId) {
+        EquipmentUsage usage = equipmentUsageInternalService.findForUpdate(usageId);
+        usage.startUse();
+
+        // TODO 대기 명수 줄이는 알림
+    }
 }
 

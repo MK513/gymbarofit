@@ -14,7 +14,7 @@ public class EquipmentApiController {
     private final EquipmentService equipmentService;
 
     // 대기 줄서기
-    @PostMapping("/{equipmentId}/queue")
+    @PostMapping("/{equipmentId}/usages/wait")
     public ResponseEntity<Void> joinQueue(
             @CurrentUserId Long memberId,
             @PathVariable Long equipmentId
@@ -24,33 +24,42 @@ public class EquipmentApiController {
     }
 
     // 대기 취소
-    @DeleteMapping("/{equipmentId}/queue")
-    public ResponseEntity<Void> leftQueue(
-            @CurrentUserId Long memberId,
-            @PathVariable Long equipmentId
+    @PostMapping("/usages/{usageId}/cancel")
+    public ResponseEntity<Void> leaveQueue(
+            @PathVariable Long usageId
     ) {
-        equipmentService.leftQueue(memberId, equipmentId);
+        equipmentService.leaveQueue(usageId);
+        return ResponseEntity.noContent().build();
+    }
+
+    // 대기 사용 전환
+    @PostMapping("/usages/{usageId}/start")
+    public ResponseEntity<Void> startUsage(
+            @PathVariable Long usageId
+    ) {
+        equipmentService.startUsage(usageId);
         return ResponseEntity.noContent().build();
     }
 
     // 기구 사용 시작
-    @PostMapping("/{equipmentId}/usage")
-    public ResponseEntity<Void> startUsage(
+    @PostMapping("/{equipmentId}/usages")
+    public ResponseEntity<Void> createUsage(
             @CurrentUserId Long memberId,
             @PathVariable Long equipmentId
     ) {
-        equipmentService.startUsage(memberId, equipmentId);
+        equipmentService.createUsage(memberId, equipmentId);
         return ResponseEntity.status(HttpStatus.CREATED).build();
     }
 
     // 기구 사용 종료
-    @DeleteMapping("/{equipmentId}/usage")
+    @PostMapping("/usages/{usageId}/end")
     public ResponseEntity<Void> endUsage(
-            @CurrentUserId Long memberId,
-            @PathVariable Long equipmentId
+            @PathVariable Long usageId
     ) {
-        equipmentService.endUsage(memberId, equipmentId);
+        equipmentService.endUsage(usageId);
         return ResponseEntity.noContent().build();
     }
+
+
 
 }

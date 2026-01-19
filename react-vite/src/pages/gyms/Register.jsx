@@ -24,6 +24,7 @@ import {
 import { useNavigate } from "react-router-dom";
 import { searchGym, registerGym } from "../../api/Api";
 import { useNotification } from "../../context/NotificationContext";
+import { useAuth } from "../../context/AuthContext";
 
 // 아이콘
 import ArrowBackIcon from "@mui/icons-material/ArrowBack";
@@ -39,6 +40,7 @@ import InfoIcon from "@mui/icons-material/Info";
 export default function Register() {
   const navigate = useNavigate();
   const { showNotification } = useNotification();
+  const { updateGym } = useAuth();
 
   // 상태 관리
   const [keyword, setKeyword] = useState("");
@@ -82,6 +84,8 @@ export default function Register() {
 
       const pathVarable = { gymId: selectedGym.id}
       const res = await registerGym(pathVarable);
+
+      updateGym(res);
       
       showNotification("등록이 완료되었습니다!", "success");
       navigate("/"); // 대시보드로 복귀

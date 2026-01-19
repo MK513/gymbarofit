@@ -3,6 +3,7 @@ import { Paper, Box, Avatar, Typography, Button, Chip, Stack } from "@mui/materi
 import FitnessCenterIcon from "@mui/icons-material/FitnessCenter";
 import EventAvailableIcon from "@mui/icons-material/EventAvailable";
 import AccessTimeIcon from '@mui/icons-material/AccessTime';
+import NotificationsActiveIcon from '@mui/icons-material/NotificationsActive';
 import { BUCKET_BASE_URL } from "../../../api-config";
 
 export default function EquipmentCard({ 
@@ -10,12 +11,11 @@ export default function EquipmentCard({
   reservationData, 
   onReservationClick,
   onEndUsageClick, 
+  onStartUsageClick, // [추가] 사용 시작 핸들러
   onCancelReservationClick 
 }) {
 
-  // 데이터 존재 여부 플래그
   const isEmpty = !usageData && !reservationData;
-  // 둘 다 꽉 차 있는 상태 (이용중 + 예약중) -> 버튼 숨김용
   const isFullState = usageData && reservationData;
 
   // 기구 정보 섹션 컴포넌트
@@ -24,108 +24,166 @@ export default function EquipmentCard({
     titleIcon, 
     titleText, 
     statusLabel, 
-    statusVariant, 
-    isPrimary,
+    isPrimary,      
+    isCalled,
     actionLabel,
-    onAction
-  }) => (
-    <Paper
-      elevation={0}
-      sx={{
-        p: 2,
-        borderRadius: 3,
-        bgcolor: isPrimary ? "#fff8e1" : "#fafafa", 
-        border: '1px solid',
-        borderColor: isPrimary ? "#ffe0b2" : "#eeeeee",
-      }}
-    >
-      <Box display="flex" alignItems="center" mb={1.5}>
-        <Box sx={{ color: isPrimary ? "warning.main" : "text.secondary", mr: 1, display: 'flex' }}>
-          {titleIcon}
+    onAction,
+    onStartAction // [추가] 시작 액션 핸들러
+  }) => {
+    
+    let bgColor, borderColor, textColor, chipColor;
+    
+    if (isCalled) {
+        bgColor = "#ffebee";
+        borderColor = "#ffcdd2";
+        textColor = "error.main";
+        chipColor = "error";
+    } else if (isPrimary) {
+        bgColor = "#fff8e1"; 
+        borderColor = "#ffe0b2";
+        textColor = "warning.dark";
+        chipColor = "warning";
+    } else {
+        bgColor = "#fafafa"; 
+        borderColor = "#eeeeee";
+        textColor = "text.secondary";
+        chipColor = "default";
+    }
+
+    return (
+      <Paper
+        elevation={0}
+        sx={{
+          p: 2,
+          borderRadius: 3,
+          bgcolor: bgColor, 
+          border: '1px solid',
+          borderColor: borderColor,
+          transition: isCalled ? "transform 0.2s ease-in-out" : "none",
+          boxShadow: isCalled ? "0 4px 12px rgba(211, 47, 47, 0.15)" : "none",
+        }}
+      >
+        <Box display="flex" alignItems="center" mb={1.5}>
+          <Box sx={{ color: textColor, mr: 1, display: 'flex' }}>
+            {titleIcon}
+          </Box>
+          <Typography variant="subtitle2" fontWeight="bold" color={textColor}>
+            {titleText}
+          </Typography>
         </Box>
-        <Typography variant="subtitle2" fontWeight="bold" color={isPrimary ? "warning.dark" : "text.secondary"}>
-          {titleText}
-        </Typography>
-      </Box>
-      
-      <Stack direction="row" spacing={2} alignItems="flex-start">
-        {data.imageUrl && (
-          <Box 
-            component="img"
-            src={`${BUCKET_BASE_URL}${data.imageUrl}`}
-            alt={data.name}
-            sx={{ 
-              width: 60,
-              height: 60, 
-              objectFit: 'contain', 
-              bgcolor: 'white',
-              borderRadius: 2,
-              p: 0.5,
-              border: '1px solid',
-              borderColor: 'rgba(0,0,0,0.05)'
-            }}
-          />
-        )}
         
-        <Box flexGrow={1}>
-          <Box display="flex" alignItems="center" justifyContent="space-between" mb={0.5}>
-            <Typography variant="subtitle1" fontWeight="700" color="text.primary">
-              {data.name}
+        <Stack direction="row" spacing={2} alignItems="flex-start">
+          {data.imageUrl && (
+            <Box 
+              component="img"
+              src={`${BUCKET_BASE_URL}${data.imageUrl}`}
+              alt={data.name}
+              sx={{ 
+                width: 60,
+                height: 60, 
+                objectFit: 'contain', 
+                bgcolor: 'white',
+                borderRadius: 2,
+                p: 0.5,
+                border: '1px solid',
+                borderColor: 'rgba(0,0,0,0.05)'
+              }}
+            />
+          )}
+          
+          <Box flexGrow={1}>
+            <Box display="flex" alignItems="center" justifyContent="space-between" mb={0.5}>
+              <Typography variant="subtitle1" fontWeight="700" color="text.primary">
+                {data.name}
+              </Typography>
+              {statusLabel && (
+                <Chip 
+                  label={statusLabel} 
+                  color={chipColor}
+                  size="small" 
+                  sx={{ 
+                    fontWeight: 'bold', 
+                    height: 20,
+                    fontSize: '0.7rem',
+                  }} 
+                />
+              )}
+            </Box>
+
+            <Typography variant="caption" color={isCalled ? "error.main" : "text.secondary"} sx={{ display: 'flex', alignItems: 'center', mb: 1.5, fontWeight: isCalled ? 700 : 500 }}>
+              <AccessTimeIcon sx={{ fontSize: 14, mr: 0.5 }} /> {data.time}
             </Typography>
-            {statusLabel && (
-              <Chip 
-                label={statusLabel} 
-                color={isPrimary ? "warning" : "default"}
-                size="small" 
-                sx={{ 
-                  fontWeight: 'bold', 
-                  height: 20,
-                  fontSize: '0.7rem',
-                  bgcolor: isPrimary ? 'warning.main' : 'rgba(0,0,0,0.08)',
-                  color: isPrimary ? 'white' : 'text.secondary'
-                }} 
-              />
+
+            {/* [변경점] isCalled 상태일 때 2개 버튼, 아닐 때 1개 버튼 */}
+            {isCalled ? (
+              <Stack direction="row" spacing={1}>
+                <Button
+                  size="small"
+                  onClick={onStartAction}
+                  fullWidth
+                  variant="contained"
+                  color="error"
+                  disableElevation
+                  sx={{
+                    borderRadius: 2.5,
+                    fontSize: "0.8rem",
+                    fontWeight: "bold",
+                    bgcolor: "error.main",
+                    '&:hover': { bgcolor: "error.dark" }
+                  }}
+                >
+                  사용 시작
+                </Button>
+                <Button
+                  size="small"
+                  onClick={onAction}
+                  fullWidth
+                  variant="outlined"
+                  color="error"
+                  sx={{
+                    borderRadius: 2.5,
+                    fontSize: "0.8rem",
+                    fontWeight: "bold",
+                    bgcolor: "white",
+                    borderColor: "error.light",
+                    '&:hover': { bgcolor: "#ffebee", borderColor: "error.main" }
+                  }}
+                >
+                  취소
+                </Button>
+              </Stack>
+            ) : (
+              <Button
+                size="small"
+                onClick={onAction}
+                fullWidth
+                disableElevation
+                sx={{
+                  bgcolor: "white", 
+                  color: isPrimary ? "warning.dark" : "text.primary",
+                  border: '1px solid',
+                  borderColor: isPrimary ? "warning.light" : "grey.300",
+                  borderRadius: 2.5,
+                  py: 0.5,
+                  fontSize: "0.8rem",
+                  fontWeight: "bold",
+                  boxShadow: "0px 2px 4px rgba(0,0,0,0.02)",
+                  '&:hover': {
+                     bgcolor: isPrimary ? "#fff3e0" : "#f5f5f5",
+                  }
+                }}
+              >
+                {actionLabel}
+              </Button>
             )}
           </Box>
-
-          <Typography variant="caption" color="text.secondary" sx={{ display: 'flex', alignItems: 'center', mb: 1.5, fontWeight: 500 }}>
-            <AccessTimeIcon sx={{ fontSize: 14, mr: 0.5 }} /> {data.time}
-          </Typography>
-
-          <Button
-            size="small"
-            onClick={onAction}
-            fullWidth
-            disableElevation
-            sx={{
-              bgcolor: "white", 
-              color: isPrimary ? "warning.dark" : "text.primary",
-              border: '1px solid',
-              borderColor: isPrimary ? "warning.light" : "grey.300",
-              borderRadius: 2.5,
-              py: 0.5,
-              fontSize: "0.8rem",
-              fontWeight: "bold",
-              boxShadow: "0px 2px 4px rgba(0,0,0,0.02)",
-              transition: "all 0.2s",
-              '&:hover': {
-                 bgcolor: isPrimary ? "#fff3e0" : "#f5f5f5",
-                 borderColor: isPrimary ? "warning.main" : "grey.400",
-                 boxShadow: "0px 2px 8px rgba(0,0,0,0.05)",
-                 transform: "translateY(-1px)"
-              }
-            }}
-          >
-            {actionLabel}
-          </Button>
-        </Box>
-      </Stack>
-    </Paper>
-  );
+        </Stack>
+      </Paper>
+    );
+  };
 
   return (
     <Paper elevation={0} sx={{ p: 3, borderRadius: 4, border: '1px solid #eef2f6' }}>
-      {/* 1. 헤더 영역 */}
       <Box display="flex" alignItems="center" mb={3}>
         <Avatar sx={{ bgcolor: "warning.light", color: "warning.main", mr: 2 }}>
           <FitnessCenterIcon />
@@ -133,37 +191,36 @@ export default function EquipmentCard({
         <Typography variant="h6" fontWeight="bold">운동 기구</Typography>
       </Box>
 
-      {/* 2. 메인 컨텐츠 영역 - 각각 독립적으로 렌더링 */}
       <Stack spacing={2} mb={3}>
-        {/* 사용 중인 기구 정보가 있으면 표시 */}
+        
         {usageData && (
           <EquipmentSection
             data={usageData}
             titleIcon={<FitnessCenterIcon sx={{ fontSize: 18 }} />}
             titleText="현재 이용중"
             statusLabel="이용중"
-            statusVariant="filled"
             isPrimary={true}
             actionLabel="사용 종료"
             onAction={onEndUsageClick}
           />
         )}
 
-        {/* 예약 중인 기구 정보가 있으면 표시 */}
         {reservationData && (
           <EquipmentSection
             data={reservationData}
-            titleIcon={<EventAvailableIcon sx={{ fontSize: 18 }} />}
-            titleText="예약 대기"
-            statusLabel="예약중"
-            statusVariant="outlined"
+            titleIcon={reservationData.status === 'CALLED' ? <NotificationsActiveIcon sx={{ fontSize: 18 }} /> : <EventAvailableIcon sx={{ fontSize: 18 }} />}
+            titleText={reservationData.status === 'CALLED' ? "입장 안내" : "예약 대기"}
+            statusLabel={reservationData.status === 'CALLED' ? "입장대기" : "예약중"}
             isPrimary={false}
-            actionLabel="대기 취소"
-            onAction={onCancelReservationClick}
+            isCalled={reservationData.status === 'CALLED'} 
+            
+            // [변경점] actionLabel은 대기중일 때만 쓰이고, 호출시엔 무시됨(별도 버튼 렌더링)
+            actionLabel="대기 취소" 
+            onAction={onCancelReservationClick} // 취소 핸들러
+            onStartAction={onStartUsageClick}   // 시작 핸들러
           />
         )}
 
-        {/* 둘 다 없을 때만 Empty State 표시 */}
         {isEmpty && (
           <Box 
             sx={{ 
@@ -186,7 +243,6 @@ export default function EquipmentCard({
         )}
       </Stack>
 
-      {/* 3. 하단 메인 버튼 영역 - 둘 다 있을 때는(isFullState) 안보이게 처리 */}
       {!isFullState && (
         <Button 
           fullWidth 

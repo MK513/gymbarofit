@@ -24,4 +24,6 @@ public class SseNotificationSender implements NotificationSender {
 
         sseService.send(userId, "notification", payload);
     }
+
+
 }

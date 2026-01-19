@@ -78,7 +78,7 @@ export async function getLockerList(pathVarable) {
 }
 
 export async function getLockerInfo(pathVarable) {
-  const res = await call("/lockers/usages/{usageId}/extend", "GET", null, pathVarable);
+  const res = await call("/lockers/usages/{usageId}", "GET", null, pathVarable);
   return res;
 }
 
@@ -98,26 +98,30 @@ export async function extendLocker(dto, pathVarable) {
 }
 
 /* ===== 기구 ===== */
-export async function startUsage(pathVarable) {
-  const res = await call("/equipments/{equipmentId}/usage", "POST", null, pathVarable);
-  return res;
-}
-
-export async function endUsage(pathVarable) {
-  const res = await call("/equipments/{equipmentId}/usage", "DELETE", null, pathVarable);
+export async function createUsage(pathVarable) {
+  const res = await call("/equipments/{equipmentId}/usages", "POST", null, pathVarable);
   return res;
 }
 
 export async function createQueue(pathVarable) {
-  const res = await call("/equipments/{equipmentId}/queue", "POST", null, pathVarable);
+  const res = await call("/equipments/{equipmentId}/usages/wait", "POST", null, pathVarable);
   return res;
 }
 
-export async function leftQueue(pathVarable) {
-  const res = await call("/equipments/{equipmentId}/queue", "DELETE", null, pathVarable);
+export async function startUsage(pathVarable) {
+  const res = await call("/equipments/usages/{usageId}/start", "POST", null, pathVarable);
   return res;
 }
 
+export async function endUsage(pathVarable) {
+  const res = await call("/equipments/usages/{usageId}/end", "POST", null, pathVarable);
+  return res;
+}
+
+export async function leaveQueue(pathVarable) {
+  const res = await call("/equipments/usages/{usageId}/cancel", "POST", null, pathVarable);
+  return res;
+}
 
 
 /* ===== 헬스장 ===== */

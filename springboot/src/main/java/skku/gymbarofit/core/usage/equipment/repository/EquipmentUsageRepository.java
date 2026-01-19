@@ -49,11 +49,9 @@ public interface EquipmentUsageRepository extends JpaRepository<EquipmentUsage, 
     @Query("""
         select u
         from EquipmentUsage u
-        where u.equipment.id = :equipmentId
-        and u.member.id = :memberId
-        and u.status = 'IN_USE'
+        where u.id = :usageId
     """)
-    Optional<EquipmentUsage> findInUseForUpdate(Long equipmentId, Long memberId);
+    Optional<EquipmentUsage> findForUpdate(Long usageId);
 
     @Lock(LockModeType.PESSIMISTIC_WRITE)
     @Query("""
@@ -64,18 +62,4 @@ public interface EquipmentUsageRepository extends JpaRepository<EquipmentUsage, 
         order by u.createdAt asc
     """)
     List<EquipmentUsage> findFirstWaitingForUpdate(Long equipmentId, Pageable pageable);
-
-    @Lock(LockModeType.PESSIMISTIC_WRITE)
-    @Query("""
-        select u
-        from EquipmentUsage u
-        where u.member.id = :memberId
-          and u.equipment.id = :equipmentId
-          and u.status in :statuses
-    """)
-    Optional<EquipmentUsage> findWaitingOrCalledForUpdate(
-            @Param("memberId") Long memberId,
-            @Param("equipmentId") Long equipmentId,
-            @Param("statuses") List<EquipmentUsageStatus> statuses
-    );
 }

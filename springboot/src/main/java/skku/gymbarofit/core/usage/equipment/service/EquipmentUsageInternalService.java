@@ -51,17 +51,13 @@ public class EquipmentUsageInternalService {
         return equipmentUsageRepository.countWaitingForMember(equipmentId, memberId);
     }
 
-    public EquipmentUsage findInUseForUpdate(Long equipmentId, Long memberId) {
-        return equipmentUsageRepository.findInUseForUpdate(equipmentId, memberId)
+    public EquipmentUsage findForUpdate(Long usageId) {
+        return equipmentUsageRepository.findForUpdate(usageId)
                 .orElseThrow(() -> new EquipmentException(EquipmentErrorCode.EQUIPMENT_NOT_FOUND));
     }
 
     public EquipmentUsage findFirstWaitingForUpdate(Long equipmentId) {
         return equipmentUsageRepository.findFirstWaitingForUpdate(equipmentId, PageRequest.of(0, 1))
                 .stream().findFirst().orElse(null);
-    }
-
-    public Optional<EquipmentUsage> findWaitingOrCalledForUpdate(Long memberId, Long equipmentId) {
-        return equipmentUsageRepository.findWaitingOrCalledForUpdate(memberId, equipmentId, WAITING_OR_CALLED);
     }
 }

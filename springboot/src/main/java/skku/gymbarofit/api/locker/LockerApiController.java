@@ -49,7 +49,7 @@ public class LockerApiController {
         return ResponseEntity.noContent().build();
     }
 
-    @GetMapping("/usages/{usageId}/extend")
+    @GetMapping("/usages/{usageId}")
     public ResponseEntity<LockerRentResponseDto> lockerInfo(
             @PathVariable Long usageId
     ) {

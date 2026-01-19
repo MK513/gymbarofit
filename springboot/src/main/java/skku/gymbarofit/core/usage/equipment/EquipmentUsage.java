@@ -92,16 +92,23 @@ public class EquipmentUsage extends BaseUsage {
     }
 
     // 줄서기 취소
-    public void leftQueue() {
+    public void leaveQueue() {
         if (this.status == EquipmentUsageStatus.WAITING || this.status == EquipmentUsageStatus.CALLED) {
             this.status = EquipmentUsageStatus.CANCELLED;
         }
     }
 
-    // 사용 시작
-    public void startUse() {
+    // 대기 호출
+    public void call() {
         if (this.status == EquipmentUsageStatus.WAITING) {
             this.status = EquipmentUsageStatus.CALLED;
+        }
+    }
+
+    // 사용 시작
+    public void startUse() {
+        if (this.status == EquipmentUsageStatus.CALLED) {
+            this.status = EquipmentUsageStatus.IN_USE;
             this.startTime = LocalDateTime.now();
         }
     }

@@ -12,7 +12,7 @@ import {
 } from "@mui/icons-material";
 import { useNavigate, useLocation } from "react-router-dom";
 import { useNotification } from "../../context/NotificationContext";
-import { getEquipments, startUsage, createQueue } from "../../api/Api";
+import { getEquipments, createUsage, createQueue } from "../../api/Api";
 import { useAuth } from "../../context/AuthContext";
 import { BUCKET_BASE_URL } from "../../api-config";
 
@@ -110,7 +110,7 @@ export default function EquipmentReservation() {
     setIsDrawerOpen(false);
     try {
       showNotification(`${selectedMachine.name} 사용을 시작합니다.`, "success");
-      await startUsage({equipmentId: selectedMachine.id});
+      await createUsage({equipmentId: selectedMachine.id});
       navigate("/");
     } catch (e) { showNotification(`${selectedMachine.name} 사용에 실패했습니다.`, "error"); }
   };

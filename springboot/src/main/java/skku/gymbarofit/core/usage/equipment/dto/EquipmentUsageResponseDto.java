@@ -10,6 +10,7 @@ import java.time.LocalDateTime;
 @Slf4j
 @Builder
 public record EquipmentUsageResponseDto (
+    Long usageId,
     Long equipmentId,
     String name,
     String imageUrl,
@@ -20,6 +21,7 @@ public record EquipmentUsageResponseDto (
         if (usage == null) return null;
 
         return EquipmentUsageResponseDto.builder()
+                .usageId(usage.getId())
                 .equipmentId(equipment.getId())
                 .name(equipment.getItemInfo().getName())
                 .imageUrl(equipment.getImageUrl())

@@ -1,11 +1,9 @@
 import { useEffect, useRef, useState } from "react";
-import { useNotification } from "./NotificationContext";
 import { API_BASE_URL } from "../api-config";
 
 export function useSseNotifications(userId) {
   const esRef = useRef(null);
   const [notifications, setNotifications] = useState([]);
-  const { showNotification } = useNotification();
 
   useEffect(() => {
     if (!userId) return;
