@@ -4,6 +4,8 @@ import { API_BASE_URL } from "../api-config";
 export function useSseNotifications(userId) {
   const esRef = useRef(null);
   const [notifications, setNotifications] = useState([]);
+  // 1. 장비 업데이트 상태 추가
+  const [equipmentUpdate, setEquipmentUpdate] = useState(null);
 
   useEffect(() => {
     if (!userId) return;
@@ -12,22 +14,37 @@ export function useSseNotifications(userId) {
     const es = new EventSource(url);
     esRef.current = es;
 
+    es.onopen = () => {
+      console.log("SSE connection opened");
+    };
+
     es.addEventListener("connected", (e) => {
       console.log("SSE connected:", e.data);
     });
 
-    es.addEventListener("notification", (e) => {
-      const data = JSON.parse(e.data);
-      setNotifications((prev) => [data, ...prev]);
+    // 2. 장비 업데이트 이벤트 수신 처리
+    es.addEventListener("equipment-update", (e) => {
+      try {
+        const data = JSON.parse(e.data);
+        console.log("update equipment:", data);
+        setEquipmentUpdate(data); // 상태 업데이트
+      } catch (err) {
+        console.error("Failed to parse equipment data:", err);
+      }
+    });
 
-      // 예: 즉시 토스트/모달 띄우기 트리거 가능
-      console.log("NOTI:", data);
+    es.addEventListener("notification", (e) => {
+      try {
+        const data = JSON.parse(e.data);
+        setNotifications((prev) => [data, ...prev]);
+        console.log("NOTI:", data);
+      } catch (err) {
+        console.error("Failed to parse notification data:", err);
+      }
     });
 
     es.onerror = (err) => {
       console.warn("SSE error", err);
-      // 브라우저가 자동 재연결 시도하긴 하는데,
-      // 서버/네트워크 이슈에 따라 UI 안내를 띄워도 좋음.
     };
 
     return () => {
@@ -35,5 +52,6 @@ export function useSseNotifications(userId) {
     };
   }, [userId]);
 
-  return { notifications, setNotifications }; 
+  // 3. equipmentUpdate를 반환 객체에 추가
+  return { notifications, setNotifications, equipmentUpdate }; 
 }

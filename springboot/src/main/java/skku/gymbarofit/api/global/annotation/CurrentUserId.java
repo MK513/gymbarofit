@@ -1,4 +1,4 @@
-package skku.gymbarofit.api.membership.annotation;
+package skku.gymbarofit.api.global.annotation;
 
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 

@@ -26,12 +26,11 @@ public class LockerFacade {
 
     public LockerRentResponseDto rent(Long memberId, LockerRentRequestDto request) {
         Long paymentId = lockerService.reserve(memberId, request);
-        LockerPayProcess process = LockerPayProcess.RENT;
 
         try {
             paymentService.pay(paymentId);
         } catch (RuntimeException e) {
-            lockerService.fail(paymentId, process);
+            lockerService.fail(paymentId);
             throw e;
         }
 
@@ -40,7 +39,7 @@ public class LockerFacade {
             return lockerService.getDto(paymentId);
         } catch (RuntimeException e) {
             try { paymentService.refund(paymentId); } catch (Exception ignore) {}
-            lockerService.fail(paymentId, process);
+            lockerService.fail(paymentId);
             throw e;
         }
     }
@@ -61,13 +60,12 @@ public class LockerFacade {
 
     public LockerRentResponseDto extend(Long usageId, LockerExtendRequestDto request) {
         Long paymentId = lockerService.beforeExtendTx(usageId, request);
-        LockerPayProcess process = LockerPayProcess.EXTEND;
-
         Payment payment;
+
         try {
             paymentService.pay(paymentId);
         } catch (RuntimeException e) {
-            lockerService.fail(paymentId, process);
+            lockerService.fail(paymentId);
             throw e;
         }
 
@@ -78,7 +76,7 @@ public class LockerFacade {
             try {
                 paymentService.refund(paymentId);
             } catch (Exception ignore) {}
-            lockerService.fail(paymentId, process);
+            lockerService.fail(paymentId);
             throw e;
         }
     }

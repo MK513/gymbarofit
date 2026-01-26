@@ -15,7 +15,6 @@ import java.time.LocalDate;
 @RequiredArgsConstructor
 public class MockPaymentService {
 
-
     private final PaymentInternalService paymentInternalService;
     private final LockerUsageInternalService lockerUsageInternalService;
 

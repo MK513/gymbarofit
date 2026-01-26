@@ -4,10 +4,10 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import skku.gymbarofit.api.notification.NotificationFacade;
+import skku.gymbarofit.api.global.annotation.NotifyEquipmentChange;
 import skku.gymbarofit.core.item.equipment.dto.EquipmentListResponseDto;
 import skku.gymbarofit.core.item.equipment.dto.EquipmentResponseDto;
 import skku.gymbarofit.core.gym.Gym;
-import skku.gymbarofit.core.gym.service.GymInternalService;
 import skku.gymbarofit.core.item.equipment.Equipment;
 import skku.gymbarofit.core.item.equipment.service.EquipmentInternalService;
 import skku.gymbarofit.core.usage.equipment.EquipmentUsage;
@@ -27,7 +27,6 @@ public class EquipmentService {
     private final EquipmentInternalService equipmentInternalService;
     private final EquipmentUsageInternalService equipmentUsageInternalService;
     private final MemberInternalService memberInternalService;
-    private final GymInternalService gymInternalService;
     private final NotificationFacade notificationFacade;
 
     public EquipmentListResponseDto getEquipments(Long gymId) {
@@ -49,6 +48,7 @@ public class EquipmentService {
         return EquipmentListResponseDto.of(totalCount, equipmentTypes, listDto);
     }
 
+    @NotifyEquipmentChange
     public void joinQueue(Long memberId, Long equipmentId) {
 
         Member member = memberInternalService.findById(memberId);
@@ -60,12 +60,14 @@ public class EquipmentService {
         equipmentUsageInternalService.save(equipmentUsage);
     }
 
+    @NotifyEquipmentChange
     public void leaveQueue(Long usageId) {
         equipmentUsageInternalService
                 .findForUpdate(usageId)
                 .leaveQueue();
     }
 
+    @NotifyEquipmentChange
     public void createUsage(Long memberId, Long equipmentId) {
 
         Member member = memberInternalService.findById(memberId);
@@ -77,6 +79,7 @@ public class EquipmentService {
         equipmentUsageInternalService.save(equipmentUsage);
     }
 
+    @NotifyEquipmentChange
     public void endUsage(Long usageId) {
 
         EquipmentUsage currentUsage = equipmentUsageInternalService.findForUpdate(usageId);
@@ -85,13 +88,14 @@ public class EquipmentService {
         Long equipmentId = currentUsage.getEquipment().getId();
 
         EquipmentUsage firstWaiting = equipmentUsageInternalService.findFirstWaitingForUpdate(equipmentId);
+
         if (firstWaiting != null) {
             firstWaiting.call();
-
             notificationFacade.notifyWaitingAvailable(firstWaiting.getMember().getId(), equipmentId);
         }
     }
 
+    @NotifyEquipmentChange
     public void startUsage(Long usageId) {
         EquipmentUsage usage = equipmentUsageInternalService.findForUpdate(usageId);
         usage.startUse();

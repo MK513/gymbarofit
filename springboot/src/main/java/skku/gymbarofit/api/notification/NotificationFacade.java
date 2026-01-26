@@ -2,6 +2,7 @@ package skku.gymbarofit.api.notification;
 
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Component;
+import skku.gymbarofit.core.item.equipment.Equipment;
 
 @Component
 @RequiredArgsConstructor
@@ -11,5 +12,9 @@ public class NotificationFacade {
 
     public void notifyWaitingAvailable(Long userId, Long equipmentId) {
         notificationSender.sendWaitingAvailable(userId, equipmentId);
+    }
+
+    public void notifyEquipmentStatus(Equipment equipment) {
+        notificationSender.broadcastEquipmentStatus(equipment);
     }
 }

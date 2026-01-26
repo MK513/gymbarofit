@@ -53,11 +53,16 @@ public class EquipmentUsageInternalService {
 
     public EquipmentUsage findForUpdate(Long usageId) {
         return equipmentUsageRepository.findForUpdate(usageId)
-                .orElseThrow(() -> new EquipmentException(EquipmentErrorCode.EQUIPMENT_NOT_FOUND));
+                .orElseThrow(() -> new EquipmentException(EquipmentErrorCode.EQUIPMENT_USAGE_NOT_FOUND));
     }
 
     public EquipmentUsage findFirstWaitingForUpdate(Long equipmentId) {
         return equipmentUsageRepository.findFirstWaitingForUpdate(equipmentId, PageRequest.of(0, 1))
                 .stream().findFirst().orElse(null);
+    }
+
+    public EquipmentUsage findById(Long usageId) {
+        return equipmentUsageRepository.findById(usageId)
+                .orElseThrow(() -> new EquipmentException(EquipmentErrorCode.EQUIPMENT_USAGE_NOT_FOUND));
     }
 }

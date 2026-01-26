@@ -23,18 +23,18 @@ public record EquipmentResponseDto (
         EquipmentUsageStatus usageStatus
 ) {
 
-    public static EquipmentResponseDto of(Equipment equipment) {
-        return EquipmentResponseDto.builder()
-                .id(equipment.getId())
-                .name(equipment.getItemInfo().getName())
-                .location(equipment.getLocation())
-                .type(equipment.getType())
-                .imageUrl(equipment.getImageUrl())
-                .waitingCount(0)
-                .itemStatus(equipment.getItemInfo().getStatus())
-                .usageStatus(EquipmentUsageStatus.AVAILABLE)
-                .build();
-    }
+//    public static EquipmentResponseDto of(Equipment equipment) {
+//        return EquipmentResponseDto.builder()
+//                .id(equipment.getId())
+//                .name(equipment.getItemInfo().getName())
+//                .location(equipment.getLocation())
+//                .type(equipment.getType())
+//                .imageUrl(equipment.getImageUrl())
+//                .waitingCount(0)
+//                .itemStatus(equipment.getItemInfo().getStatus())
+//                .usageStatus(EquipmentUsageStatus.AVAILABLE)
+//                .build();
+//    }
 
     public static EquipmentResponseDto from(Equipment equipment, List<EquipmentUsage> usages) {
 

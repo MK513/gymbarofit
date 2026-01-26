@@ -15,11 +15,13 @@ import { useNotification } from "../../context/NotificationContext";
 import { getEquipments, createUsage, createQueue } from "../../api/Api";
 import { useAuth } from "../../context/AuthContext";
 import { BUCKET_BASE_URL } from "../../api-config";
+import { useSseNotifications } from "../../context/SseNotification";
 
 export default function EquipmentReservation() {
   const navigate = useNavigate();
   const { showNotification } = useNotification();
   const { user } = useAuth();
+  const { equipmentUpdate } = useSseNotifications(user?.id);
 
   // --- 상태 관리 ---
   const allType = "전체 기구";
@@ -34,6 +36,21 @@ export default function EquipmentReservation() {
   const { state } = useLocation();
   const usage = state?.usage;
 
+  // --- 데이터 매핑 헬퍼 ---
+  const mapEquipmentData = (item) => {
+    return {
+      id: item.id,
+      name: item.name,
+      type: item.type, 
+      location: item.location,
+      imageUrl: item.imageUrl || null, 
+      itemStatus: item.itemStatus, 
+      usageStatus: item.usageStatus, 
+      queue: item.waitingCount,
+      fallbackIcon: getFallbackIcon(item.name, item.type)
+    };
+  };
+
   // --- 헬퍼 함수들 (아이콘, 시간계산 등) ---
   const getFallbackIcon = (name, type) => {
     if (name.includes("러닝") || name.includes("트레드밀")) return <DirectionsRun />;
@@ -44,50 +61,56 @@ export default function EquipmentReservation() {
     return <AccessibilityNew />;
   };
 
-  const getRemainingMinutes = (expiredAt) => {
-    if (!expiredAt) return 0;
-    const now = new Date();
-    const end = new Date(expiredAt);
-    const diffMs = end - now;
-    if (diffMs <= 0) return 0;
-    return Math.floor(diffMs / 60000);
-  };
-
+  // --- API 데이터 로드 ---
   const loadEquipmentData = async (gymId) => {
-      if (!gymId) return;
-      setLoading(true);
-      try {
-        const pathVariable = { gymId: gymId };
-        const res = await getEquipments(pathVariable); 
-        if (res && res.equipmentTypes) setCategoryList([allType, ...res.equipmentTypes]);
-        if (res && res.equipments) {
-          const mappedData = res.equipments.map(item => {
-            const remaining = getRemainingMinutes(item.expiredAt);
-            return {
-              id: item.id,
-              name: item.name,
-              type: item.type, 
-              location: item.location,
-              imageUrl: item.imageUrl || null, 
-              itemStatus: item.itemStatus, 
-              usageStatus: item.usageStatus, 
-              queue: item.waitingCount,
-              expiredAt: item.expiredAt,
-              remainingMinutes: remaining,
-              progressPercent: (item.itemStatus !== "OK" || item.usageStatus === "AVAILABLE") ? 0 : Math.min(100, ((50 - remaining) / 50) * 100),
-              fallbackIcon: getFallbackIcon(item.name, item.type)
-            };
-          });
-          setMachines(mappedData);
-        }
-      } catch (error) {
-        showNotification("기구 정보를 불러오지 못했습니다.", "error");
-      } finally {
-        setLoading(false);
+    if (!gymId) return;
+    setLoading(true);
+    try {
+      const pathVariable = { gymId: gymId };
+      const res = await getEquipments(pathVariable);
+      if (res && res.equipmentTypes) setCategoryList([allType, ...res.equipmentTypes]);
+      if (res && res.equipments) {
+        const mappedData = res.equipments.map(item => mapEquipmentData(item));
+        setMachines(mappedData);
       }
+    } catch (error) {
+      showNotification("기구 정보를 불러오지 못했습니다.", "error");
+    } finally {
+      setLoading(false);
+    }
   };
   
   useEffect(() => { loadEquipmentData(user?.gym?.id); }, []); 
+
+  // 실시간 SSE 업데이트 감지 및 반영
+  useEffect(() => {
+    if (equipmentUpdate && equipmentUpdate.type === "UPDATE_EQUIPMENT") {
+      const { body } = equipmentUpdate;
+      
+      console.log(`실시간 업데이트: ${body.name} (${body.usageStatus})`);
+
+      // 서버에서 온 body 데이터를 바로 매핑 함수에 넣습니다.
+      const mappedNewData = mapEquipmentData(body);
+
+      // 1. 목록 업데이트
+      setMachines((prev) =>
+        prev.map((m) => (m.id === body.id ? mappedNewData : m))
+      );
+
+      // 2. 현재 열린 상세 정보 업데이트
+      setSelectedMachine((prev) => {
+        if (prev && prev.id === body.id) {
+          return mappedNewData;
+        }
+        return prev;
+      });
+
+      // 상태 변화 알림
+      if (body.usageStatus === "AVAILABLE") {
+        showNotification(`${body.name} 기구를 사용하실 수 있습니다!`, "success");
+      }
+    }
+  }, [equipmentUpdate]);
 
   // --- 필터링 로직 ---
   const filteredMachines = machines.filter(m => {
@@ -132,7 +155,6 @@ export default function EquipmentReservation() {
     if (machine.itemStatus === "MAINTENANCE") return "점검";
     if (machine.itemStatus === "RETIRED") return "불가";
     if (machine.usageStatus === "AVAILABLE") return "가능"; 
-    if (machine.remainingMinutes > 0) return `${machine.remainingMinutes}분`; 
     return "사용중";
   };
 
@@ -207,7 +229,7 @@ export default function EquipmentReservation() {
         )}
       </Box>
 
-      {/* [수정 3] 맨 아래에 위치하는 안내 문구 (flex flow상 마지막) */}
+      {/* 맨 아래에 위치하는 안내 문구 (flex flow상 마지막) */}
       <Box sx={{ p: 2, bgcolor: "#f5f7fa", mt: 2 }}>
           <Box sx={{ bgcolor: "#f0f2f5", p: 1.5, borderRadius: 2 }}>
             <Typography variant="caption" display="block" color="text.secondary" sx={{ mb: 0.5, fontWeight: 500 }}>
@@ -252,7 +274,6 @@ export default function EquipmentReservation() {
                 selectedMachine.usageStatus !== "AVAILABLE" ? (
                   <Box>
                      <Grid container spacing={2} sx={{ mb: 3 }}>
-                       <Grid item xs={6}><Box sx={{ bgcolor: "#fafafa", p: 2, borderRadius: 2, textAlign: "center" }}><Typography variant="caption" color="text.secondary">남은 시간</Typography><Typography variant="h6" fontWeight="bold" color="primary.main">{selectedMachine.remainingMinutes}분</Typography></Box></Grid>
                        <Grid item xs={6}><Box sx={{ bgcolor: "#fafafa", p: 2, borderRadius: 2, textAlign: "center" }}><Typography variant="caption" color="text.secondary">대기 인원</Typography><Typography variant="h6" fontWeight="bold">{selectedMachine.queue}명</Typography></Box></Grid>
                      </Grid>
                     <Button variant="contained" fullWidth size="large" onClick={handleJoinQueue} startIcon={<NotificationsActive />} sx={{ bgcolor: "#212121", color: "white", py: 1.8, borderRadius: 3, fontWeight: "bold" }}>대기 줄서기</Button>

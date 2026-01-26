@@ -5,7 +5,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import skku.gymbarofit.api.locker.service.LockerFacade;
 import skku.gymbarofit.api.locker.service.LockerService;
-import skku.gymbarofit.api.membership.annotation.CurrentUserId;
+import skku.gymbarofit.api.global.annotation.CurrentUserId;
 import skku.gymbarofit.core.item.locker.dto.*;
 
 @RequestMapping("/lockers")

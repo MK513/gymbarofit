@@ -94,13 +94,13 @@ public class LockerService {
         return payment.getId();
     }
 
-    public void fail(Long paymentId, LockerPayProcess process) {
+    public void fail(Long paymentId) {
         Payment payment = paymentInternalService.findByIdForUpdate(paymentId);
         LockerUsage lockerUsage = lockerUsageInternalService.findActiveByIdForUpdate(payment.getTargetId());
 
         if (!lockerUsage.isActive()) return;
 
-        lockerUsage.cancel(process);
+        lockerUsage.cancel();
         payment.fail();
     }
 
@@ -148,7 +148,7 @@ public class LockerService {
             return;
         }
 
-        lockerUsage.cancel(LockerPayProcess.REFUND);
+        lockerUsage.cancel();
     }
 
 

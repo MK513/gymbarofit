@@ -10,8 +10,10 @@ export default function ProtectedRoute() {
   if (!initialized) return null; // 또는 로딩 UI
 
   if (!isAuthed) {
+    console.log("NOT AUTED");
     return <Navigate to="/login" replace state={{ from: location }} />;
   }
+  console.log("AUTED");
 
   return <Outlet />;
 }

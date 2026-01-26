@@ -83,8 +83,8 @@ public class LockerUsage extends BaseUsage {
     }
 
     /** 중도 취소 */
-    public void cancel(LockerPayProcess process) {
-        if (process == LockerPayProcess.RENT) {
+    public void cancel() {
+        if (status == LockerUsageStatus.ACTIVE || status == LockerUsageStatus.PENDING) {
             this.status = LockerUsageStatus.CANCELLED;
             this.active = null;
         }

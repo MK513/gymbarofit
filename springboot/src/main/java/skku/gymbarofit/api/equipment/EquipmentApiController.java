@@ -4,7 +4,7 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
-import skku.gymbarofit.api.membership.annotation.CurrentUserId;
+import skku.gymbarofit.api.global.annotation.CurrentUserId;
 
 @RestController
 @RequestMapping("/equipments")

@@ -5,8 +5,6 @@ import lombok.extern.slf4j.Slf4j;
 import skku.gymbarofit.core.item.equipment.Equipment;
 import skku.gymbarofit.core.usage.equipment.EquipmentUsage;
 
-import java.time.LocalDateTime;
-
 @Slf4j
 @Builder
 public record EquipmentUsageResponseDto (
