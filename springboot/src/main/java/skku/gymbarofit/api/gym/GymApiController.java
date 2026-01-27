@@ -10,7 +10,7 @@ import org.springframework.web.bind.annotation.*;
 import skku.gymbarofit.api.equipment.EquipmentService;
 import skku.gymbarofit.core.item.equipment.dto.EquipmentListResponseDto;
 import skku.gymbarofit.api.global.annotation.CurrentUserId;
-import skku.gymbarofit.core.gym.dto.GymResponseDto;
+import skku.gymbarofit.core.gym.dto.GymDetailResponseDto;
 
 import static org.springframework.data.domain.Sort.*;
 
@@ -23,7 +23,7 @@ public class GymApiController {
     private final EquipmentService equipmentService;
 
     @GetMapping("/search")
-    public Page<GymResponseDto> search(
+    public Page<GymDetailResponseDto> search(
             @RequestParam String keyword,
             @PageableDefault(size = 10, sort = "id", direction = Direction.DESC) Pageable pageable
     ) {
@@ -31,12 +31,12 @@ public class GymApiController {
     }
 
     @PostMapping("/{gymId}/memberships")
-    public ResponseEntity<GymResponseDto> register(
+    public ResponseEntity<GymDetailResponseDto> register(
             @CurrentUserId Long memberId,
             @PathVariable Long gymId
     ) {
 
-        GymResponseDto response = gymService.register(memberId, gymId);
+        GymDetailResponseDto response = gymService.register(memberId, gymId);
         return ResponseEntity.status(HttpStatus.CREATED).body(response);
     }
 

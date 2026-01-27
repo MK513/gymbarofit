@@ -6,12 +6,15 @@ import org.aspectj.lang.JoinPoint;
 import org.aspectj.lang.annotation.AfterReturning;
 import org.aspectj.lang.annotation.Aspect;
 import org.aspectj.lang.reflect.MethodSignature;
+import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.stereotype.Component;
-import skku.gymbarofit.api.notification.NotificationFacade;
-import skku.gymbarofit.core.item.equipment.Equipment;
-import skku.gymbarofit.core.item.equipment.service.EquipmentInternalService;
+import skku.gymbarofit.api.equipment.notification.events.EquipmentChangedEvent;
+import skku.gymbarofit.api.global.annotation.EquipmentId;
+import skku.gymbarofit.api.global.annotation.UsageId;
 import skku.gymbarofit.core.usage.equipment.EquipmentUsage;
 import skku.gymbarofit.core.usage.equipment.service.EquipmentUsageInternalService;
+
+import java.lang.reflect.Parameter;
 
 @Aspect
 @Slf4j
@@ -19,39 +22,32 @@ import skku.gymbarofit.core.usage.equipment.service.EquipmentUsageInternalServic
 @RequiredArgsConstructor
 public class NotificationAspect {
 
-    private final NotificationFacade notificationFacade;
-    private final EquipmentInternalService equipmentInternalService;
+    private final ApplicationEventPublisher applicationEventPublisher;
     private final EquipmentUsageInternalService equipmentUsageInternalService;
 
     @AfterReturning("@annotation(skku.gymbarofit.api.global.annotation.NotifyEquipmentChange)")
     public void sendNotification(JoinPoint joinPoint) {
 
-        Equipment equipment = resolveEquipment(joinPoint);
+        Long equipmentId = resolveEquipmentId(joinPoint);
 
-        if (equipment != null) {
-            log.info("sendNotification {} updated", equipment.getId());
-            notificationFacade.notifyEquipmentStatus(equipment);
-        }
+        if (equipmentId == null) return;
+
+        log.info("sendNotification updated equipmentId: {}", equipmentId);
+        applicationEventPublisher.publishEvent(new EquipmentChangedEvent(equipmentId));
     }
 
-    private Equipment resolveEquipment(JoinPoint joinPoint) {
-        MethodSignature signature = (MethodSignature) joinPoint.getSignature();
-        String[] paramNames = signature.getParameterNames();
+    private Long resolveEquipmentId(JoinPoint joinPoint) {
+        MethodSignature sig = (MethodSignature) joinPoint.getSignature();
+        Parameter[] params = sig.getMethod().getParameters();
         Object[] args = joinPoint.getArgs();
 
-        for (int i = 0; i < paramNames.length; i++) {
-            String name = paramNames[i];
-            Object value = args[i];
-
-            // 1. 파라미터가 'equipmentId' 인 경우
-            if ("equipmentId".equals(name) && value instanceof Long) {
-                return equipmentInternalService.findById((Long) value);
+        for (int i = 0; i < params.length; i++) {
+            if (params[i].isAnnotationPresent(EquipmentId.class) && args[i] instanceof Long l) {
+                return l;
             }
-
-            // 2. 파라미터가 'usageId' 인 경우 -> Usage를 조회해서 그 안의 Gym/Equipment를 꺼냄
-            if ("usageId".equals(name) && value instanceof Long) {
-                EquipmentUsage usage = equipmentUsageInternalService.findById((Long) value);
-                return usage.getEquipment();
+            if (params[i].isAnnotationPresent(UsageId.class) && args[i] instanceof Long l) {
+                EquipmentUsage usage = equipmentUsageInternalService.findById(l);
+                return usage.getEquipment().getId();
             }
         }
         return null;

@@ -10,6 +10,9 @@ import skku.gymbarofit.core.usage.equipment.EquipmentUsage;
 import skku.gymbarofit.core.usage.equipment.enums.EquipmentUsageStatus;
 import skku.gymbarofit.core.usage.equipment.repository.EquipmentUsageRepository;
 
+import java.time.Clock;
+import java.time.LocalDate;
+import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Optional;
 
@@ -20,12 +23,13 @@ public class EquipmentUsageInternalService {
 
     private final EquipmentUsageRepository equipmentUsageRepository;
 
+    private final Clock clock;
+
     private static final List<EquipmentUsageStatus> WAITING_OR_CALLED =
             List.of(EquipmentUsageStatus.WAITING, EquipmentUsageStatus.CALLED);
 
     private static final List<EquipmentUsageStatus> INUSE_OR_WAITING_OR_CALLED =
             List.of(EquipmentUsageStatus.IN_USE, EquipmentUsageStatus.WAITING, EquipmentUsageStatus.CALLED);
-
 
     @Transactional(readOnly = true)
     public List<EquipmentUsage> findActiveByGymId(Long gymId) {
@@ -47,7 +51,7 @@ public class EquipmentUsageInternalService {
     }
 
     @Transactional(readOnly = true)
-    public int countWaiting(Long equipmentId, Long memberId) {
+    public int countWaitingForMember(Long equipmentId, Long memberId) {
         return equipmentUsageRepository.countWaitingForMember(equipmentId, memberId);
     }
 
@@ -64,5 +68,50 @@ public class EquipmentUsageInternalService {
     public EquipmentUsage findById(Long usageId) {
         return equipmentUsageRepository.findById(usageId)
                 .orElseThrow(() -> new EquipmentException(EquipmentErrorCode.EQUIPMENT_USAGE_NOT_FOUND));
+    }
+
+    @Transactional(readOnly = true)
+    public int countWaitingOfEquipment(Long equipmentId) {
+        return equipmentUsageRepository.countWaitingOfEquipment(equipmentId);
+    }
+
+    @Transactional(readOnly = true)
+    public boolean existUsing(Long equipmentId) {
+        return equipmentUsageRepository.existsByEquipmentIdAndStatus(equipmentId, EquipmentUsageStatus.IN_USE);
+    }
+
+    public void delete(EquipmentUsage usage) {
+        equipmentUsageRepository.delete(usage);
+    }
+
+    public int getTodayTotalUsageMinutes(Long memberId) {
+        return equipmentUsageRepository.sumUsageMinutesForToday(
+                memberId,
+                startOfToday(),
+                startOfTomorrow()
+        );
+    }
+
+    public float getTodayTotalCalories(Long memberId) {
+        return equipmentUsageRepository.sumCaloriesForToday(
+                memberId,
+                startOfToday(),
+                startOfTomorrow()
+        );
+    }
+
+    public List<EquipmentUsage> getRecentThreeActivities(Long memberId) {
+        return equipmentUsageRepository.findTop3ByMemberIdAndStatusOrderByEndAtDesc(
+                memberId,
+                EquipmentUsageStatus.COMPLETED
+        );
+    }
+
+    private LocalDateTime startOfToday() {
+        return LocalDate.now(clock).atStartOfDay();
+    }
+
+    private LocalDateTime startOfTomorrow() {
+        return LocalDate.now(clock).plusDays(1).atStartOfDay();
     }
 }

@@ -7,7 +7,7 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import skku.gymbarofit.core.gym.Gym;
-import skku.gymbarofit.core.gym.dto.GymResponseDto;
+import skku.gymbarofit.core.gym.dto.GymDetailResponseDto;
 import skku.gymbarofit.core.gym.service.GymInternalService;
 import skku.gymbarofit.core.membership.Membership;
 import skku.gymbarofit.core.membership.enums.MembershipStatus;
@@ -28,16 +28,16 @@ public class GymService {
     private final MemberInternalService memberInternalService;
 
     @Transactional(readOnly = true)
-    public Page<GymResponseDto> searchByKeyword(String keyword, Pageable pageable) {
+    public Page<GymDetailResponseDto> searchByKeyword(String keyword, Pageable pageable) {
 
         String kw = keyword == null ? "" : keyword.trim();
         if (kw.isEmpty()) return Page.empty(pageable);
 
         return gymInternalService.findByKeyword(kw, pageable)
-                .map(GymResponseDto::from);
+                .map(GymDetailResponseDto::from);
     }
 
-    public GymResponseDto register(Long memberId, Long gymId) {
+    public GymDetailResponseDto register(Long memberId, Long gymId) {
 
 
         Member member = memberInternalService.findById(memberId);
@@ -56,6 +56,6 @@ public class GymService {
 
         membershipInternalService.register(membership);
 
-        return GymResponseDto.from(membership.getGym());
+        return GymDetailResponseDto.from(membership.getGym());
     }
 }

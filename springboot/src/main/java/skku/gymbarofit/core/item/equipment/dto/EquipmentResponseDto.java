@@ -6,7 +6,6 @@ import skku.gymbarofit.core.item.equipment.Equipment;
 import skku.gymbarofit.core.usage.equipment.EquipmentUsage;
 import skku.gymbarofit.core.usage.equipment.enums.EquipmentUsageStatus;
 
-import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
@@ -22,19 +21,6 @@ public record EquipmentResponseDto (
         ItemStatus itemStatus,
         EquipmentUsageStatus usageStatus
 ) {
-
-//    public static EquipmentResponseDto of(Equipment equipment) {
-//        return EquipmentResponseDto.builder()
-//                .id(equipment.getId())
-//                .name(equipment.getItemInfo().getName())
-//                .location(equipment.getLocation())
-//                .type(equipment.getType())
-//                .imageUrl(equipment.getImageUrl())
-//                .waitingCount(0)
-//                .itemStatus(equipment.getItemInfo().getStatus())
-//                .usageStatus(EquipmentUsageStatus.AVAILABLE)
-//                .build();
-//    }
 
     public static EquipmentResponseDto from(Equipment equipment, List<EquipmentUsage> usages) {
 
@@ -69,6 +55,19 @@ public record EquipmentResponseDto (
                 .waitingCount(waitingCount)
                 .itemStatus(equipment.getItemInfo().getStatus())
                 .usageStatus(usageStatus)
+                .build();
+    }
+
+    public static EquipmentResponseDto from(Equipment equipment, int waitingCount, EquipmentUsageStatus status) {
+        return EquipmentResponseDto.builder()
+                .id(equipment.getId())
+                .name(equipment.getItemInfo().getName())
+                .location(equipment.getLocation())
+                .type(equipment.getType())
+                .imageUrl(equipment.getImageUrl())
+                .waitingCount(waitingCount)
+                .itemStatus(equipment.getItemInfo().getStatus())
+                .usageStatus(status)
                 .build();
     }
 }

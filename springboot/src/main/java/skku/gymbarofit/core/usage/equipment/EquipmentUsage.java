@@ -42,12 +42,14 @@ public class EquipmentUsage extends BaseUsage {
     @Enumerated(EnumType.STRING)
     private EquipmentUsageStatus status;
 
-    private LocalDateTime startTime;
+    private LocalDateTime startAt;
 
-    private LocalDateTime endTime;
+    private LocalDateTime endAt;
 
     // 최종 사용 시간
     private int durationMinutes;
+
+    private float weight_snapshot;
 
     private String activeStatus;
 
@@ -64,11 +66,11 @@ public class EquipmentUsage extends BaseUsage {
     }
 
     @Builder
-    public EquipmentUsage(Member member, Gym gym, Equipment equipment, EquipmentUsageStatus status, LocalDateTime startTime) {
+    public EquipmentUsage(Member member, Gym gym, Equipment equipment, EquipmentUsageStatus status, LocalDateTime startAt) {
         super(member, gym);
         this.equipment = equipment;
         this.status = status;
-        this.startTime = startTime;
+        this.startAt = startAt;
     }
 
     // 줄서기 신청
@@ -87,7 +89,7 @@ public class EquipmentUsage extends BaseUsage {
                 .gym(gym)
                 .equipment(equipment)
                 .status(EquipmentUsageStatus.IN_USE)
-                .startTime(LocalDateTime.now())
+                .startAt(LocalDateTime.now())
                 .build();
     }
 
@@ -109,15 +111,16 @@ public class EquipmentUsage extends BaseUsage {
     public void startUse() {
         if (this.status == EquipmentUsageStatus.CALLED) {
             this.status = EquipmentUsageStatus.IN_USE;
-            this.startTime = LocalDateTime.now();
+            this.startAt = LocalDateTime.now();
         }
     }
 
     // 사용 종료
-    public void endUse() {
+    public void endUse(float weight) {
         this.status = EquipmentUsageStatus.COMPLETED;
-        this.endTime = LocalDateTime.now();
-        this.durationMinutes = (int) Duration.between(startTime, LocalDateTime.now()).toMinutes();
+        this.endAt = LocalDateTime.now();
+        this.durationMinutes = (int) Duration.between(startAt, LocalDateTime.now()).toMinutes();
+        this.weight_snapshot = weight;
     }
 
 }

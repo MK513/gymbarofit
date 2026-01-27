@@ -5,13 +5,18 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import skku.gymbarofit.core.gym.dto.GymResponseDto;
 import skku.gymbarofit.core.item.equipment.Equipment;
 import skku.gymbarofit.core.item.equipment.service.EquipmentInternalService;
+import skku.gymbarofit.core.log.service.EquipmentLogInternalService;
 import skku.gymbarofit.core.membership.dto.MembershipInfoResponseDto;
 import skku.gymbarofit.core.gym.Gym;
-import skku.gymbarofit.core.gym.dto.GymResponseDto;
+import skku.gymbarofit.core.gym.dto.GymDetailResponseDto;
 import skku.gymbarofit.core.gym.service.GymInternalService;
 import skku.gymbarofit.core.usage.equipment.EquipmentUsage;
+import skku.gymbarofit.core.usage.equipment.dto.EquipmentHistoryResponseDto;
+import skku.gymbarofit.core.usage.equipment.dto.EquipmentRecordResponseDto;
+import skku.gymbarofit.core.usage.equipment.dto.EquipmentUsageDetailResponseDto;
 import skku.gymbarofit.core.usage.equipment.dto.EquipmentUsageResponseDto;
 import skku.gymbarofit.core.usage.equipment.service.EquipmentUsageInternalService;
 import skku.gymbarofit.core.usage.locker.LockerUsage;
@@ -31,39 +36,63 @@ public class MembershipService {
     private final LockerUsageInternalService lockerUsageInternalService;
     private final EquipmentUsageInternalService equipmentUsageInternalService;
     private final EquipmentInternalService equipmentInternalService;
+    private final EquipmentLogInternalService equipmentLogInternalService;
 
     @Transactional(readOnly = true)
     public MembershipInfoResponseDto getInfo(Long gymId, Long memberId) {
 
-        Gym gym = gymInternalService.findById(gymId);
-
-        List<Gym> gymList = membershipInternalService.findGymByMemberId(memberId);
-        List<GymResponseDto> gymResponseDtoList = gymList.stream()
-                .map(GymResponseDto::from)
-                .toList();
+        GymResponseDto gymResponseDto = getGymResponseDto(gymId, memberId);
 
         LockerUsage lockerUsage = lockerUsageInternalService.findActiveByGymIdAndMemberId(gymId, memberId).orElse(null);
 
-        EquipmentUsageResponseDto inUseDto = getInUseUsageDto(memberId);
-        EquipmentUsageResponseDto waitingDto =  getWaitingUsageDto(memberId);
+        EquipmentUsageResponseDto equipmentUsageResponseDto = getEquipmentUsageResponseDto(memberId);
 
-        return MembershipInfoResponseDto.from(gymResponseDtoList, gym, lockerUsage, inUseDto, waitingDto);
+        EquipmentHistoryResponseDto historyDto = getHistoryDto(memberId);
+
+        return MembershipInfoResponseDto.from(gymResponseDto, lockerUsage, equipmentUsageResponseDto, historyDto);
     }
 
-    private EquipmentUsageResponseDto getWaitingUsageDto(Long memberId) {
+    private EquipmentUsageResponseDto getEquipmentUsageResponseDto(Long memberId) {
+        EquipmentUsageDetailResponseDto inUseDto = getInUseUsageDto(memberId);
+        EquipmentUsageDetailResponseDto waitingDto = getWaitingUsageDto(memberId);
+        return EquipmentUsageResponseDto.of(inUseDto, waitingDto);
+    }
+
+    private GymResponseDto getGymResponseDto(Long gymId, Long memberId) {
+        Gym gym = gymInternalService.findById(gymId);
+        List<Gym> gymList = membershipInternalService.findGymByMemberId(memberId);
+        List<GymDetailResponseDto> gymResponseDtoList = gymList.stream()
+                .map(GymDetailResponseDto::from)
+                .toList();
+        return GymResponseDto.from(gym, gymResponseDtoList);
+    }
+
+    private EquipmentHistoryResponseDto getHistoryDto(Long memberId) {
+        int todayTotalUsageMinutes = equipmentUsageInternalService.getTodayTotalUsageMinutes(memberId);
+        float todayTotalCalories = equipmentUsageInternalService.getTodayTotalCalories(memberId);
+        todayTotalCalories = Math.round(todayTotalCalories * 10.0f) / 10.0f;
+
+        List<EquipmentRecordResponseDto> recentThreeUsages = equipmentUsageInternalService.getRecentThreeActivities(memberId)
+                .stream().map(EquipmentRecordResponseDto::from)
+                .toList();
+
+        return EquipmentHistoryResponseDto.of(todayTotalUsageMinutes, todayTotalCalories, recentThreeUsages);
+    }
+
+    private EquipmentUsageDetailResponseDto getWaitingUsageDto(Long memberId) {
         EquipmentUsage waitingEquipmentUsage = equipmentUsageInternalService.findWaitingByMemberId(memberId).orElse(null);
         Equipment waitingEquipment = waitingEquipmentUsage != null ? waitingEquipmentUsage.getEquipment() : null;
         int waitingCount = 0;
         if (waitingEquipmentUsage != null) {
-            waitingCount = equipmentUsageInternalService.countWaiting(waitingEquipment.getId(), memberId);
+            waitingCount = equipmentUsageInternalService.countWaitingForMember(waitingEquipment.getId(), memberId);
         }
 
-        return EquipmentUsageResponseDto.from(waitingEquipmentUsage, waitingEquipment, waitingCount);
+        return EquipmentUsageDetailResponseDto.from(waitingEquipmentUsage, waitingEquipment, waitingCount);
     }
 
-    private EquipmentUsageResponseDto getInUseUsageDto(Long memberId) {
+    private EquipmentUsageDetailResponseDto getInUseUsageDto(Long memberId) {
         EquipmentUsage inUseUsage = equipmentUsageInternalService.findInUseByMemberId(memberId).orElse(null);
         Equipment inUseEquipment = inUseUsage != null ? inUseUsage.getEquipment() : null;
-        return EquipmentUsageResponseDto.from(inUseUsage, inUseEquipment, 0);
+        return EquipmentUsageDetailResponseDto.from(inUseUsage, inUseEquipment, 0);
     }
 }

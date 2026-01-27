@@ -14,7 +14,7 @@ public class NotificationFacade {
         notificationSender.sendWaitingAvailable(userId, equipmentId);
     }
 
-    public void notifyEquipmentStatus(Equipment equipment) {
-        notificationSender.broadcastEquipmentStatus(equipment);
+    public void notifyEquipmentStatus(Long equipmentId) {
+        notificationSender.broadcastEquipmentStatus(equipmentId);
     }
 }

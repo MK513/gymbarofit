@@ -1,8 +1,12 @@
 package skku.gymbarofit.api.equipment;
 
 import lombok.RequiredArgsConstructor;
+import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import skku.gymbarofit.api.equipment.notification.events.WaitingAvailableEvent;
+import skku.gymbarofit.api.global.annotation.EquipmentId;
+import skku.gymbarofit.api.global.annotation.UsageId;
 import skku.gymbarofit.api.notification.NotificationFacade;
 import skku.gymbarofit.api.global.annotation.NotifyEquipmentChange;
 import skku.gymbarofit.core.item.equipment.dto.EquipmentListResponseDto;
@@ -10,6 +14,9 @@ import skku.gymbarofit.core.item.equipment.dto.EquipmentResponseDto;
 import skku.gymbarofit.core.gym.Gym;
 import skku.gymbarofit.core.item.equipment.Equipment;
 import skku.gymbarofit.core.item.equipment.service.EquipmentInternalService;
+import skku.gymbarofit.core.log.EquipmentLog;
+import skku.gymbarofit.core.log.enums.EquipmentEventType;
+import skku.gymbarofit.core.log.service.EquipmentLogInternalService;
 import skku.gymbarofit.core.usage.equipment.EquipmentUsage;
 import skku.gymbarofit.core.usage.equipment.service.EquipmentUsageInternalService;
 import skku.gymbarofit.core.user.member.Member;
@@ -28,6 +35,8 @@ public class EquipmentService {
     private final EquipmentUsageInternalService equipmentUsageInternalService;
     private final MemberInternalService memberInternalService;
     private final NotificationFacade notificationFacade;
+    private final EquipmentLogInternalService equipmentLogInternalService;
+    private final ApplicationEventPublisher applicationEventPublisher;
 
     public EquipmentListResponseDto getEquipments(Long gymId) {
 
@@ -49,7 +58,7 @@ public class EquipmentService {
     }
 
     @NotifyEquipmentChange
-    public void joinQueue(Long memberId, Long equipmentId) {
+    public void joinQueue(Long memberId, @EquipmentId Long equipmentId) {
 
         Member member = memberInternalService.findById(memberId);
         Equipment equipment = equipmentInternalService.findById(equipmentId);
@@ -57,18 +66,25 @@ public class EquipmentService {
 
         EquipmentUsage equipmentUsage = EquipmentUsage.createQueue(member, gym, equipment);
 
-        equipmentUsageInternalService.save(equipmentUsage);
+        EquipmentUsage usage = equipmentUsageInternalService.save(equipmentUsage);
+
+        equipmentLogInternalService.save(
+                EquipmentLog.from(usage, EquipmentEventType.WAIT_JOINED)
+        );
     }
 
     @NotifyEquipmentChange
     public void leaveQueue(Long usageId) {
-        equipmentUsageInternalService
-                .findForUpdate(usageId)
-                .leaveQueue();
+        EquipmentUsage usage = equipmentUsageInternalService.findForUpdate(usageId);
+        usage.leaveQueue();
+
+        equipmentLogInternalService.save(
+                EquipmentLog.from(usage, EquipmentEventType.WAIT_CANCELLED)
+        );
     }
 
     @NotifyEquipmentChange
-    public void createUsage(Long memberId, Long equipmentId) {
+    public void createUsage(Long memberId, @EquipmentId Long equipmentId) {
 
         Member member = memberInternalService.findById(memberId);
         Equipment equipment = equipmentInternalService.findById(equipmentId);
@@ -76,31 +92,40 @@ public class EquipmentService {
 
         EquipmentUsage equipmentUsage = EquipmentUsage.createUse(member, gym, equipment);
 
-        equipmentUsageInternalService.save(equipmentUsage);
+        EquipmentUsage usage = equipmentUsageInternalService.save(equipmentUsage);
+
+        equipmentLogInternalService.save(
+                EquipmentLog.from(usage, EquipmentEventType.USAGE_STARTED)
+        );
     }
 
     @NotifyEquipmentChange
-    public void endUsage(Long usageId) {
+    public void endUsage(@UsageId Long usageId) {
 
         EquipmentUsage currentUsage = equipmentUsageInternalService.findForUpdate(usageId);
-        currentUsage.endUse();
+        currentUsage.endUse(currentUsage.getMember().getWeight());
 
         Long equipmentId = currentUsage.getEquipment().getId();
-
         EquipmentUsage firstWaiting = equipmentUsageInternalService.findFirstWaitingForUpdate(equipmentId);
 
         if (firstWaiting != null) {
             firstWaiting.call();
-            notificationFacade.notifyWaitingAvailable(firstWaiting.getMember().getId(), equipmentId);
+            applicationEventPublisher.publishEvent(new WaitingAvailableEvent(firstWaiting.getMember().getId(), equipmentId));
         }
+
+        equipmentLogInternalService.save(
+                EquipmentLog.from(currentUsage, EquipmentEventType.USAGE_ENDED)
+        );
     }
 
     @NotifyEquipmentChange
-    public void startUsage(Long usageId) {
+    public void startUsage(@UsageId Long usageId) {
         EquipmentUsage usage = equipmentUsageInternalService.findForUpdate(usageId);
         usage.startUse();
 
-        // TODO 대기 명수 줄이는 알림
+        equipmentLogInternalService.save(
+                EquipmentLog.from(usage, EquipmentEventType.USAGE_STARTED)
+        );
     }
 }
 

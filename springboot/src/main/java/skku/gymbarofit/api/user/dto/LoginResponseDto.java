@@ -4,13 +4,10 @@ import lombok.Getter;
 import lombok.ToString;
 import skku.gymbarofit.api.security.dto.JwtTokenDto;
 import skku.gymbarofit.core.gym.Gym;
-import skku.gymbarofit.core.gym.dto.GymResponseDto;
-import skku.gymbarofit.core.membership.Membership;
+import skku.gymbarofit.core.gym.dto.GymDetailResponseDto;
 import skku.gymbarofit.core.user.dto.UserRequestInfo;
 import skku.gymbarofit.core.user.enums.UserRole;
 import skku.gymbarofit.core.user.member.Member;
-
-import java.util.List;
 
 @Getter
 @ToString
@@ -26,7 +23,7 @@ public class LoginResponseDto {
                 .email(member.getEmail())
                 .name(member.getUsername())
                 .role(UserRole.MEMBER.name())
-                .gym(GymResponseDto.from(gym))
+                .gym(GymDetailResponseDto.from(gym))
                 .build();
     }
 }

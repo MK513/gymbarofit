@@ -9,6 +9,7 @@ import org.springframework.data.repository.query.Param;
 import skku.gymbarofit.core.usage.equipment.EquipmentUsage;
 import skku.gymbarofit.core.usage.equipment.enums.EquipmentUsageStatus;
 
+import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Optional;
 
@@ -62,4 +63,55 @@ public interface EquipmentUsageRepository extends JpaRepository<EquipmentUsage, 
         order by u.createdAt asc
     """)
     List<EquipmentUsage> findFirstWaitingForUpdate(Long equipmentId, Pageable pageable);
+
+    @Query("""
+        select count(u)
+        from EquipmentUsage u
+        where u.equipment.id = :equipmentId
+        and u.status = 'WAITING'
+    """)
+    int countWaitingOfEquipment(Long equipmentId);
+
+    boolean existsByEquipmentIdAndStatus(Long equipmentId, EquipmentUsageStatus status);
+
+    @Query("""
+        select coalesce(sum(u.durationMinutes), 0)
+        from EquipmentUsage u
+        where u.member.id = :memberId
+          and u.startAt >= :startOfDay
+          and u.startAt < :endOfDay
+    """)
+    int sumUsageMinutesForToday(
+            @Param("memberId") Long memberId,
+            @Param("startOfDay") LocalDateTime startOfDay,
+            @Param("endOfDay") LocalDateTime endOfDay
+    );
+
+    @Query("""
+        select coalesce(
+            sum(
+                (u.durationMinutes / 60.0)
+                * e.met
+                * m.weight
+            ), 0
+        )
+        from EquipmentUsage u
+        join u.equipment e
+        join u.member m
+        where m.id = :memberId
+          and u.status = skku.gymbarofit.core.usage.equipment.enums.EquipmentUsageStatus.COMPLETED
+          and u.endAt >= :startOfDay
+          and u.endAt < :endOfDay
+    """)
+    float sumCaloriesForToday(
+            @Param("memberId") Long memberId,
+            @Param("startOfDay") LocalDateTime startOfDay,
+            @Param("endOfDay") LocalDateTime endOfDay
+    );
+
+    List<EquipmentUsage> findTop3ByMemberIdAndStatusOrderByEndAtDesc(
+            Long memberId,
+            EquipmentUsageStatus status
+    );
+
 }

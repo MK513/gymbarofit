@@ -25,6 +25,8 @@ public class Equipment{
 
     private String serialNumber;
 
+    private float met;
+
     @Embedded
     private ItemInfo itemInfo;
 
