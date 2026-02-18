@@ -7,12 +7,14 @@ import org.springframework.transaction.annotation.Transactional;
 import skku.gymbarofit.core.item.equipment.exception.EquipmentErrorCode;
 import skku.gymbarofit.core.item.equipment.exception.EquipmentException;
 import skku.gymbarofit.core.usage.equipment.EquipmentUsage;
+import skku.gymbarofit.core.usage.equipment.dto.WorkoutHistoryResponseDto;
 import skku.gymbarofit.core.usage.equipment.enums.EquipmentUsageStatus;
 import skku.gymbarofit.core.usage.equipment.repository.EquipmentUsageRepository;
 
 import java.time.Clock;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
+import java.time.YearMonth;
 import java.util.List;
 import java.util.Optional;
 
@@ -105,6 +107,16 @@ public class EquipmentUsageInternalService {
                 memberId,
                 EquipmentUsageStatus.COMPLETED
         );
+    }
+
+    @Transactional(readOnly = true)
+    public WorkoutHistoryResponseDto getMonthlyHistory(Long memberId, int year, int month) {
+        YearMonth ym = YearMonth.of(year, month);
+        LocalDateTime start = ym.atDay(1).atStartOfDay();
+        LocalDateTime end = ym.plusMonths(1).atDay(1).atStartOfDay();
+        List<EquipmentUsage> usages =
+                equipmentUsageRepository.findCompletedByMemberIdAndMonth(memberId, start, end);
+        return WorkoutHistoryResponseDto.from(usages);
     }
 
     private LocalDateTime startOfToday() {

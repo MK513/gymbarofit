@@ -41,4 +41,12 @@ public interface LockerUsageRepository extends JpaRepository<LockerUsage, Long> 
     @Lock(LockModeType.PESSIMISTIC_WRITE)
     @Query("select u from LockerUsage u where u.id = :id and u.active = 1")
     Optional<LockerUsage> findActiveByIdForUpdate(@Param("id") Long id);
+
+    @Query("""
+        select count(u)
+        from LockerUsage u
+        where u.locker.lockerZone.gym.id = :gymId
+          and u.status = :status
+    """)
+    long countByGymIdAndStatus(@Param("gymId") Long gymId, @Param("status") LockerUsageStatus status);
 }

@@ -13,6 +13,7 @@ import EquipmentReservation from "./pages/gyms/EquipmentReservation"
 import MembershipRegister from "./pages/gyms/Register"
 import LockerRent from "./pages/lockers/rent"
 import LockerExtend from "./pages/lockers/extend"
+import OwnerDashboard from "./pages/owners/Dashboard"
 
 export default function App() {
   return (
@@ -23,11 +24,11 @@ export default function App() {
         <Routes>
           <Route path="/login" element={<Login />} />
           <Route path="/signup" element={<Signup />} />
-          
+
           {/* Member */}
           <Route element={<ProtectedRoute />}>
             <Route path="/" element={<MemberDashboard />} />
-            <Route path="/members/dashboard" element={<MemberDashboard />} />
+            <Route path="/members" element={<MemberDashboard />} />
             <Route path="/members/history" element={<WorkoutHistory />} />
 
             <Route path="/gyms/register" element={<MembershipRegister />} />
@@ -35,6 +36,11 @@ export default function App() {
 
             <Route path="/lockers/rent" element={<LockerRent />} />
             <Route path="/lockers/extend/:usageId" element={<LockerExtend />} />
+          </Route>
+
+          {/* Owner */}
+          <Route element={<ProtectedRoute />}>
+            <Route path="/owners" element={<OwnerDashboard />} />
           </Route>
         </Routes>
 

@@ -8,4 +8,6 @@ import java.util.List;
 public interface EquipmentRepository extends JpaRepository<Equipment, Long> {
 
     List<Equipment> findByGym_id(Long gymId);
+
+    int countByGym_Id(Long gymId);
 }

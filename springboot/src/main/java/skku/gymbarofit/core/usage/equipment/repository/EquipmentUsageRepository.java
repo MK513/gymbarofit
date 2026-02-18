@@ -24,6 +24,14 @@ public interface EquipmentUsageRepository extends JpaRepository<EquipmentUsage, 
     List<EquipmentUsage> findByGymIdAndStatusIn(Long gymId, List<EquipmentUsageStatus> statuses);
 
     @Query("""
+        select count(u)
+        from EquipmentUsage u
+        where u.gym.id = :gymId
+          and u.status = :status
+    """)
+    long countByGymIdAndStatus(@Param("gymId") Long gymId, @Param("status") EquipmentUsageStatus status);
+
+    @Query("""
         select u
         from EquipmentUsage u
         where u.member.id = :memberId
@@ -112,6 +120,23 @@ public interface EquipmentUsageRepository extends JpaRepository<EquipmentUsage, 
     List<EquipmentUsage> findTop3ByMemberIdAndStatusOrderByEndAtDesc(
             Long memberId,
             EquipmentUsageStatus status
+    );
+
+    @Query("""
+        select u
+        from EquipmentUsage u
+        join fetch u.equipment e
+        join fetch u.member m
+        where m.id = :memberId
+          and u.status = skku.gymbarofit.core.usage.equipment.enums.EquipmentUsageStatus.COMPLETED
+          and u.endAt >= :startOfMonth
+          and u.endAt < :startOfNextMonth
+        order by u.endAt asc
+    """)
+    List<EquipmentUsage> findCompletedByMemberIdAndMonth(
+            @Param("memberId") Long memberId,
+            @Param("startOfMonth") LocalDateTime startOfMonth,
+            @Param("startOfNextMonth") LocalDateTime startOfNextMonth
     );
 
 }
