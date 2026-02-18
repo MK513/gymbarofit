@@ -1,16 +1,17 @@
 import React, { useState, useEffect } from "react";
 import { Box, Container, Stack } from "@mui/material";
 import { useNavigate } from "react-router-dom";
-import { useAuth } from "../../context/AuthContext";
-import { getMembershipInfo, refundLocker } from "../../api/Api";
-import { useNotification } from "../../context/NotificationContext";
 
-// 분리된 하위 컴포넌트 임포트
+import { useAuth } from "../../context/AuthContext";
+import { getMembershipInfo, refundLocker, startUsage, endUsage, leaveQueue } from "../../api/Api";
+import { useNotification } from "../../context/NotificationContext";
+import { useSseNotifications } from "../../context/SseNotification";
+
+// 하위 컴포넌트
 import DashboardHeader from "../../components/members/dashboard/DashboardHeader";
 import GymInfoSection from "../../components/members/dashboard/GymInfoSection";
-import AttendanceCard from "../../components/members/dashboard/AttendanceCard";
 import StatsCard from "../../components/members/dashboard/StatsCard";
-import MachineReservationCard from "../../components/members/dashboard/MachineReservationCard";
+import EquipmentCard from "../../components/members/dashboard/EquipmentCard";
 import LockerCard from "../../components/members/dashboard/LockerCard";
 import QrCodeDialog from "../../components/members/dashboard/QrCodeDialog";
 import RefundDialog from "../../components/members/dashboard/RefundDialog";
@@ -19,23 +20,19 @@ export default function Dashboard() {
   const navigate = useNavigate();
   const { user, logout } = useAuth();
   const { showNotification } = useNotification();
+  const { notifications } = useSseNotifications(user?.id);
 
   // --- 상태 관리 ---
   const [lockerStatus, setLockerStatus] = useState({ use: false, number: 0, expiry: "", id: null, zoneName: "" });
-  const [equipStatus] = useState({ use: false, name: "", time: "" });
-  const [attendance, setAttendance] = useState({ streak: 3, checkedToday: false });
+  const [equipmentInfo, setEquipmentInfo] = useState({ usage: null, reservation: null });
+  const [historyInfo, setHistoryInfo] = useState({ totalMinutes: 0, totalCalories: 0, activities: [] });
   const [openQr, setOpenQr] = useState(false);
   const [openRefundDialog, setOpenRefundDialog] = useState(false);
   const [myGyms, setMyGyms] = useState([]);
   const [currentGym, setCurrentGym] = useState(null);
   const [crowdStatus, setCrowdStatus] = useState({ label: "정보 없음", bgColor: "#f5f5f5", color: "#9e9e9e", borderColor: "#e0e0e0" });
 
-  // --- 헬퍼 함수들 (포맷, 혼잡도 계산) ---
-  const formatDateFromArray = (dateArr) => {
-    if (!dateArr || dateArr.length < 3) return "";
-    return `${dateArr[0]}-${String(dateArr[1]).padStart(2, "0")}-${String(dateArr[2]).padStart(2, "0")}`;
-  };
-
+  // --- 헬퍼 함수들 ---
   const getCrowdLevelInfo = (level) => {
     switch (level) {
       case "VERY_COMFORTABLE": return { label: "매우 쾌적 🔵", bgColor: "#e3f2fd", color: "#1565c0", borderColor: "#90caf9" };
@@ -49,51 +46,103 @@ export default function Dashboard() {
 
   // --- API 호출 및 Effects ---
   const loadGymData = async (gymToLoad) => {
-     try {
-        if (!gymToLoad) {
-          setMyGyms([]);
-          setCurrentGym(null);
-          setLockerStatus({ use: false, number: 0, expiry: "" });
-          return;
-        }
-
-        const pathVariable = { gymId: gymToLoad.id };
-        const res = await getMembershipInfo(pathVariable);
-
-        setMyGyms(res.gymList);
-        setCurrentGym(gymToLoad);
-
-        if (res?.crowdLevel) {
-          setCrowdStatus(getCrowdLevelInfo(res.crowdLevel));
-        }
-
-        if (res.lockerUsage) {
-          setLockerStatus({
-            use: true,
-            number: res.lockerUsage.lockerNumber,
-            expiry: formatDateFromArray(res.lockerUsage.endDate),
-            id: res.lockerUsage.usageId,
-            zoneName: res.lockerUsage.zoneName,
-          });
-        } else {
-          setLockerStatus({ use: false, number: 0, expiry: "", id: null, zoneName: "" });
-        }
-      } catch (error) {
-        console.error("정보 로딩 실패", error);
-        showNotification("정보를 불러오지 못했습니다.", "error");
+    try {
+      if (!gymToLoad) {
+        setMyGyms([]);
+        setCurrentGym(null);
+        return;
       }
+
+      const pathVariable = { gymId: gymToLoad.id };
+      const res = await getMembershipInfo(pathVariable);
+
+      // 1. Gym 정보 (res.gym 내부로 이동)
+      if (res.gym) {
+        setMyGyms(res.gym.gymList || []);
+        setCurrentGym(gymToLoad);
+        setCrowdStatus(getCrowdLevelInfo(res.gym.crowdLevel));
+      }
+
+      // 2. 라커 정보 (res.lockerUsage)
+      if (res.lockerUsage) {
+        setLockerStatus({
+          use: true,
+          number: res.lockerUsage.lockerNumber,
+          expiry: res.lockerUsage.endDate 
+                  ? `${res.lockerUsage.endDate[0]}-${String(res.lockerUsage.endDate[1]).padStart(2, '0')}-${String(res.lockerUsage.endDate[2]).padStart(2, '0')}`
+                  : "",
+          id: res.lockerUsage.usageId,
+          zoneName: res.lockerUsage.zoneName,
+        });
+      } else {
+        setLockerStatus({ use: false, number: 0, expiry: "", id: null, zoneName: "" });
+      }
+
+      // 3. 운동 기구 정보 (res.equipmentUsage 내부로 이동)
+      const newEquipInfo = { usage: null, reservation: null };
+      const eq = res.equipmentUsage;
+
+      if (eq?.inUseDto) {
+        newEquipInfo.usage = {
+          uid: eq.inUseDto.usageId,
+          eid: eq.inUseDto.equipmentId,
+          name: eq.inUseDto.name,
+          imageUrl: eq.inUseDto.imageUrl,
+          time: "현재 이용 중",
+        };
+      }
+
+      if (eq?.waitingDto) {
+        newEquipInfo.reservation = {
+          uid: eq.waitingDto.usageId,
+          eid: eq.waitingDto.equipmentId,
+          name: eq.waitingDto.name,
+          imageUrl: eq.waitingDto.imageUrl,
+          time: `내 앞 대기 인원 ${eq.waitingDto.waitingCount}명`,
+        };
+      }
+      setEquipmentInfo(newEquipInfo);
+
+      // 4. 히스토리 정보 (res.history)
+      if (res.history) {
+        setHistoryInfo({
+          totalMinutes: res.history.todayTotalUsageMinutes,
+          totalCalories: res.history.todayTotalCalories,
+          activities: res.history.recentThreeUsages || [],
+        });
+      }
+
+    } catch (error) {
+      console.error("정보 로딩 실패", error);
+      showNotification("정보를 불러오지 못했습니다.", "error");
+    }
   };
 
   useEffect(() => {
     if (user?.gym) loadGymData(user.gym);
     else loadGymData(null);
-  }, []); // eslint-disable-line react-hooks/exhaustive-deps
+  }, []);
 
+  // --- [SSE] 새 알림 수신 시 처리 ---
   useEffect(() => {
-    if (!user) navigate("/login");
-  }, [user, navigate]);
-
-  if (!user) return null;
+    if (notifications.length > 0) {
+      const latest = notifications[0];
+      if (latest.type === "WAITING_AVAILABLE") {
+        showNotification(`${latest.title} ${latest.body}`, "info");
+        setEquipmentInfo(prev => {
+          if (!prev.reservation) return prev;
+          return {
+            ...prev,
+            reservation: {
+              ...prev.reservation,
+              status: "CALLED",
+              time: "지금 바로 사용 가능합니다!"
+            }
+          };
+        });
+      }
+    }
+  }, [notifications, showNotification]);
 
   // --- 이벤트 핸들러 ---
   const handleLogout = () => {
@@ -102,23 +151,10 @@ export default function Dashboard() {
     navigate("/login");
   };
 
-  const handleCheckIn = () => {
-    if (attendance.checkedToday) return;
-    setAttendance(prev => ({ streak: prev.streak + 1, checkedToday: true }));
-    alert(`출석체크 완료! 🔥\n${attendance.streak + 1}일 연속 운동 중입니다.`);
-  };
-
   const handleGymSelect = async (gym) => {
-    user.gym = gym; // AuthContext의 user 객체 업데이트 (필요시 context setter 사용 권장)
+    // 주의: user 객체 직접 변경보다 Context의 업데이트 함수 사용 권장
+    user.gym = gym; 
     await loadGymData(gym);
-  };
-
-  const handleRefundClick = () => {
-    if (!lockerStatus.id) {
-      showNotification("보관함 정보를 찾을 수 없습니다.", "error");
-      return;
-    }
-    setOpenRefundDialog(true);
   };
 
   const handleRefundConfirm = async () => {
@@ -128,11 +164,46 @@ export default function Dashboard() {
       setLockerStatus({ use: false, number: 0, expiry: "", id: null, zoneName: "" });
       setOpenRefundDialog(false);
     } catch (error) {
-      console.error("환불 실패", error);
-      showNotification(error.response?.data?.message || "환불 실패", "error");
+      showNotification("환불에 실패했습니다.", "error");
       setOpenRefundDialog(false);
     }
   };
+
+  const handleEquipmentReservationClick = () => {
+    navigate(`/gyms/${user.gym.id}/equipments`, {
+      state: { usage: equipmentInfo.usage },
+    });
+  }
+
+  const handleStartUsage = async () => {
+    try {
+      await startUsage({ usageId: equipmentInfo.reservation.uid });
+      showNotification("기구 사용을 시작합니다.", "success");
+      await loadGymData(user.gym);
+    } catch (e) {
+      showNotification("운동 시작 처리에 실패했습니다.", "error");
+    }
+  };
+
+  const handleEndUsage = async () => {
+    try {
+      await endUsage({ usageId: equipmentInfo.usage.uid });
+      showNotification("기구 사용이 종료되었습니다.", "success");
+      await loadGymData(user.gym);
+    } catch (e) {
+      showNotification("기구 사용 종료에 실패했습니다.", "error");
+    }
+  }
+
+  const handleLeftQueue = async () => {
+    try {
+      await leaveQueue({ usageId: equipmentInfo.reservation.uid });
+      showNotification("기구 예약이 취소되었습니다.", "success");
+      await loadGymData(user.gym);
+    } catch (e) {
+      showNotification("기구 예약 취소에 실패했습니다.", "error");
+    }
+  }
 
   return (
     <Box sx={{ flexGrow: 1, bgcolor: "#f5f7fa", minHeight: "100vh" }}>
@@ -140,9 +211,9 @@ export default function Dashboard() {
 
       <Container maxWidth="sm" sx={{ mt: 3, mb: 4, px: 3 }}>
         <Stack spacing={3} sx={{ width: "100%" }}>
-          
+
           <GymInfoSection 
-            userName={user.name || "회원"}
+            userName={user?.name ?? "회원"}
             currentGym={currentGym}
             myGyms={myGyms}
             crowdStatus={crowdStatus}
@@ -150,30 +221,32 @@ export default function Dashboard() {
             onRegister={() => navigate('/gyms/register')}
           />
 
-          <AttendanceCard 
-            attendance={attendance} 
-            onCheckIn={handleCheckIn} 
-            onOpenQr={() => setOpenQr(true)} 
+          <StatsCard 
+            totalMinutes={historyInfo.totalMinutes} 
+            totalCalories={historyInfo.totalCalories} 
+            activities={historyInfo.activities}
+            onMoreClick={() => navigate('/members/history')}
           />
 
-          <StatsCard weeklyProgress={70} />
-
-          <MachineReservationCard equipStatus={equipStatus} />
+          <EquipmentCard
+            usageData={equipmentInfo.usage}
+            reservationData={equipmentInfo.reservation}
+            onStartUsageClick={handleStartUsage}
+            onEndUsageClick={handleEndUsage}
+            onCancelReservationClick={handleLeftQueue}
+            onReservationClick={handleEquipmentReservationClick}
+          />
 
           <LockerCard 
             lockerStatus={lockerStatus} 
-            onRefundClick={handleRefundClick}
+            onRefundClick={() => setOpenRefundDialog(true)}
             onNewReservation={() => navigate('/lockers/rent')}
           />
 
         </Stack>
       </Container>
 
-      {/* Dialogs */}
-      <QrCodeDialog 
-        open={openQr} 
-        onClose={() => setOpenQr(false)} 
-      />
+      <QrCodeDialog open={openQr} onClose={() => setOpenQr(false)} />
       
       <RefundDialog 
         open={openRefundDialog} 

@@ -4,12 +4,14 @@ import jakarta.persistence.Entity;
 import jakarta.persistence.EnumType;
 import jakarta.persistence.Enumerated;
 import jakarta.persistence.Table;
+import lombok.Getter;
 import lombok.experimental.SuperBuilder;
 import skku.gymbarofit.core.user.User;
 import skku.gymbarofit.core.user.member.dto.MemberRegisterRequestDto;
 import skku.gymbarofit.core.user.enums.Gender;
 import skku.gymbarofit.core.user.enums.UserRole;
 
+@Getter
 @Entity
 @Table(name = "MEMBERS")
 @SuperBuilder
@@ -17,6 +19,10 @@ public class Member extends User {
 
     @Enumerated(EnumType.STRING)
     private Gender gender;
+
+    private float weight;
+
+    private float height;
 
     public Member() { super(); }
 

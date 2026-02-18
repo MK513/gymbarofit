@@ -7,7 +7,7 @@ export default function DashboardHeader({ onLogout }) {
   return (
     <AppBar position="static" color="inherit" elevation={0} sx={{ borderBottom: '1px solid #e0e0e0', bgcolor: "white" }}>
       <Toolbar>
-        <FitnessCenterIcon sx={{ mr: 2, color: "primary.main" }} />
+        {/* <FitnessCenterIcon sx={{ mr: 2, color: "primary.main" }} /> */}
         <Typography variant="h6" component="div" sx={{ flexGrow: 1, fontWeight: "800", color: "#333", letterSpacing: '-0.5px' }}>
           GYMBAROFIT
         </Typography>

@@ -17,3 +17,7 @@ spring:
 logging.level:
   org.hibernate.SQL: debug
   org.springframework.security: DEBUG
+
+app:
+  upload:
+    dir: C:/Users/finem/Desktop/gymbarofit/springboot/images

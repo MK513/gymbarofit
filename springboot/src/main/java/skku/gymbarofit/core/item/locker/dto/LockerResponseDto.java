@@ -2,7 +2,7 @@ package skku.gymbarofit.core.item.locker.dto;
 
 import skku.gymbarofit.core.item.enums.ItemStatus;
 import skku.gymbarofit.core.item.locker.Locker;
-import skku.gymbarofit.core.item.locker.enums.LockerUsageStatus;
+import skku.gymbarofit.core.usage.locker.enums.LockerUsageStatus;
 
 public record LockerResponseDto(
         Long id,

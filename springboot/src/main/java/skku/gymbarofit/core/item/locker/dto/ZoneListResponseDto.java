@@ -1,7 +1,5 @@
 package skku.gymbarofit.core.item.locker.dto;
 
-import lombok.AllArgsConstructor;
-import lombok.Getter;
 import skku.gymbarofit.core.item.locker.LockerZone;
 
 import java.util.List;
