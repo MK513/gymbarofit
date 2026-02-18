@@ -1,28 +1,32 @@
 package skku.gymbarofit.core.membership.dto;
 
 import lombok.Builder;
-import skku.gymbarofit.core.gym.Gym;
 import skku.gymbarofit.core.gym.dto.GymResponseDto;
-import skku.gymbarofit.core.gym.enums.GymCrowdLevel;
-import skku.gymbarofit.core.item.locker.LockerUsage;
+import skku.gymbarofit.core.usage.equipment.dto.EquipmentHistoryResponseDto;
+import skku.gymbarofit.core.usage.equipment.dto.EquipmentUsageDetailResponseDto;
+import skku.gymbarofit.core.usage.equipment.dto.EquipmentUsageResponseDto;
+import skku.gymbarofit.core.usage.locker.LockerUsage;
 import skku.gymbarofit.core.item.locker.dto.LockerRentResponseDto;
-
-import java.util.List;
 
 @Builder
 public record MembershipInfoResponseDto (
-        int gymCount,
-        List<GymResponseDto> gymList,
-        GymCrowdLevel crowdLevel,
-        LockerRentResponseDto lockerUsage
+        GymResponseDto gym,
+        LockerRentResponseDto lockerUsage,
+        EquipmentUsageResponseDto equipmentUsage,
+        EquipmentHistoryResponseDto history
 ) {
 
-    public static MembershipInfoResponseDto from(List<GymResponseDto> gymResponseDtoList, Gym gym, LockerUsage lockerUsage) {
+    public static MembershipInfoResponseDto from(
+            GymResponseDto gymResponseDto,
+            LockerUsage lockerUsage,
+            EquipmentUsageResponseDto equipmentUsage,
+            EquipmentHistoryResponseDto historyDto
+    ) {
         return MembershipInfoResponseDto.builder()
-                .gymList(gymResponseDtoList)
-                .gymCount(gymResponseDtoList.size())
-                .crowdLevel(gym.getCrowdLevel())
+                .gym(gymResponseDto)
                 .lockerUsage(LockerRentResponseDto.from(lockerUsage))
+                .equipmentUsage(equipmentUsage)
+                .history(historyDto)
                 .build();
     }
 }

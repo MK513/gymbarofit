@@ -1,19 +1,23 @@
 package skku.gymbarofit.core.log;
 
 import jakarta.persistence.*;
+import lombok.AccessLevel;
+import lombok.AllArgsConstructor;
 import lombok.Getter;
+import lombok.NoArgsConstructor;
 import org.springframework.data.annotation.CreatedDate;
 import org.springframework.data.jpa.domain.support.AuditingEntityListener;
 import skku.gymbarofit.core.gym.Gym;
 import skku.gymbarofit.core.user.member.Member;
 
-import java.time.Duration;
 import java.time.LocalDateTime;
 
 import static jakarta.persistence.FetchType.*;
 
 @MappedSuperclass
 @Getter
+@NoArgsConstructor(access = AccessLevel.PROTECTED)
+@AllArgsConstructor
 @EntityListeners(AuditingEntityListener.class)
 public abstract class SessionLog {
 
@@ -26,19 +30,7 @@ public abstract class SessionLog {
     private Gym gym;
 
     @CreatedDate
-    @Column(updatable = false)
-    private LocalDateTime startAt;
+    @Column(updatable = false, nullable = false)
+    private LocalDateTime occurredAt;
 
-    private LocalDateTime endAt;
-
-    @Transient
-    public Duration getDuration() {
-        if (startAt == null || endAt == null) return Duration.ZERO;
-        return Duration.between(startAt, endAt);
-    }
-    @Transient
-    public void end(LocalDateTime now) {
-        if (this.endAt != null) return; // 이미 종료된 세션이면 무시 or 예외
-        this.endAt = now;
-    }
 }

@@ -11,6 +11,8 @@ import skku.gymbarofit.api.security.userdetail.CustomUserDetails;
 import skku.gymbarofit.core.gym.Gym;
 import skku.gymbarofit.core.membership.Membership;
 import skku.gymbarofit.core.membership.service.MembershipInternalService;
+import skku.gymbarofit.core.usage.equipment.dto.WorkoutHistoryResponseDto;
+import skku.gymbarofit.core.usage.equipment.service.EquipmentUsageInternalService;
 import skku.gymbarofit.core.user.dto.LoginRequestDto;
 import skku.gymbarofit.api.user.dto.LoginResponseDto;
 import skku.gymbarofit.core.user.member.dto.MemberDetailResponseDto;
@@ -28,6 +30,7 @@ public class MemberService {
 
     private final MemberInternalService memberInternalService;
     private final MembershipInternalService membershipInternalService;
+    private final EquipmentUsageInternalService equipmentUsageInternalService;
     private final BCryptPasswordEncoder bCryptPasswordEncoder;
     private final AuthService authService;
 
@@ -53,6 +56,11 @@ public class MemberService {
         Gym gym = membershipInternalService.findFirstGymByMemberId(member.getId()).orElse(null);
 
         return new LoginResponseDto(jwtToken, member, gym);
+    }
+
+    @Transactional(readOnly = true)
+    public WorkoutHistoryResponseDto getWorkoutHistory(Long memberId, int year, int month) {
+        return equipmentUsageInternalService.getMonthlyHistory(memberId, year, month);
     }
 
 }

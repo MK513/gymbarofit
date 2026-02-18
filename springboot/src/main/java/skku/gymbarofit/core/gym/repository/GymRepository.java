@@ -18,4 +18,6 @@ public interface GymRepository extends JpaRepository<Gym, Long> {
            or lower(g.address) like lower(concat('%', :keyword, '%'))
     """)
     Page<Gym> findByKeyword(String keyword, Pageable pageable);
+
+    List<Gym> findByOwner_Id(Long ownerId);
 }

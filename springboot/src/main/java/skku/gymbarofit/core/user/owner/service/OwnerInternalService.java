@@ -21,6 +21,11 @@ public class OwnerInternalService {
                 .orElseThrow(() -> new UserException(UserErrorCode.USER_NOT_FOUND));
     }
 
+    public Owner findById(Long id) {
+        return ownerRepository.findById(id)
+                .orElseThrow(() -> new UserException(UserErrorCode.USER_NOT_FOUND));
+    }
+
     public Owner save(OwnerRegisterRequestDto requestDto, String encodedPassword) {
         if (ownerRepository.existsByEmail(requestDto.getEmail())) {
             throw new UserException(UserErrorCode.USER_ALREADY_EXIST);

@@ -1,81 +1,137 @@
 import React from "react";
-import { Paper, Box, Avatar, Typography, Stack, LinearProgress, List, ListItem, ListItemIcon, ListItemText, Chip, Button } from "@mui/material";
-import EmojiEventsIcon from '@mui/icons-material/EmojiEvents';
-import CalendarTodayIcon from '@mui/icons-material/CalendarToday';
-import AccessTimeIcon from '@mui/icons-material/AccessTime';
+import { Paper, Box, Typography, Stack, List, ListItem, ListItemIcon, ListItemText, Chip, Divider, Avatar, ButtonBase } from "@mui/material";
 import LocalFireDepartmentIcon from '@mui/icons-material/LocalFireDepartment';
 import FitnessCenterIcon from "@mui/icons-material/FitnessCenter";
-import TrendingUpIcon from "@mui/icons-material/TrendingUp";
+import TimerIcon from '@mui/icons-material/Timer';
+import ChevronRightIcon from '@mui/icons-material/ChevronRight';
+import BarChartIcon from '@mui/icons-material/BarChart'; // 요약 아이콘 추가
 
-export default function StatsCard({ weeklyProgress }) {
-  // 실제 앱에서는 props로 데이터를 받아올 수 있습니다. 여기선 UI 데모용 정적 데이터 유지.
+export default function StatsCard({ totalMinutes, totalCalories, activities = [], onMoreClick }) {
   return (
-    <Paper elevation={0} sx={{ p: 4, borderRadius: 4, border: '1px solid #eef2f6', boxShadow: '0 4px 20px rgba(0,0,0,0.05)' }}>
-      <Box display="flex" alignItems="center" mb={3}>
-        <Avatar sx={{ bgcolor: "primary.main", mr: 2, boxShadow: 2 }}>
-          <EmojiEventsIcon />
-        </Avatar>
-        <Box>
-          <Typography variant="h6" fontWeight="bold">이번 주 운동 목표</Typography>
-          <Typography variant="body2" color="text.secondary">목표 달성까지 30% 남았습니다.</Typography>
+    <Paper 
+      elevation={0} 
+      sx={{ 
+        p: 3, 
+        borderRadius: 4, 
+        border: '1px solid #eef2f6', 
+        boxShadow: '0 8px 24px rgba(149, 157, 165, 0.1)'
+      }}
+    >
+      {/* 상단 헤더 영역: 제목 + 아이콘 + 전체보기 버튼 */}
+      <Box mb={3}>
+        <Box display="flex" justifyContent="space-between" alignItems="flex-start">
+          <Stack direction="row" spacing={1} alignItems="center">
+            {/* 제목 왼쪽 아이콘 */}
+            <Avatar sx={{ width: 32, height: 32, bgcolor: 'primary.light', color: 'primary.main' }}>
+              <BarChartIcon sx={{ fontSize: 20 }} />
+            </Avatar>
+            <Box>
+              <Typography variant="h6" fontWeight="800" lineHeight={1.2}>
+                금일 운동 요약
+              </Typography>
+              <Typography variant="body2" color="text.secondary">
+                끈기 있는 모습이 멋져요!
+              </Typography>
+            </Box>
+          </Stack>
+
+          {/* 위치 이동: 전체 기록 보기 버튼 */}
+          <ButtonBase 
+            onClick={onMoreClick}
+            sx={{ 
+              color: 'primary.main', 
+              fontSize: '0.75rem', 
+              fontWeight: 'bold',
+              padding: '6px 10px',
+              borderRadius: 2,
+              bgcolor: 'rgba(25, 118, 210, 0.05)', // 배경색을 살짝 주어 버튼임을 강조
+              '&:hover': { bgcolor: 'rgba(25, 118, 210, 0.12)' }
+            }}
+          >
+            전체 보기 <ChevronRightIcon sx={{ fontSize: 16 }} />
+          </ButtonBase>
         </Box>
       </Box>
 
-      <Stack spacing={4}>
-        <Box>
-          <Box sx={{ mb: 4, p: 2, bgcolor: '#f8f9fa', borderRadius: 3}}>
-            <Box display="flex" justifyContent="space-between" mb={1} alignItems="flex-end">
-              <Typography variant="subtitle2" fontWeight="bold" color="text.secondary">주간 달성률</Typography>
-              <Typography variant="h5" color="primary" fontWeight="800">{weeklyProgress}%</Typography>
-            </Box>
-            <LinearProgress 
-              variant="determinate" 
-              value={weeklyProgress} 
-              sx={{ height: 10, borderRadius: 5, bgcolor: "#e0e0e0", '& .MuiLinearProgress-bar': { borderRadius: 5 } }} 
-            />
-          </Box>
-          
-          <Stack direction="row" spacing={2}>
-            <StatBox icon={<CalendarTodayIcon color="primary" sx={{ mb: 1, fontSize: 28 }} />} value="3일" label="출석" bgColor="#e3f2fd" />
-            <StatBox icon={<AccessTimeIcon color="warning" sx={{ mb: 1, fontSize: 28 }} />} value="240" label="분" bgColor="#fff3e0" />
-            <StatBox icon={<LocalFireDepartmentIcon color="error" sx={{ mb: 1, fontSize: 28 }} />} value="1.2k" label="kcal" bgColor="#fbe9e7" />
-          </Stack>
-        </Box>
-
-        <Box>
-           <Box display="flex" justifyContent="space-between" alignItems="center" mb={2}>
-             <Typography variant="subtitle1" fontWeight="bold">최근 운동 기록</Typography>
-             <Button size="small" sx={{ fontWeight: 'bold' }}>더보기</Button>
-           </Box>
-           <List disablePadding>
-              <RecentActivityItem title="상체 근력 운동" date="2024-01-05 · 60분" icon={<FitnessCenterIcon fontSize="small" />} color="#3f51b5" bg="#e8eaf6" type="primary" />
-              <RecentActivityItem title="유산소 러닝" date="2024-01-03 · 40분" icon={<TrendingUpIcon fontSize="small" />} color="#009688" bg="#e0f2f1" type="success" />
-           </List>
-        </Box>
+      {/* 메인 데이터 영역: 시간 & 칼로리 */}
+      <Stack direction="row" spacing={2} mb={4}>
+        <MainStatBox 
+          icon={<TimerIcon sx={{ fontSize: 32, color: '#448aff' }} />} 
+          value={totalMinutes} 
+          unit="분" 
+          label="운동 시간" 
+          bgColor="#f0f7ff" 
+        />
+        <MainStatBox 
+          icon={<LocalFireDepartmentIcon sx={{ fontSize: 32, color: '#ff5252' }} />} 
+          value={totalCalories} 
+          unit="kcal" 
+          label="소모 칼로리" 
+          bgColor="#fff5f5" 
+        />
       </Stack>
+
+      <Divider sx={{ mb: 3, borderStyle: 'dashed' }} />
+
+      {/* 하단 세부 리스트 */}
+      <Box>
+        <Typography variant="subtitle2" fontWeight="bold" color="text.secondary" mb={1}>
+          최근 기록
+        </Typography>
+        
+        <List disablePadding>
+          {activities.length > 0 ? activities.slice(0, 2).map((item, index) => (
+            <SimpleActivityItem key={index} title={item.title} subText={`${item.minutes}분 · ${item.calories}kcal`} />
+          )) : (
+            <Typography variant="body2" color="text.disabled" textAlign="center" py={2}>
+              기록된 상세 활동이 없습니다.
+            </Typography>
+          )}
+        </List>
+      </Box>
     </Paper>
   );
 }
 
-// 내부용 작은 컴포넌트들
-function StatBox({ icon, value, label, bgColor }) {
+// (MainStatBox 및 SimpleActivityItem 컴포넌트는 기존과 동일)
+function MainStatBox({ icon, value, unit, label, bgColor }) {
   return (
-    <Box sx={{ flex: 1, p: 2, borderRadius: 3, bgcolor: bgColor, textAlign: 'center' }}>
+    <Box sx={{ 
+      flex: 1, 
+      p: 2.5, 
+      borderRadius: 4, 
+      bgcolor: bgColor, 
+      display: 'flex', 
+      flexDirection: 'column', 
+      alignItems: 'center',
+      transition: 'transform 0.2s',
+      '&:hover': { transform: 'translateY(-4px)' }
+    }}>
       {icon}
-      <Typography variant="h5" fontWeight="800" color="text.primary">{value}</Typography>
-      <Typography variant="caption" color="text.secondary" fontWeight="bold">{label}</Typography>
+      <Box sx={{ mt: 1.5, display: 'flex', alignItems: 'baseline' }}>
+        <Typography variant="h4" fontWeight="900" color="text.primary">{value}</Typography>
+        <Typography variant="caption" fontWeight="bold" sx={{ ml: 0.5 }}>{unit}</Typography>
+      </Box>
+      <Typography variant="caption" color="text.secondary" fontWeight="700" sx={{ mt: 0.5 }}>
+        {label}
+      </Typography>
     </Box>
   );
 }
 
-function RecentActivityItem({ title, date, icon, color, bg, type }) {
+function SimpleActivityItem({ title, subText }) {
   return (
-    <ListItem sx={{ mb: 1.5, bgcolor: 'white', borderRadius: 2, border: '1px solid #f0f0f0', boxShadow: '0 2px 4px rgba(0,0,0,0.03)' }}>
-      <ListItemIcon>
-        <Avatar sx={{ bgcolor: bg, color: color, width: 36, height: 36 }}>{icon}</Avatar>
+    <ListItem sx={{ px: 1, py: 1 }}>
+      <ListItemIcon sx={{ minWidth: 40 }}>
+        <Avatar sx={{ width: 32, height: 32, bgcolor: '#f5f5f5' }}>
+          <FitnessCenterIcon sx={{ fontSize: 18, color: '#757575' }} />
+        </Avatar>
       </ListItemIcon>
-      <ListItemText primary={<Typography variant="subtitle2" fontWeight="bold">{title}</Typography>} secondary={date} />
-      <Chip label="완료" color={type} size="small" sx={{ fontWeight: 'bold', borderRadius: 1 }} />
+      <ListItemText 
+        primary={<Typography variant="body2" fontWeight="bold">{title}</Typography>} 
+        secondary={<Typography variant="caption" color="text.secondary">{subText}</Typography>} 
+      />
+      <Chip label="완료" size="small" variant="outlined" sx={{ height: 20, fontSize: '0.65rem', fontWeight: 'bold' }} />
     </ListItem>
   );
 }

@@ -78,7 +78,7 @@ export async function getLockerList(pathVarable) {
 }
 
 export async function getLockerInfo(pathVarable) {
-  const res = await call("/lockers/usages/{usageId}/extend", "GET", null, pathVarable);
+  const res = await call("/lockers/usages/{usageId}", "GET", null, pathVarable);
   return res;
 }
 
@@ -97,6 +97,32 @@ export async function extendLocker(dto, pathVarable) {
   return res;
 }
 
+/* ===== 기구 ===== */
+export async function createUsage(pathVarable) {
+  const res = await call("/equipments/{equipmentId}/usages", "POST", null, pathVarable);
+  return res;
+}
+
+export async function createQueue(pathVarable) {
+  const res = await call("/equipments/{equipmentId}/usages/wait", "POST", null, pathVarable);
+  return res;
+}
+
+export async function startUsage(pathVarable) {
+  const res = await call("/equipments/usages/{usageId}/start", "POST", null, pathVarable);
+  return res;
+}
+
+export async function endUsage(pathVarable) {
+  const res = await call("/equipments/usages/{usageId}/end", "POST", null, pathVarable);
+  return res;
+}
+
+export async function leaveQueue(pathVarable) {
+  const res = await call("/equipments/usages/{usageId}/cancel", "POST", null, pathVarable);
+  return res;
+}
+
 
 /* ===== 헬스장 ===== */
 export async function searchGym(dto) {
@@ -106,6 +132,28 @@ export async function searchGym(dto) {
 
 export async function registerGym(pathVarable) {
   const res = await call("/gyms/{gymId}/memberships", "POST", null, pathVarable);
+  return res;
+}
+
+export async function getEquipments(pathVarable) {
+  const res = await call("/gyms/{gymId}/equipments", "GET", null, pathVarable);
+  return res;
+}
+
+/* ===== 운동 기록 ===== */
+export async function getWorkoutHistory(dto) {
+  const res = await call("/members/history", "GET", dto);
+  return res;
+}
+
+/* ===== Owner ===== */
+export async function getOwnerGyms() {
+  const res = await call("/owners/gyms", "GET");
+  return res;
+}
+
+export async function createOwnerGym(dto) {
+  const res = await call("/owners/gyms", "POST", dto);
   return res;
 }
 
@@ -120,8 +168,7 @@ export async function loginOwner(dto) {
 
 async function login(url, dto) {
   const res = await call(url, "POST", dto);
-  localStorage.setItem("ACCESS_TOKEN", res.token.accessToken);
-  return res.userInfo;
+  return res;
 }
 
 /* ===== 회원가입 ===== */

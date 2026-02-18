@@ -1,18 +1,18 @@
 package skku.gymbarofit.api.user.owner;
 
 import lombok.RequiredArgsConstructor;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
-import skku.gymbarofit.api.security.service.AuthService;
-import skku.gymbarofit.api.security.token.OwnerUsernamePasswordAuthenticationToken;
-import skku.gymbarofit.api.security.userdetail.CustomUserDetails;
+import org.springframework.web.bind.annotation.*;
+import skku.gymbarofit.api.global.annotation.CurrentUserId;
+import skku.gymbarofit.api.user.dto.OwnerLoginResponseDto;
+import skku.gymbarofit.api.user.owner.dto.GymCreateRequestDto;
+import skku.gymbarofit.api.user.owner.dto.OwnerGymSummaryDto;
 import skku.gymbarofit.core.user.dto.LoginRequestDto;
-import skku.gymbarofit.api.user.dto.LoginResponseDto;
 import skku.gymbarofit.core.user.owner.dto.OwnerDetailResponseDto;
 import skku.gymbarofit.core.user.owner.dto.OwnerRegisterRequestDto;
+
+import java.util.List;
 
 @RestController
 @RequiredArgsConstructor
@@ -20,22 +20,12 @@ import skku.gymbarofit.core.user.owner.dto.OwnerRegisterRequestDto;
 public class OwnerApiController {
 
     private final OwnerService ownerService;
-    private final AuthService authService;
 
     @PostMapping("/login")
-    public ResponseEntity<LoginResponseDto> login(
+    public ResponseEntity<OwnerLoginResponseDto> login(
             @RequestBody LoginRequestDto loginRequestDto
     ) {
-
-        CustomUserDetails customUserDetails = authService.authenticateUser(
-                new OwnerUsernamePasswordAuthenticationToken(
-                        loginRequestDto.getEmail(),
-                        loginRequestDto.getPassword()
-                )
-        );
-
-//        return ResponseEntity.ok(authService.createJwtToken(customUserDetails));
-        return ResponseEntity.ok().build();
+        return ResponseEntity.ok(ownerService.login(loginRequestDto));
     }
 
     @PostMapping("/register")
@@ -43,5 +33,20 @@ public class OwnerApiController {
             @RequestBody OwnerRegisterRequestDto registerRequestDto
     ) {
         return ResponseEntity.ok(ownerService.register(registerRequestDto));
+    }
+
+    @GetMapping("/gyms")
+    public ResponseEntity<List<OwnerGymSummaryDto>> getMyGyms(
+            @CurrentUserId Long ownerId
+    ) {
+        return ResponseEntity.ok(ownerService.getMyGyms(ownerId));
+    }
+
+    @PostMapping("/gyms")
+    public ResponseEntity<OwnerGymSummaryDto> createGym(
+            @CurrentUserId Long ownerId,
+            @RequestBody GymCreateRequestDto dto
+    ) {
+        return ResponseEntity.status(HttpStatus.CREATED).body(ownerService.createGym(ownerId, dto));
     }
 }
