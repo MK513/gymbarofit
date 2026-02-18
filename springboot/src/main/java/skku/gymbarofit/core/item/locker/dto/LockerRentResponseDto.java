@@ -1,7 +1,7 @@
 package skku.gymbarofit.core.item.locker.dto;
 
 import lombok.Builder;
-import skku.gymbarofit.core.item.locker.LockerUsage;
+import skku.gymbarofit.core.usage.locker.LockerUsage;
 
 import java.time.LocalDate;
 

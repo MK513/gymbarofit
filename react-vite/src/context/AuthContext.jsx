@@ -1,38 +1,83 @@
-import React, { createContext, useState, useContext, useEffect } from 'react';
+import React, { createContext, useContext, useEffect, useMemo, useState } from "react";
 
-// Context 생성
 const AuthContext = createContext(null);
 
-export const AuthProvider = ({ children }) => {
-  const [user, setUser] = useState(null); // 사용자 정보 객체
+const USER_KEY = "USER";
+const TOKEN_KEY = "ACCESS_TOKEN";
 
-  // 앱 실행 시 localStorage에 저장된 정보가 있다면 불러오기 (로그인 유지)
+export function AuthProvider({ children }) {
+  const [initialized, setInitialized] = useState(false); // ✅ 복원 완료 여부
+  const [user, setUser] = useState(null);
+  const [accessToken, setAccessToken] = useState(null);
+
+  // ✅ 앱 시작 시 localStorage에서 복원
   useEffect(() => {
-    const storedUser = localStorage.getItem('USER');
-    if (storedUser) {
-      setUser(JSON.parse(storedUser));
+    try {
+      const storedUser = localStorage.getItem(USER_KEY);
+      const storedToken = localStorage.getItem(TOKEN_KEY);
+
+      if (storedUser) setUser(JSON.parse(storedUser));
+      if (storedToken) setAccessToken(storedToken);
+    } finally {
+      setInitialized(true);
     }
   }, []);
 
-  // 로그인 함수: API 응답으로 받은 데이터를 state와 localStorage에 저장
-  const login = (userData) => {
+  // ✅ 로그인: user/token 저장 + state 반영
+  const login = (userData, token) => {
     setUser(userData);
-    localStorage.setItem('USER', JSON.stringify(userData));
+    setAccessToken(token);
+
+    localStorage.setItem(USER_KEY, JSON.stringify(userData));
+    localStorage.setItem(TOKEN_KEY, token);
   };
 
-  // 로그아웃 함수: state 초기화 및 localStorage 삭제
+  // ✅ 로그아웃: 전부 제거
   const logout = () => {
     setUser(null);
-    localStorage.removeItem('USER');
-    localStorage.removeItem('ACCESS_TOKEN');
+    setAccessToken(null);
+
+    localStorage.removeItem(USER_KEY);
+    localStorage.removeItem(TOKEN_KEY);
   };
 
-  return (
-    <AuthContext.Provider value={{ user, login, logout }}>
-      {children}
-    </AuthContext.Provider>
-  );
-};
+  // ✅ 인증 여부는 "user && token" 기준 추천
+  const isAuthed = !!user && !!accessToken;
 
-// 커스텀 훅: 컴포넌트에서 쉽게 Context를 쓰기 위함
-export const useAuth = () => useContext(AuthContext);
+  const updateGym = (newGym) => {
+    setUser((prevUser) => {
+      if (!prevUser) return prevUser;
+
+      const updatedUser = {
+        ...prevUser,
+        gym: newGym,
+      };
+
+      // localStorage도 함께 갱신
+      localStorage.setItem("USER", JSON.stringify(updatedUser));
+
+      return updatedUser;
+    });
+  };
+
+  const value = useMemo(
+    () => ({
+      initialized,
+      user,
+      accessToken,
+      isAuthed,
+      login,
+      logout,
+      updateGym,
+    }),
+    [initialized, user, accessToken, isAuthed]
+  );
+
+  return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;
+}
+
+export function useAuth() {
+  const ctx = useContext(AuthContext);
+  if (!ctx) throw new Error("useAuth must be used within AuthProvider");
+  return ctx;
+}

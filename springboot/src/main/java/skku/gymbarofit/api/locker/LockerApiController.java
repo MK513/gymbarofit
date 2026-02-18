@@ -5,13 +5,15 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import skku.gymbarofit.api.locker.service.LockerFacade;
 import skku.gymbarofit.api.locker.service.LockerService;
-import skku.gymbarofit.api.membership.annotation.CurrentUserId;
+import skku.gymbarofit.api.global.annotation.CurrentUserId;
 import skku.gymbarofit.core.item.locker.dto.*;
 
 @RequestMapping("/lockers")
 @RequiredArgsConstructor
 @RestController
 public class LockerApiController {
+
+    //TODO API 경로 수정
 
     private final LockerService lockerService;
     private final LockerFacade lockerFacade;
@@ -47,7 +49,7 @@ public class LockerApiController {
         return ResponseEntity.noContent().build();
     }
 
-    @GetMapping("/usages/{usageId}/extend")
+    @GetMapping("/usages/{usageId}")
     public ResponseEntity<LockerRentResponseDto> lockerInfo(
             @PathVariable Long usageId
     ) {

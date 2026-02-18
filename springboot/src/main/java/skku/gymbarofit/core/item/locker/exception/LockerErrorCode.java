@@ -15,7 +15,6 @@ public enum LockerErrorCode implements ErrorCode{
     LOCKER_ALREADY_USED(HttpStatus.CONFLICT, "이미 사용 중인 보관함입니다"),
     USER_ALREADY_HAS_LOCKER(HttpStatus.CONFLICT, "이미 사용 중인 보관함이 있어 새로운 보관함을 사용할 수 없습니다"),
     USAGE_NOT_ACTIVE(HttpStatus.CONFLICT, "유효하지 않은 대여 상태입니다"),
-    UNKNOWN_ERROR(HttpStatus.INTERNAL_SERVER_ERROR, "알 수 없는 에러가 발생했습니다"),
     UNAUTHORIZED_REFUND(HttpStatus.FORBIDDEN, "권한이 없는 환불 요청입니다"),
     PROCESSED_REFUND(HttpStatus.CONFLICT, "이미 처리된 환불 요청입니다"),
     INACTIVE_CANNOT_EXTEND(HttpStatus.CONFLICT, "활성화되지 않은 사용권은 연장할 수 없습니다");
