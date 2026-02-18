@@ -14,8 +14,7 @@ export default function StatsCard({ totalMinutes, totalCalories, activities = []
         p: 3, 
         borderRadius: 4, 
         border: '1px solid #eef2f6', 
-        boxShadow: '0 8px 24px rgba(149, 157, 165, 0.1)',
-        maxWidth: 400 
+        boxShadow: '0 8px 24px rgba(149, 157, 165, 0.1)'
       }}
     >
       {/* 상단 헤더 영역: 제목 + 아이콘 + 전체보기 버튼 */}

@@ -51,11 +51,12 @@ export default function Login() {
 
         login(res.userInfo, res.token.accessToken);
 
-        navigate("/members/dashboard");
+        navigate("/members");
       } else {
-        await loginOwner(dto);
+        const res = await loginOwner(dto);
 
         login(res.userInfo, res.token.accessToken);
+        navigate("/owners");
       }
     } catch (e) {
       console.log("error", e);

@@ -140,6 +140,23 @@ export async function getEquipments(pathVarable) {
   return res;
 }
 
+/* ===== 운동 기록 ===== */
+export async function getWorkoutHistory(dto) {
+  const res = await call("/members/history", "GET", dto);
+  return res;
+}
+
+/* ===== Owner ===== */
+export async function getOwnerGyms() {
+  const res = await call("/owners/gyms", "GET");
+  return res;
+}
+
+export async function createOwnerGym(dto) {
+  const res = await call("/owners/gyms", "POST", dto);
+  return res;
+}
+
 /* ===== 로그인 ===== */
 export async function loginMember(dto) {
   return login("/members/login", dto);
