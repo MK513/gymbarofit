@@ -19,7 +19,7 @@ import {
   CircularProgress
 } from "@mui/material";
 import { useNavigate } from "react-router-dom";
-import { searchGym, registerGym } from "../../api/Api";
+import { searchGym, registerGym } from "../../api/gym";
 import { useNotification } from "../../context/NotificationContext";
 import { useAuth } from "../../context/AuthContext";
 
@@ -224,7 +224,7 @@ export default function Register() {
         {showMap && (
           <Paper
             elevation={0}
-            sx={{ height: 220, borderRadius: 3, border: "1px solid #eef2f6", overflow: "hidden", flexShrink: 0 }}
+            sx={{ height: "40vh", borderRadius: 3, border: "1px solid #eef2f6", overflow: "hidden", flexShrink: 0 }}
           >
             <KakaoMap address={selectedGym?.address} name={selectedGym?.name} />
           </Paper>

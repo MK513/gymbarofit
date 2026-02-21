@@ -5,7 +5,7 @@ import { useNavigate } from "react-router-dom";
 // Hooks & Context
 import { useAuth } from "../../context/AuthContext";
 import { useNotification } from "../../context/NotificationContext";
-import { getLockerZone, getLockerList, rentLocker } from "../../api/Api";
+import { getLockerZone, getLockerList, rentLocker } from "../../api/locker";
 
 // Utils
 import { mapLockerSizeToGridType } from "../../utils/lockerUtils";

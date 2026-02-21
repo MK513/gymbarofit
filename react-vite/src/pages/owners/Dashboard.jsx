@@ -9,18 +9,13 @@ import {
   IconButton,
   Chip,
   CircularProgress,
-  Dialog,
-  DialogTitle,
-  DialogContent,
-  DialogActions,
-  TextField,
   Divider,
   Stack,
 } from "@mui/material";
 import { useNavigate } from "react-router-dom";
 import { useAuth } from "../../context/AuthContext";
 import { useNotification } from "../../context/NotificationContext";
-import { getOwnerGyms, createOwnerGym } from "../../api/Api";
+import { getOwnerGyms } from "../../api/owner";
 
 import AddIcon from "@mui/icons-material/Add";
 import LogoutIcon from "@mui/icons-material/Logout";
@@ -97,7 +92,14 @@ function GymCard({ gym, onDetail }) {
         <Box display="flex" alignItems="center" gap={0.5} mb={1.5}>
           <AccessTimeIcon sx={{ fontSize: 13, color: "text.disabled" }} />
           <Typography variant="caption" color="text.disabled">
-            {gym.openAt} ~ {gym.closeAt}
+            {(() => {
+              const days = ["SUNDAY","MONDAY","TUESDAY","WEDNESDAY","THURSDAY","FRIDAY","SATURDAY"];
+              const today = days[new Date().getDay()];
+              const h = gym.operatingHours?.find((x) => x.dayOfWeek === today);
+              if (!h) return "운영시간 미등록";
+              if (h.closed) return "오늘 휴무";
+              return `${h.openAt} ~ ${h.closeAt}`;
+            })()}
           </Typography>
         </Box>
 
@@ -176,101 +178,6 @@ function StatBox({ icon, label, value, sub }) {
   );
 }
 
-/* 헬스장 등록 다이얼로그 */
-function CreateGymDialog({ open, onClose, onCreate }) {
-  const [form, setForm] = useState({
-    name: "",
-    address: "",
-    maxCapacity: "",
-    openAt: "06:00",
-    closeAt: "22:00",
-  });
-  const [loading, setLoading] = useState(false);
-
-  const handleChange = (e) => {
-    setForm((prev) => ({ ...prev, [e.target.name]: e.target.value }));
-  };
-
-  const handleSubmit = async () => {
-    if (!form.name || !form.address || !form.maxCapacity) return;
-    setLoading(true);
-    try {
-      await onCreate({ ...form, maxCapacity: Number(form.maxCapacity) });
-      setForm({ name: "", address: "", maxCapacity: "", openAt: "06:00", closeAt: "22:00" });
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  return (
-    <Dialog open={open} onClose={onClose} fullWidth maxWidth="xs">
-      <DialogTitle fontWeight="bold">헬스장 등록</DialogTitle>
-      <DialogContent>
-        <Stack spacing={2} mt={1}>
-          <TextField
-            label="헬스장 이름"
-            name="name"
-            value={form.name}
-            onChange={handleChange}
-            fullWidth
-            size="small"
-          />
-          <TextField
-            label="주소"
-            name="address"
-            value={form.address}
-            onChange={handleChange}
-            fullWidth
-            size="small"
-          />
-          <TextField
-            label="최대 수용 인원"
-            name="maxCapacity"
-            type="number"
-            value={form.maxCapacity}
-            onChange={handleChange}
-            fullWidth
-            size="small"
-            inputProps={{ min: 1 }}
-          />
-          <Box display="flex" gap={1}>
-            <TextField
-              label="개장 시간"
-              name="openAt"
-              type="time"
-              value={form.openAt}
-              onChange={handleChange}
-              fullWidth
-              size="small"
-              slotProps={{ inputLabel: { shrink: true } }}
-            />
-            <TextField
-              label="폐장 시간"
-              name="closeAt"
-              type="time"
-              value={form.closeAt}
-              onChange={handleChange}
-              fullWidth
-              size="small"
-              slotProps={{ inputLabel: { shrink: true } }}
-            />
-          </Box>
-        </Stack>
-      </DialogContent>
-      <DialogActions sx={{ px: 3, pb: 2 }}>
-        <Button onClick={onClose} disabled={loading}>취소</Button>
-        <Button
-          variant="contained"
-          onClick={handleSubmit}
-          disabled={loading || !form.name || !form.address || !form.maxCapacity}
-        >
-          {loading ? <CircularProgress size={18} /> : "등록"}
-        </Button>
-      </DialogActions>
-    </Dialog>
-  );
-}
-
 /* 메인 페이지 */
 export default function OwnerDashboard() {
   const navigate = useNavigate();
@@ -279,7 +186,6 @@ export default function OwnerDashboard() {
 
   const [gyms, setGyms] = useState([]);
   const [loading, setLoading] = useState(true);
-  const [dialogOpen, setDialogOpen] = useState(false);
 
   useEffect(() => {
     getOwnerGyms()
@@ -287,17 +193,6 @@ export default function OwnerDashboard() {
       .catch(() => showNotification("헬스장 목록을 불러오지 못했습니다.", "error"))
       .finally(() => setLoading(false));
   }, []);
-
-  const handleCreate = async (dto) => {
-    try {
-      const newGym = await createOwnerGym(dto);
-      setGyms((prev) => [...prev, newGym]);
-      setDialogOpen(false);
-      showNotification("헬스장이 등록되었습니다!", "success");
-    } catch {
-      showNotification("헬스장 등록에 실패했습니다.", "error");
-    }
-  };
 
   const handleLogout = () => {
     logout();
@@ -350,7 +245,7 @@ export default function OwnerDashboard() {
             variant="contained"
             startIcon={<AddIcon />}
             size="small"
-            onClick={() => setDialogOpen(true)}
+            onClick={() => navigate("/owners/gyms/register")}
             sx={{ borderRadius: 2, fontWeight: "bold" }}
           >
             헬스장 등록
@@ -393,13 +288,6 @@ export default function OwnerDashboard() {
           </Stack>
         )}
       </Box>
-
-      {/* 헬스장 등록 다이얼로그 */}
-      <CreateGymDialog
-        open={dialogOpen}
-        onClose={() => setDialogOpen(false)}
-        onCreate={handleCreate}
-      />
     </Box>
   );
 }

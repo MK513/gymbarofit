@@ -14,6 +14,8 @@ import skku.gymbarofit.api.user.owner.dto.GymCreateRequestDto;
 import skku.gymbarofit.api.user.owner.dto.LockerZoneCreateRequestDto;
 import skku.gymbarofit.api.user.owner.dto.OwnerGymSummaryDto;
 import skku.gymbarofit.core.gym.Gym;
+import skku.gymbarofit.core.gym.GymOperatingHour;
+import skku.gymbarofit.core.gym.repository.GymOperatingHourRepository;
 import skku.gymbarofit.core.gym.repository.GymRepository;
 import skku.gymbarofit.core.gym.service.GymInternalService;
 import skku.gymbarofit.core.item.equipment.Equipment;
@@ -33,6 +35,7 @@ import skku.gymbarofit.core.user.owner.dto.OwnerDetailResponseDto;
 import skku.gymbarofit.core.user.owner.dto.OwnerRegisterRequestDto;
 import skku.gymbarofit.core.user.owner.service.OwnerInternalService;
 
+import java.time.DayOfWeek;
 import java.time.LocalTime;
 import java.util.List;
 import java.util.stream.IntStream;
@@ -46,6 +49,7 @@ public class OwnerService {
     private final OwnerInternalService ownerInternalService;
     private final AuthService authService;
     private final GymRepository gymRepository;
+    private final GymOperatingHourRepository gymOperatingHourRepository;
     private final GymInternalService gymInternalService;
     private final EquipmentRepository equipmentRepository;
     private final EquipmentUsageRepository equipmentUsageRepository;
@@ -77,12 +81,22 @@ public class OwnerService {
 
     public OwnerGymSummaryDto createGym(Long ownerId, GymCreateRequestDto dto) {
         Owner owner = ownerInternalService.findById(ownerId);
-        Gym gym = Gym.create(
-                dto.name(), dto.address(), dto.maxCapacity(),
-                LocalTime.parse(dto.openAt()), LocalTime.parse(dto.closeAt()),
-                owner
-        );
+        Gym gym = Gym.create(dto.name(), dto.postalCode(), dto.address(), dto.maxCapacity(), owner);
         gymRepository.save(gym);
+
+        if (dto.operatingHours() != null) {
+            List<GymOperatingHour> hours = dto.operatingHours().stream()
+                    .map(h -> GymOperatingHour.create(
+                            gym,
+                            DayOfWeek.valueOf(h.dayOfWeek()),
+                            h.closed() || h.openAt() == null ? null : LocalTime.parse(h.openAt()),
+                            h.closed() || h.closeAt() == null ? null : LocalTime.parse(h.closeAt()),
+                            h.closed()
+                    ))
+                    .toList();
+            gymOperatingHourRepository.saveAll(hours);
+        }
+
         return OwnerGymSummaryDto.of(gym, 0, 0, 0, 0);
     }
 

@@ -16,7 +16,7 @@ import {
   CircularProgress
 } from "@mui/material";
 import { useNavigate, useParams } from "react-router-dom";
-import { getLockerInfo, extendLocker } from "../../api/Api";
+import { getLockerInfo, extendLocker } from "../../api/locker";
 import { useNotification } from "../../context/NotificationContext";
 import LockerPaymentDialog from "../../components/lockers/LockerPaymentDialog";; // Dialog 컴포넌트 import
 

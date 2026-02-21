@@ -14,7 +14,7 @@ import ChevronRightIcon from '@mui/icons-material/ChevronRight';
 import FitnessCenterIcon from "@mui/icons-material/FitnessCenter";
 import AutoAwesomeIcon from "@mui/icons-material/AutoAwesome";
 
-import { getWorkoutHistory } from "../../api/Api";
+import { getWorkoutHistory } from "../../api/member";
 import { useNotification } from "../../context/NotificationContext";
 
 // 이번 주 월~일 Date 배열 반환

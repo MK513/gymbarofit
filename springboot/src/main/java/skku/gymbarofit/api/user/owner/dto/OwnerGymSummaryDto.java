@@ -2,12 +2,13 @@ package skku.gymbarofit.api.user.owner.dto;
 
 import skku.gymbarofit.core.gym.Gym;
 
+import java.util.List;
+
 public record OwnerGymSummaryDto(
         Long id,
         String name,
         String address,
-        String openAt,
-        String closeAt,
+        List<DayScheduleDto> operatingHours,
         int currentOccupancy,
         int maxCapacity,
         String crowdLevel,
@@ -19,12 +20,20 @@ public record OwnerGymSummaryDto(
     public static OwnerGymSummaryDto of(Gym gym,
                                         int totalEquipments, int activeEquipments,
                                         int totalLockers, int rentedLockers) {
+        List<DayScheduleDto> hours = gym.getOperatingHours().stream()
+                .map(h -> new DayScheduleDto(
+                        h.getDayOfWeek().name(),
+                        h.getOpenAt() != null ? h.getOpenAt().toString() : null,
+                        h.getCloseAt() != null ? h.getCloseAt().toString() : null,
+                        h.isClosed()
+                ))
+                .toList();
+
         return new OwnerGymSummaryDto(
                 gym.getId(),
                 gym.getName(),
                 gym.getAddress(),
-                gym.getOpenAt() != null ? gym.getOpenAt().toString() : null,
-                gym.getCloseAt() != null ? gym.getCloseAt().toString() : null,
+                hours,
                 gym.getCurrentOccupancy(),
                 gym.getMaxCapacity(),
                 gym.getCrowdLevel() != null ? gym.getCrowdLevel().name() : null,

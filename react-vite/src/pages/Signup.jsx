@@ -24,7 +24,7 @@ import HomeOutlinedIcon from "@mui/icons-material/HomeOutlined";
 import BadgeOutlinedIcon from "@mui/icons-material/BadgeOutlined";
 import ManOutlinedIcon from "@mui/icons-material/ManOutlined";
 
-import { signupMember, signupOwner } from "../api/Api";
+import { signupMember, signupOwner } from "../api/auth";
 
 export default function Signup() {
   const navigate = useNavigate();

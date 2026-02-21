@@ -16,7 +16,7 @@ import PersonOutlineIcon from "@mui/icons-material/PersonOutline";
 import StorefrontOutlinedIcon from "@mui/icons-material/StorefrontOutlined";
 import FitnessCenterIcon from "@mui/icons-material/FitnessCenter";
 
-import { loginMember, loginOwner } from "../api/Api";
+import { loginMember, loginOwner } from "../api/auth";
 import { useAuth } from "../context/AuthContext";
 
 export default function Login() {
@@ -34,11 +34,11 @@ export default function Login() {
       const dto = { email, password: pw };
       if (role === "member") {
         const res = await loginMember(dto);
-        login(res.userInfo, res.token.accessToken);
+        login({ ...res.userInfo, role }, res.token.accessToken);
         navigate("/members");
       } else {
         const res = await loginOwner(dto);
-        login(res.userInfo, res.token.accessToken);
+        login({ ...res.userInfo, role }, res.token.accessToken);
         navigate("/owners");
       }
     } catch (e) {

@@ -12,7 +12,8 @@ import {
 } from "@mui/icons-material";
 import { useNavigate, useLocation } from "react-router-dom";
 import { useNotification } from "../../context/NotificationContext";
-import { getEquipments, createUsage, createQueue } from "../../api/Api";
+import { getEquipments } from "../../api/gym";
+import { createUsage, createQueue } from "../../api/equipment";
 import { useAuth } from "../../context/AuthContext";
 import { BUCKET_BASE_URL } from "../../api-config";
 import { useSseNotifications } from "../../context/SseNotification";

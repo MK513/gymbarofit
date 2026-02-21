@@ -6,7 +6,8 @@ import skku.gymbarofit.core.global.domain.BaseTimeEntity;
 import skku.gymbarofit.core.gym.enums.GymCrowdLevel;
 import skku.gymbarofit.core.user.owner.Owner;
 
-import java.time.LocalTime;
+import java.util.ArrayList;
+import java.util.List;
 
 import static jakarta.persistence.FetchType.LAZY;
 
@@ -21,6 +22,8 @@ public class Gym extends BaseTimeEntity {
 
     private String name;
 
+    private String postalCode;
+
     private String address;
 
     private int currentOccupancy;
@@ -31,24 +34,21 @@ public class Gym extends BaseTimeEntity {
     @Column(name = "crowd_level")
     private GymCrowdLevel crowdLevel;
 
-    private LocalTime openAt;
-
-    private LocalTime closeAt;
-
     @ManyToOne(fetch = LAZY, optional = true)
     @JoinColumn(name = "owner_id")
     private Owner owner;
 
-    public static Gym create(String name, String address, int maxCapacity,
-                             LocalTime openAt, LocalTime closeAt, Owner owner) {
+    @OneToMany(mappedBy = "gym", cascade = CascadeType.ALL, orphanRemoval = true)
+    private List<GymOperatingHour> operatingHours = new ArrayList<>();
+
+    public static Gym create(String name, String postalCode, String address, int maxCapacity, Owner owner) {
         Gym gym = new Gym();
         gym.name = name;
+        gym.postalCode = postalCode;
         gym.address = address;
         gym.maxCapacity = maxCapacity;
         gym.currentOccupancy = 0;
         gym.crowdLevel = GymCrowdLevel.VERY_COMFORTABLE;
-        gym.openAt = openAt;
-        gym.closeAt = closeAt;
         gym.owner = owner;
         return gym;
     }

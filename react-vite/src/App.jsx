@@ -10,9 +10,9 @@ import MemberDashboard from "./pages/members/Dashboard"
 import WorkoutHistory from "./pages/members/WorkoutHistory"
 
 import EquipmentReservation from "./pages/gyms/EquipmentReservation"
-import MembershipRegister from "./pages/gyms/Register"
-import LockerRent from "./pages/lockers/rent"
-import LockerExtend from "./pages/lockers/extend"
+import MembershipRegister from "./pages/gyms/MembershipRegister"
+import LockerRent from "./pages/lockers/Rent"
+import LockerExtend from "./pages/lockers/Extend"
 import OwnerDashboard from "./pages/owners/Dashboard"
 import GymRegister from "./pages/owners/GymRegister"
 
@@ -26,8 +26,8 @@ export default function App() {
           <Route path="/login" element={<Login />} />
           <Route path="/signup" element={<Signup />} />
 
-          {/* Member */}
-          <Route element={<ProtectedRoute />}>
+          {/* Member 전용 */}
+          <Route element={<ProtectedRoute requiredRole="member" />}>
             <Route path="/" element={<MemberDashboard />} />
             <Route path="/members" element={<MemberDashboard />} />
             <Route path="/members/history" element={<WorkoutHistory />} />
@@ -39,8 +39,8 @@ export default function App() {
             <Route path="/lockers/extend/:usageId" element={<LockerExtend />} />
           </Route>
 
-          {/* Owner */}
-          <Route element={<ProtectedRoute />}>
+          {/* Owner 전용 */}
+          <Route element={<ProtectedRoute requiredRole="owner" />}>
             <Route path="/owners" element={<OwnerDashboard />} />
             <Route path="/owners/gyms/register" element={<GymRegister />} />
           </Route>
