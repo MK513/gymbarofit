@@ -5,6 +5,7 @@ import lombok.Getter;
 import lombok.ToString;
 import skku.gymbarofit.core.gym.Gym;
 import skku.gymbarofit.core.item.ItemInfo;
+import skku.gymbarofit.core.item.enums.ItemStatus;
 
 @Entity
 @Getter
@@ -20,7 +21,7 @@ public class Equipment{
     private Gym gym;
 
     private String type;
-    
+
     private String imageUrl;
 
     private String serialNumber;
@@ -32,4 +33,13 @@ public class Equipment{
 
     //TODO: 일단 string인데 이후에 리액트 보고 좌표값으로 수정 필요
     private String location;
+
+    public static Equipment create(Gym gym, String name, String type, String location) {
+        Equipment e = new Equipment();
+        e.gym = gym;
+        e.type = type;
+        e.location = location;
+        e.itemInfo = ItemInfo.create(name, ItemStatus.OK);
+        return e;
+    }
 }

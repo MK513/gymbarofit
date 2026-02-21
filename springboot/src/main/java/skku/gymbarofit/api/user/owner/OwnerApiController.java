@@ -6,7 +6,9 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import skku.gymbarofit.api.global.annotation.CurrentUserId;
 import skku.gymbarofit.api.user.dto.OwnerLoginResponseDto;
+import skku.gymbarofit.api.user.owner.dto.EquipmentCreateRequestDto;
 import skku.gymbarofit.api.user.owner.dto.GymCreateRequestDto;
+import skku.gymbarofit.api.user.owner.dto.LockerZoneCreateRequestDto;
 import skku.gymbarofit.api.user.owner.dto.OwnerGymSummaryDto;
 import skku.gymbarofit.core.user.dto.LoginRequestDto;
 import skku.gymbarofit.core.user.owner.dto.OwnerDetailResponseDto;
@@ -48,5 +50,25 @@ public class OwnerApiController {
             @RequestBody GymCreateRequestDto dto
     ) {
         return ResponseEntity.status(HttpStatus.CREATED).body(ownerService.createGym(ownerId, dto));
+    }
+
+    @PostMapping("/gyms/{gymId}/equipments")
+    public ResponseEntity<Void> addEquipments(
+            @CurrentUserId Long ownerId,
+            @PathVariable Long gymId,
+            @RequestBody EquipmentCreateRequestDto dto
+    ) {
+        ownerService.addEquipments(ownerId, gymId, dto);
+        return ResponseEntity.status(HttpStatus.CREATED).build();
+    }
+
+    @PostMapping("/gyms/{gymId}/locker-zones")
+    public ResponseEntity<Void> addLockerZone(
+            @CurrentUserId Long ownerId,
+            @PathVariable Long gymId,
+            @RequestBody LockerZoneCreateRequestDto dto
+    ) {
+        ownerService.addLockerZone(ownerId, gymId, dto);
+        return ResponseEntity.status(HttpStatus.CREATED).build();
     }
 }

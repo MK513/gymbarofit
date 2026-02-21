@@ -157,6 +157,16 @@ export async function createOwnerGym(dto) {
   return res;
 }
 
+export async function createOwnerGymEquipments(dto, pathVarable) {
+  const res = await call("/owners/gyms/{gymId}/equipments", "POST", dto, pathVarable);
+  return res;
+}
+
+export async function createOwnerGymLockerZones(dto, pathVarable) {
+  const res = await call("/owners/gyms/{gymId}/locker-zones", "POST", dto, pathVarable);
+  return res;
+}
+
 /* ===== 로그인 ===== */
 export async function loginMember(dto) {
   return login("/members/login", dto);

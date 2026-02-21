@@ -33,4 +33,14 @@ public class LockerZone {
     public int getTotalCount() {
         return rowCount * columnCount;
     }
+
+    public static LockerZone create(Gym gym, String name, SizeStatus size, int rowCount, int columnCount) {
+        LockerZone zone = new LockerZone();
+        zone.gym = gym;
+        zone.name = name;
+        zone.lockerSize = size;
+        zone.rowCount = rowCount;
+        zone.columnCount = columnCount;
+        return zone;
+    }
 }

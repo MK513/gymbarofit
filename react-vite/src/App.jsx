@@ -14,6 +14,7 @@ import MembershipRegister from "./pages/gyms/Register"
 import LockerRent from "./pages/lockers/rent"
 import LockerExtend from "./pages/lockers/extend"
 import OwnerDashboard from "./pages/owners/Dashboard"
+import GymRegister from "./pages/owners/GymRegister"
 
 export default function App() {
   return (
@@ -41,6 +42,7 @@ export default function App() {
           {/* Owner */}
           <Route element={<ProtectedRoute />}>
             <Route path="/owners" element={<OwnerDashboard />} />
+            <Route path="/owners/gyms/register" element={<GymRegister />} />
           </Route>
         </Routes>
 
