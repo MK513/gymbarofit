@@ -15,6 +15,7 @@ import skku.gymbarofit.api.user.owner.dto.LockerZoneCreateRequestDto;
 import skku.gymbarofit.api.user.owner.dto.OwnerGymSummaryDto;
 import skku.gymbarofit.core.gym.Gym;
 import skku.gymbarofit.core.gym.GymOperatingHour;
+import skku.gymbarofit.core.gym.enums.GymStatus;
 import skku.gymbarofit.core.gym.repository.GymOperatingHourRepository;
 import skku.gymbarofit.core.gym.repository.GymRepository;
 import skku.gymbarofit.core.gym.service.GymInternalService;
@@ -81,7 +82,8 @@ public class OwnerService {
 
     public OwnerGymSummaryDto createGym(Long ownerId, GymCreateRequestDto dto) {
         Owner owner = ownerInternalService.findById(ownerId);
-        Gym gym = Gym.create(dto.name(), dto.postalCode(), dto.address(), dto.maxCapacity(), owner);
+        GymStatus status = dto.status() != null ? GymStatus.valueOf(dto.status()) : GymStatus.ACTIVE;
+        Gym gym = Gym.create(dto.name(), dto.postalCode(), dto.address(), dto.maxCapacity(), owner, status);
         gymRepository.save(gym);
 
         if (dto.operatingHours() != null) {
@@ -100,10 +102,26 @@ public class OwnerService {
         return OwnerGymSummaryDto.of(gym, 0, 0, 0, 0);
     }
 
+    public void finalizeGym(Long ownerId, Long gymId) {
+        Gym gym = gymInternalService.findById(gymId);
+        gym.activate();
+    }
+
+    public void saveGymMap(Long ownerId, Long gymId, String mapJson) {
+        Gym gym = gymInternalService.findById(gymId);
+        gym.saveMap(mapJson);
+    }
+
+    @Transactional(readOnly = true)
+    public String getGymMap(Long ownerId, Long gymId) {
+        Gym gym = gymInternalService.findById(gymId);
+        return gym.getMapData();
+    }
+
     public void addEquipments(Long ownerId, Long gymId, EquipmentCreateRequestDto dto) {
         Gym gym = gymInternalService.findById(gymId);
         List<Equipment> list = IntStream.range(0, dto.count())
-                .mapToObj(i -> Equipment.create(gym, dto.name(), dto.type(), dto.location()))
+                .mapToObj(i -> Equipment.create(gym, dto.name(), dto.type(), dto.imageUrl()))
                 .toList();
         equipmentRepository.saveAll(list);
     }

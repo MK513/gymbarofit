@@ -11,6 +11,8 @@ import {
   CircularProgress,
   Divider,
   Stack,
+  Menu,
+  MenuItem,
 } from "@mui/material";
 import { useNavigate } from "react-router-dom";
 import { useAuth } from "../../context/AuthContext";
@@ -25,6 +27,7 @@ import PeopleIcon from "@mui/icons-material/People";
 import ChevronRightIcon from "@mui/icons-material/ChevronRight";
 import StorefrontIcon from "@mui/icons-material/Storefront";
 import AccessTimeIcon from "@mui/icons-material/AccessTime";
+import MapIcon from "@mui/icons-material/Map";
 
 /* 혼잡도 → 색상 / 레이블 */
 const crowdMeta = {
@@ -35,7 +38,8 @@ const crowdMeta = {
   VERY_CROWDED:     { label: "매우 혼잡", color: "#b71c1c", bg: "#ffcdd2" },
 };
 
-function GymCard({ gym, onDetail }) {
+function GymCard({ gym, onDetail, onMapEdit }) {
+  const [menuAnchor, setMenuAnchor] = useState(null);
   const crowd = crowdMeta[gym.crowdLevel] ?? crowdMeta.NORMAL;
   const lockerPct = gym.totalLockers > 0
     ? Math.round((gym.rentedLockers / gym.totalLockers) * 100)
@@ -140,11 +144,26 @@ function GymCard({ gym, onDetail }) {
           variant="outlined"
           size="small"
           endIcon={<ChevronRightIcon />}
-          onClick={() => onDetail(gym.id)}
+          onClick={(e) => setMenuAnchor(e.currentTarget)}
           sx={{ borderRadius: 2, fontWeight: "bold", fontSize: "0.8rem" }}
         >
           상세 관리
         </Button>
+        <Menu
+          anchorEl={menuAnchor}
+          open={Boolean(menuAnchor)}
+          onClose={() => setMenuAnchor(null)}
+          PaperProps={{ sx: { borderRadius: 2, minWidth: 160 } }}
+        >
+          <MenuItem onClick={() => { setMenuAnchor(null); onDetail(gym.id); }}>
+            <StorefrontIcon fontSize="small" sx={{ mr: 1, color: "primary.main" }} />
+            상세 보기
+          </MenuItem>
+          <MenuItem onClick={() => { setMenuAnchor(null); onMapEdit(gym.id); }}>
+            <MapIcon fontSize="small" sx={{ mr: 1, color: "success.main" }} />
+            맵 편집
+          </MenuItem>
+        </Menu>
       </Box>
     </Paper>
   );
@@ -283,6 +302,7 @@ export default function OwnerDashboard() {
                 key={gym.id}
                 gym={gym}
                 onDetail={(id) => navigate(`/owners/gyms/${id}`)}
+                onMapEdit={(id) => navigate(`/owners/gyms/${id}/map`)}
               />
             ))}
           </Stack>

@@ -7,5 +7,6 @@ public record GymCreateRequestDto(
         String postalCode,
         String address,
         int maxCapacity,
-        List<DayScheduleDto> operatingHours
+        List<DayScheduleDto> operatingHours,
+        String status  // "DRAFT" | "ACTIVE" — null 이면 ACTIVE
 ) {}

@@ -135,13 +135,13 @@ export default function EquipmentReservation() {
     try {
       showNotification(`${selectedMachine.name} 사용을 시작합니다.`, "success");
       await createUsage({equipmentId: selectedMachine.id});
-      navigate("/");
+      navigate("/members");
     } catch (e) { showNotification(`${selectedMachine.name} 사용에 실패했습니다.`, "error"); }
   };
   const handleJoinQueue = async () => {
     //setMachines(prev => prev.map(m => m.id === selectedMachine.id ? { ...m, queue: m.queue + 1 } : m));
     await createQueue({equipmentId: selectedMachine.id});
-    navigate("/");
+    navigate("/members");
     showNotification(`${selectedMachine.name} 대기열에 등록되었습니다.`, "success");
   };
   const getStatusColor = (machine) => {

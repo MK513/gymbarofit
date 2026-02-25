@@ -149,7 +149,7 @@ export default function LockerRent() {
   
       showNotification(`[${currentZoneName}] ${lockerNum}번 보관함 대여 완료!`, "success");
       setIsPaymentDialogOpen(false); 
-      navigate("/"); 
+      navigate("/members");
 
     } catch (error) {
       console.error("보관함 대여 실패:", error);

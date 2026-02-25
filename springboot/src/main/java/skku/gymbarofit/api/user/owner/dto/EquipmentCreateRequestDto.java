@@ -4,5 +4,5 @@ public record EquipmentCreateRequestDto(
         String name,
         String type,
         int count,
-        String location
+        String imageUrl
 ) {}

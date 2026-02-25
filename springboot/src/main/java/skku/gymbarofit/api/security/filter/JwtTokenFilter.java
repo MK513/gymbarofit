@@ -54,7 +54,7 @@ public class JwtTokenFilter extends OncePerRequestFilter {
 
                 String jwt = getJwtTokenFromRequest(request);
 
-                log.warn("JWT Token Validation Succeeded. {}", jwt);
+                //log.warn("JWT Token Validation Succeeded. {}", jwt);
 
                 if (StringUtils.hasText(jwt)) {
 //                    String clientUuid = getClientUuid(request);

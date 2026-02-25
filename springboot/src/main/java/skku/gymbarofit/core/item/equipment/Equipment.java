@@ -34,11 +34,11 @@ public class Equipment{
     //TODO: 일단 string인데 이후에 리액트 보고 좌표값으로 수정 필요
     private String location;
 
-    public static Equipment create(Gym gym, String name, String type, String location) {
+    public static Equipment create(Gym gym, String name, String type, String imageUrl) {
         Equipment e = new Equipment();
         e.gym = gym;
         e.type = type;
-        e.location = location;
+        e.imageUrl = imageUrl;
         e.itemInfo = ItemInfo.create(name, ItemStatus.OK);
         return e;
     }

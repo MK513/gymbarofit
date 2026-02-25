@@ -29,6 +29,9 @@ WORKDIR /app
 # Create upload directory for images
 RUN mkdir -p /app/images
 
+# Copy seed images into the container (for named volume initialization)
+COPY images/ /app/images/
+
 # Copy the built JAR from builder stage
 COPY --from=builder /workspace/build/libs/*.jar app.jar
 

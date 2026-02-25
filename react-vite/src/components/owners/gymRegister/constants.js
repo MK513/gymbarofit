@@ -1,4 +1,4 @@
-export const STEPS = ["기본 정보", "운동 기구", "락커"];
+export const STEPS = ["기본 정보", "운동 기구", "맵 배치", "락커"];
 
 export const DAY_LABELS = {
   MONDAY:    "월요일",
@@ -26,6 +26,7 @@ export const EQUIP_TYPES = [
   { value: "MACHINE",     label: "머신",       color: "#1565c0" },
   { value: "STRETCHING",  label: "스트레칭",   color: "#2e7d32" },
 ];
+
 
 export const LOCKER_SIZES = [
   { value: "SMALL",  label: "소형", color: "#1565c0", desc: "기본 사이즈 보관함" },

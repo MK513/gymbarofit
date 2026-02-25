@@ -1,6 +1,8 @@
 import { API_BASE_URL } from "../api-config";
 import { tokenService } from "../utils/tokenService";
 
+const AUTH_BYPASS = import.meta.env.VITE_AUTH_BYPASS === "true";
+
 export function call(api, method, request, pathVariables) {
   const headers = new Headers({
     "Content-Type": "application/json",
@@ -39,7 +41,7 @@ export function call(api, method, request, pathVariables) {
       .get("content-type")
       ?.includes("application/json");
 
-    if (response.status === 401) {
+    if (response.status === 401 && !AUTH_BYPASS) {
       window.dispatchEvent(new CustomEvent("auth:unauthorized"));
       throw { status: 401, message: "인증이 만료되었습니다." };
     }

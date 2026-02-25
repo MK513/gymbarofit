@@ -15,6 +15,7 @@ import LockerRent from "./pages/lockers/Rent"
 import LockerExtend from "./pages/lockers/Extend"
 import OwnerDashboard from "./pages/owners/Dashboard"
 import GymRegister from "./pages/owners/GymRegister"
+import GymMapEditor from "./pages/owners/GymMapEditor"
 
 export default function App() {
   return (
@@ -23,12 +24,12 @@ export default function App() {
       <NotificationProvider>
 
         <Routes>
+          <Route path="/" element={<Login />} />
           <Route path="/login" element={<Login />} />
           <Route path="/signup" element={<Signup />} />
 
           {/* Member 전용 */}
           <Route element={<ProtectedRoute requiredRole="member" />}>
-            <Route path="/" element={<MemberDashboard />} />
             <Route path="/members" element={<MemberDashboard />} />
             <Route path="/members/history" element={<WorkoutHistory />} />
 
@@ -43,6 +44,7 @@ export default function App() {
           <Route element={<ProtectedRoute requiredRole="owner" />}>
             <Route path="/owners" element={<OwnerDashboard />} />
             <Route path="/owners/gyms/register" element={<GymRegister />} />
+            <Route path="/owners/gyms/:gymId/map" element={<GymMapEditor />} />
           </Route>
         </Routes>
 

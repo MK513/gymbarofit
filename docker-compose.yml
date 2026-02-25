@@ -6,9 +6,9 @@ services:
     container_name: gymbarofit-h2
     ports:
       - "9092:9092"   # H2 TCP server
-      - "8082:8082"   # H2 web console
+      - "8090:8090"   # H2 web console
     environment:
-      H2_OPTIONS: -tcp -tcpAllowOthers -tcpPort 9092 -web -webAllowOthers -webPort 8082 -ifNotExists
+      H2_OPTIONS: -tcp -tcpAllowOthers -tcpPort 9092 -web -webAllowOthers -webPort 8090 -ifNotExists
     volumes:
       - h2-data:/opt/h2-data
     restart: unless-stopped
@@ -27,7 +27,7 @@ services:
       SPRING_PROFILES_ACTIVE: docker
       H2_DB_URL: jdbc:h2:tcp://h2-server:9092//opt/h2-data/gymbarofit
     volumes:
-      - backend-images:/app/images
+      - ./springboot/images:/app/images
     depends_on:
       h2-server:
         condition: service_started
@@ -52,4 +52,3 @@ services:
 
 volumes:
   h2-data:
-  backend-images:
