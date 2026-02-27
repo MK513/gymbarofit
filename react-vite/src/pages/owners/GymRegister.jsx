@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect, useRef } from "react";
 import {
   AppBar,
   Box,
@@ -11,15 +11,26 @@ import {
   Toolbar,
   Typography,
 } from "@mui/material";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useLocation } from "react-router-dom";
 import { useNotification } from "../../context/NotificationContext";
 import {
   createOwnerGym,
   createOwnerGymEquipments,
   createOwnerGymLockerZones,
+  getOwnerGymMap,
   saveOwnerGymMap,
   finalizeOwnerGym,
+  getEquipmentIcons,
 } from "../../api/owner";
+
+const BASE_URL = import.meta.env.VITE_API_BASE_URL || "http://localhost:8080";
+
+function deriveLabel(filename) {
+  return filename
+    .replace(/\.\w+$/, "")
+    .replace(/_\d+$/, "")
+    .replace(/_/g, " ");
+}
 
 import ArrowBackIcon from "@mui/icons-material/ArrowBack";
 
@@ -31,11 +42,90 @@ import { DEFAULT_OPERATING_HOURS, LOCKER_SIZES, STEPS } from "../../components/o
 
 export default function GymRegister() {
   const navigate = useNavigate();
+  const location = useLocation();
   const { showNotification } = useNotification();
 
   const [activeStep, setActiveStep] = useState(0);
   const [loading, setLoading] = useState(false);
   const [gymId, setGymId] = useState(null);
+  const [mapMeta, setMapMeta] = useState({ cols: 20, rows: 15 });
+
+  const [icons, setIcons] = useState([]);
+  const registeredEquipSnapshotRef = useRef(null); // 마지막으로 등록된 equipList 스냅샷
+
+  useEffect(() => {
+    getEquipmentIcons()
+      .then((data) =>
+        setIcons(
+          (data ?? []).map((item) => ({
+            filename: item.filename,
+            url: item.url,
+            label: deriveLabel(item.filename),
+            type: item.type ?? "MACHINE",
+          }))
+        )
+      )
+      .catch(() => {});
+  }, []);
+
+  /* Draft 복원: Dashboard에서 "예" 선택 시 state로 전달된 데이터 복원 */
+  useEffect(() => {
+    const draft = location.state?.draftGym;
+    if (!draft) return;
+
+    setGymId(draft.id);
+    setGymForm({
+      name: draft.name ?? "",
+      postalCode: draft.postalCode ?? "",
+      address: draft.address ?? "",
+      maxCapacity: String(draft.maxCapacity ?? ""),
+    });
+
+    if (draft.operatingHours?.length > 0) {
+      setOperatingHours(
+        draft.operatingHours.map((h) => ({
+          day: h.dayOfWeek,
+          openAt: h.openAt ?? "09:00",
+          closeAt: h.closeAt ?? "22:00",
+          closed: h.closed ?? false,
+        }))
+      );
+    }
+
+    // 저장된 맵 데이터에서 기구 목록 및 배치 좌표 복원
+    getOwnerGymMap({ gymId: draft.id })
+      .then((mapData) => {
+        if (mapData?.equipmentList?.length > 0) {
+          setEquipList(mapData.equipmentList);
+          registeredEquipSnapshotRef.current = JSON.stringify(mapData.equipmentList);
+        }
+        if (mapData?.registeredEquipments?.length > 0) {
+          setRegisteredEquipments(mapData.registeredEquipments);
+          // gridX/Y가 있는 항목은 배치 좌표로 복원
+          const placed = mapData.registeredEquipments
+            .filter((re) => re.gridX !== undefined)
+            .map((re) => {
+              const el = mapData.equipmentList?.find((e) => e.id === re.equipListId);
+              return {
+                id: `p-${re.id}`,
+                equipmentId: re.id,
+                name: re.name,
+                type: el?.type ?? "",
+                iconUrl: el?.iconUrl ?? "",
+                gridX: re.gridX,
+                gridY: re.gridY,
+                spanW: re.spanW ?? 1,
+                spanH: re.spanH ?? 1,
+                status: "normal",
+              };
+            });
+          if (placed.length > 0) setInitialPlaced(placed);
+        }
+      })
+      .catch(() => {});
+
+    setActiveStep(draft.currentStep ?? 1);
+  }, []); // eslint-disable-line react-hooks/exhaustive-deps
 
   /* Step 1 */
   const [gymForm, setGymForm] = useState({
@@ -58,6 +148,7 @@ export default function GymRegister() {
   /* Step 3 - 맵 배치 */
   const [registeredEquipments, setRegisteredEquipments] = useState([]);
   const [placedEquipments, setPlacedEquipments] = useState([]);
+  const [initialPlaced, setInitialPlaced] = useState([]);
 
   /* Step 4 */
   const [lockerZones, setLockerZones] = useState(
@@ -73,10 +164,17 @@ export default function GymRegister() {
 
   const handleAddEquip = () => {
     if (!equipForm.imageUrl) return;
-    setEquipList((p) => [
-      ...p,
-      { ...equipForm, count: Number(equipForm.count), id: Date.now() },
-    ]);
+    setEquipList((p) => {
+      const existing = p.find(
+        (e) => e.imageUrl === equipForm.imageUrl && e.type === equipForm.type
+      );
+      if (existing) {
+        return p.map((e) =>
+          e === existing ? { ...e, count: e.count + Number(equipForm.count) } : e
+        );
+      }
+      return [...p, { ...equipForm, count: Number(equipForm.count), id: Date.now() }];
+    });
     setEquipForm((p) => ({ ...p, name: "", imageUrl: "", count: 1 }));
   };
 
@@ -101,21 +199,35 @@ export default function GymRegister() {
     })),
   });
 
-  const buildMapData = (placed) => ({
-    version: "1.0",
-    gymId,
-    mapMeta: { width: 20, height: 15, gridSize: 40 },
-    zones: [], walls: [], pillars: [],
-    equipment: placed.map((p) => ({
-      equipmentId: p.equipmentId,
-      gridX:       p.gridX,
-      gridY:       p.gridY,
-      rotation:    0,
-    })),
-  });
+  const buildMapData = (placed) => {
+    const placementMap = Object.fromEntries(
+      placed.map((p) => [
+        p.equipmentId,
+        { gridX: p.gridX, gridY: p.gridY, spanW: p.spanW ?? 1, spanH: p.spanH ?? 1 },
+      ])
+    );
+    const equipListWithIconUrl = equipList.map((eq) => {
+      const iconObj = icons.find((ic) => ic.filename === eq.imageUrl);
+      return { ...eq, iconUrl: iconObj ? `${BASE_URL}${iconObj.url}` : "" };
+    });
+    return {
+      mapMeta: { width: mapMeta.cols, height: mapMeta.rows, gridSize: 40 },
+      equipmentList: equipListWithIconUrl,
+      registeredEquipments: registeredEquipments.map((re) => ({
+        id: re.id,
+        name: re.name,
+        equipListId: re.equipListId,
+        ...(placementMap[re.id] ?? {}),
+      })),
+    };
+  };
 
-  /* Step 1 → Step 2: 헬스장 draft 생성 */
+  /* Step 1 → Step 2: 헬스장 draft 생성 (이미 생성된 경우 스킵) */
   const handleStep1Next = async () => {
+    if (gymId) {
+      setActiveStep(1);
+      return;
+    }
     setLoading(true);
     try {
       const newGym = await createOwnerGym({ ...buildGymDto(), status: "DRAFT" });
@@ -128,16 +240,20 @@ export default function GymRegister() {
     }
   };
 
-  /* Step 2 건너뛰기: 기구 없이 맵 단계로 */
-  const handleStep2Skip = () => {
-    setRegisteredEquipments([]);
-    setActiveStep(2);
-  };
-
-  /* Step 2 다음: 기구 번호별 개별 등록 후 Step 3(맵)으로 */
+  /* Step 2 다음: equipment DB 저장 없이 temp ID로 로컬 생성 후 map_data 저장 */
   const handleStep2Next = async () => {
+    const currentSnapshot = JSON.stringify(equipList);
+    // 이전 단계 복귀 후 목록 변경 없으면 재생성 스킵
+    if (
+      registeredEquipments.length > 0 &&
+      registeredEquipSnapshotRef.current === currentSnapshot
+    ) {
+      setActiveStep(2);
+      return;
+    }
     setLoading(true);
     try {
+      // equipment DB 저장 없이 임시 ID로 로컬에서 생성
       const registeredEquips = [];
       for (const equip of equipList) {
         const count = Number(equip.count);
@@ -146,42 +262,44 @@ export default function GymRegister() {
           : equip.name;
         for (let i = 1; i <= count; i++) {
           const name = count === 1 ? baseName : `${baseName} ${i}`;
-          const result = await createOwnerGymEquipments(
-            {
-              name,
-              type: equip.type,
-              count: 1,
-              imageUrl: equip.imageUrl
-                ? `${import.meta.env.VITE_API_BASE_URL}/images/${equip.imageUrl}`
-                : "",
-            },
-            { gymId }
-          );
           registeredEquips.push({
-            id: result?.id ?? `local-${Date.now()}-${i}`,
+            id: `temp-${equip.id}-${i}`,  // Step 4에서 실제 DB ID로 교체됨
             name,
-            type: equip.type,
-            imageUrl: equip.imageUrl,
+            equipListId: equip.id,
           });
         }
       }
+      registeredEquipSnapshotRef.current = currentSnapshot;
       setRegisteredEquipments(registeredEquips);
+
+      // 기구 목록을 맵 데이터에 포함해 저장 → draft 복원 시 재사용
+      const equipListWithIconUrl = equipList.map((eq) => {
+        const iconObj = icons.find((ic) => ic.filename === eq.imageUrl);
+        return { ...eq, iconUrl: iconObj ? `${BASE_URL}${iconObj.url}` : "" };
+      });
+      await saveOwnerGymMap(
+        {
+          mapMeta: { width: mapMeta.cols, height: mapMeta.rows, gridSize: 40 },
+          equipmentList: equipListWithIconUrl,
+          registeredEquipments: registeredEquips,
+          completedStep: 2,
+        },
+        { gymId }
+      ).catch(() => {});
+
       setActiveStep(2);
     } catch {
-      showNotification("기구 등록에 실패했습니다.", "error");
+      showNotification("기구 목록 저장에 실패했습니다.", "error");
     } finally {
       setLoading(false);
     }
   };
 
-  /* Step 3 건너뛰기: 맵 저장 없이 락커 단계로 */
-  const handleStep3Skip = () => setActiveStep(3);
-
   /* Step 3 다음: 맵 draft 저장 후 락커 단계로 */
   const handleStep3Next = async () => {
     if (gymId && placedEquipments.length > 0) {
       setLoading(true);
-      const mapData = buildMapData(placedEquipments);
+      const mapData = { ...buildMapData(placedEquipments), completedStep: 3 };
       try {
         await saveOwnerGymMap(mapData, { gymId });
         localStorage.setItem(`gym-map-${gymId}`, JSON.stringify(mapData));
@@ -194,21 +312,7 @@ export default function GymRegister() {
     setActiveStep(3);
   };
 
-  /* Step 4 건너뛰기: 락커 없이 등록 완료 */
-  const handleStep4Skip = async () => {
-    setLoading(true);
-    try {
-      await finalizeOwnerGym({ gymId });
-      showNotification("헬스장이 등록되었습니다!", "success");
-      navigate("/owners");
-    } catch {
-      showNotification("등록에 실패했습니다.", "error");
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  /* Step 4: 락커 등록 후 등록 완료 */
+  /* Step 4: equipment DB 저장 → map_data ID 갱신 → 락커 등록 → 등록 완료 */
   const handleFinish = async () => {
     const zones = lockerZones.filter(
       (z) => Number(z.rowCount) > 0 && Number(z.columnCount) > 0
@@ -216,6 +320,50 @@ export default function GymRegister() {
 
     setLoading(true);
     try {
+      // 1) equipment DB 저장: temp ID → 실제 DB ID 매핑 생성
+      const tempToRealId = {};
+      for (const equip of equipList) {
+        const count = Number(equip.count);
+        const baseName = equip.imageUrl
+          ? equip.imageUrl.replace(/(_\d+)?\.[^.]+$/, "")
+          : equip.name;
+        for (let i = 1; i <= count; i++) {
+          const name = count === 1 ? baseName : `${baseName} ${i}`;
+          const tempId = `temp-${equip.id}-${i}`;
+          const placedItem = placedEquipments.find(p => p.equipmentId === tempId);
+          const location = placedItem
+            ? JSON.stringify({ gridX: placedItem.gridX, gridY: placedItem.gridY })
+            : null;
+          const realIds = await createOwnerGymEquipments(
+            {
+              name,
+              type: equip.type,
+              count: 1,
+              imageUrl: equip.imageUrl
+                ? `${BASE_URL}/images/${equip.imageUrl}`
+                : "",
+              location,
+            },
+            { gymId }
+          );
+          if (realIds?.[0]) tempToRealId[tempId] = realIds[0];
+        }
+      }
+
+      // 2) map_data의 registeredEquipments ID를 실제 DB ID로 교체 후 저장
+      if (Object.keys(tempToRealId).length > 0) {
+        const currentMapData = buildMapData(placedEquipments);
+        const updatedRegistered = (currentMapData.registeredEquipments ?? []).map((re) => ({
+          ...re,
+          id: tempToRealId[re.id] ?? re.id,
+        }));
+        await saveOwnerGymMap(
+          { ...currentMapData, registeredEquipments: updatedRegistered, completedStep: 3 },
+          { gymId }
+        ).catch(() => {});
+      }
+
+      // 3) 락커 등록
       for (const zone of zones) {
         await createOwnerGymLockerZones(
           {
@@ -226,6 +374,8 @@ export default function GymRegister() {
           { gymId }
         );
       }
+
+      // 4) 헬스장 확정
       await finalizeOwnerGym({ gymId });
       showNotification("헬스장이 등록되었습니다!", "success");
       navigate("/owners");
@@ -235,6 +385,8 @@ export default function GymRegister() {
       setLoading(false);
     }
   };
+
+  const handleBack = () => setActiveStep((prev) => prev - 1);
 
   const step1Valid = gymForm.name.trim() && gymForm.address.trim() && gymForm.maxCapacity;
 
@@ -328,12 +480,23 @@ export default function GymRegister() {
             onFormChange={handleEquipChange}
             onAdd={handleAddEquip}
             onRemove={handleRemoveEquip}
+            icons={icons}
           />
         )}
         {activeStep === 2 && (
           <MapStep
-            equipment={registeredEquipments}
+            equipment={registeredEquipments.map((re) => {
+              const el = equipList.find((e) => e.id === re.equipListId);
+              const iconObj = icons.find((ic) => ic.filename === el?.imageUrl);
+              return {
+                ...re,
+                type: el?.type ?? "",
+                iconUrl: iconObj ? `${BASE_URL}${iconObj.url}` : "",
+              };
+            })}
+            initialPlaced={initialPlaced}
             onPlacedChange={setPlacedEquipments}
+            onMapMetaChange={setMapMeta}
           />
         )}
         {activeStep === 3 && (
@@ -363,11 +526,11 @@ export default function GymRegister() {
             <Box display="flex" gap={1}>
               <Button
                 variant="outlined"
-                onClick={handleStep2Skip}
+                onClick={handleBack}
                 disabled={loading}
-                sx={{ borderRadius: 2, fontWeight: "bold", minWidth: 90 }}
+                sx={{ borderRadius: 2, fontWeight: "bold", minWidth: 70 }}
               >
-                건너뛰기
+                이전
               </Button>
               <Button
                 fullWidth
@@ -390,11 +553,11 @@ export default function GymRegister() {
             <Box display="flex" gap={1}>
               <Button
                 variant="outlined"
-                onClick={handleStep3Skip}
+                onClick={handleBack}
                 disabled={loading}
-                sx={{ borderRadius: 2, fontWeight: "bold", minWidth: 90 }}
+                sx={{ borderRadius: 2, fontWeight: "bold", minWidth: 70 }}
               >
-                건너뛰기
+                이전
               </Button>
               <Button
                 fullWidth
@@ -417,11 +580,11 @@ export default function GymRegister() {
             <Box display="flex" gap={1}>
               <Button
                 variant="outlined"
-                onClick={handleStep4Skip}
+                onClick={handleBack}
                 disabled={loading}
-                sx={{ borderRadius: 2, fontWeight: "bold", minWidth: 90 }}
+                sx={{ borderRadius: 2, fontWeight: "bold", minWidth: 70 }}
               >
-                {loading ? <CircularProgress size={18} color="inherit" /> : "건너뛰기"}
+                이전
               </Button>
               <Button
                 fullWidth

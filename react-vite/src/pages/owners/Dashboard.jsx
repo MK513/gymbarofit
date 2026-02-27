@@ -13,11 +13,15 @@ import {
   Stack,
   Menu,
   MenuItem,
+  Dialog,
+  DialogTitle,
+  DialogContent,
+  DialogActions,
 } from "@mui/material";
 import { useNavigate } from "react-router-dom";
 import { useAuth } from "../../context/AuthContext";
 import { useNotification } from "../../context/NotificationContext";
-import { getOwnerGyms } from "../../api/owner";
+import { getOwnerGyms, getDraftOwnerGym, cancelOwnerGymDraft } from "../../api/owner";
 
 import AddIcon from "@mui/icons-material/Add";
 import LogoutIcon from "@mui/icons-material/Logout";
@@ -205,6 +209,9 @@ export default function OwnerDashboard() {
 
   const [gyms, setGyms] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [draftCheckLoading, setDraftCheckLoading] = useState(false);
+  const [draftGym, setDraftGym] = useState(null);
+  const [draftDialogOpen, setDraftDialogOpen] = useState(false);
 
   useEffect(() => {
     getOwnerGyms()
@@ -216,6 +223,36 @@ export default function OwnerDashboard() {
   const handleLogout = () => {
     logout();
     navigate("/login");
+  };
+
+  const handleGymRegisterClick = async () => {
+    setDraftCheckLoading(true);
+    try {
+      const draft = await getDraftOwnerGym();
+      if (draft && draft.id) {
+        setDraftGym(draft);
+        setDraftDialogOpen(true);
+      } else {
+        navigate("/owners/gyms/register");
+      }
+    } catch {
+      navigate("/owners/gyms/register");
+    } finally {
+      setDraftCheckLoading(false);
+    }
+  };
+
+  const handleLoadDraft = () => {
+    setDraftDialogOpen(false);
+    navigate("/owners/gyms/register", { state: { draftGym } });
+  };
+
+  const handleDiscardDraft = async () => {
+    setDraftDialogOpen(false);
+    try {
+      await cancelOwnerGymDraft({ gymId: draftGym.id });
+    } catch {}
+    navigate("/owners/gyms/register");
   };
 
   return (
@@ -262,9 +299,10 @@ export default function OwnerDashboard() {
           </Typography>
           <Button
             variant="contained"
-            startIcon={<AddIcon />}
+            startIcon={draftCheckLoading ? <CircularProgress size={14} color="inherit" /> : <AddIcon />}
             size="small"
-            onClick={() => navigate("/owners/gyms/register")}
+            onClick={handleGymRegisterClick}
+            disabled={draftCheckLoading}
             sx={{ borderRadius: 2, fontWeight: "bold" }}
           >
             헬스장 등록
@@ -308,6 +346,23 @@ export default function OwnerDashboard() {
           </Stack>
         )}
       </Box>
+
+      {/* Draft 복구 확인 Dialog */}
+      <Dialog open={draftDialogOpen} onClose={() => setDraftDialogOpen(false)}>
+        <DialogTitle sx={{ fontWeight: "bold" }}>이전 등록 내역 발견</DialogTitle>
+        <DialogContent>
+          <Typography>이전 등록 상황을 불러올까요?</Typography>
+          {draftGym?.name && (
+            <Typography variant="body2" color="text.secondary" mt={1}>
+              헬스장명: {draftGym.name}
+            </Typography>
+          )}
+        </DialogContent>
+        <DialogActions sx={{ px: 3, pb: 2 }}>
+          <Button onClick={handleDiscardDraft} variant="outlined">아니오</Button>
+          <Button onClick={handleLoadDraft} variant="contained">예</Button>
+        </DialogActions>
+      </Dialog>
     </Box>
   );
 }

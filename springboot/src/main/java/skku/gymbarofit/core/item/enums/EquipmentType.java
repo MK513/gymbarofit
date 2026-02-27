@@ -4,7 +4,13 @@ import java.util.Map;
 
 public enum EquipmentType {
 
-    CARDIO, FREE_WEIGHT, MACHINE, STRETCHING;
+    CARDIO(7.0), FREE_WEIGHT(5.0), MACHINE(4.0), STRETCHING(2.5);
+
+    private final double defaultMet;
+
+    EquipmentType(double defaultMet) { this.defaultMet = defaultMet; }
+
+    public double getDefaultMet() { return defaultMet; }
 
     private static final Map<String, EquipmentType> FILENAME_TYPE_MAP = Map.of(
             "랫풀다운",  MACHINE,

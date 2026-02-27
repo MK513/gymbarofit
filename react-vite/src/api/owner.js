@@ -31,3 +31,11 @@ export async function finalizeOwnerGym(pathVariable) {
 export async function getEquipmentIcons() {
   return call("/equipment-icons", "GET");
 }
+
+export async function getDraftOwnerGym() {
+  return call("/owners/gyms/draft", "GET");
+}
+
+export async function cancelOwnerGymDraft(pathVariable) {
+  return call("/owners/gyms/{gymId}/cancel", "PATCH", null, pathVariable);
+}

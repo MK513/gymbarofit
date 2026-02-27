@@ -70,6 +70,10 @@ public class Gym extends BaseTimeEntity {
         this.status = GymStatus.ACTIVE;
     }
 
+    public void cancel() {
+        this.status = GymStatus.CANCEL;
+    }
+
     public void saveMap(String mapJson) {
         this.mapData = mapJson;
     }

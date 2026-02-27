@@ -18,6 +18,7 @@ import skku.gymbarofit.core.user.owner.dto.OwnerRegisterRequestDto;
 
 import java.util.List;
 
+// TODO API 위치 쪼개기
 @RestController
 @RequiredArgsConstructor
 @RequestMapping("/owners")
@@ -55,13 +56,12 @@ public class OwnerApiController {
     }
 
     @PostMapping("/gyms/{gymId}/equipments")
-    public ResponseEntity<Void> addEquipments(
+    public ResponseEntity<List<Long>> addEquipments(
             @CurrentUserId Long ownerId,
             @PathVariable Long gymId,
             @RequestBody EquipmentCreateRequestDto dto
     ) {
-        ownerService.addEquipments(ownerId, gymId, dto);
-        return ResponseEntity.status(HttpStatus.CREATED).build();
+        return ResponseEntity.status(HttpStatus.CREATED).body(ownerService.addEquipments(ownerId, gymId, dto));
     }
 
     @PostMapping("/gyms/{gymId}/locker-zones")
@@ -72,6 +72,24 @@ public class OwnerApiController {
     ) {
         ownerService.addLockerZone(ownerId, gymId, dto);
         return ResponseEntity.status(HttpStatus.CREATED).build();
+    }
+
+    @GetMapping("/gyms/draft")
+    public ResponseEntity<OwnerGymSummaryDto> getDraftGym(
+            @CurrentUserId Long ownerId
+    ) {
+        return ownerService.getDraftGym(ownerId)
+                .map(ResponseEntity::ok)
+                .orElse(ResponseEntity.noContent().build());
+    }
+
+    @PatchMapping("/gyms/{gymId}/cancel")
+    public ResponseEntity<Void> cancelDraftGym(
+            @CurrentUserId Long ownerId,
+            @PathVariable Long gymId
+    ) {
+        ownerService.cancelDraftGym(ownerId, gymId);
+        return ResponseEntity.ok().build();
     }
 
     @PatchMapping("/gyms/{gymId}/finalize")

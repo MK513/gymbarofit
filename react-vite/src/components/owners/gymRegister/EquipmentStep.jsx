@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+import React, { useState } from "react";
 import {
   Box,
   Button,
@@ -20,40 +20,13 @@ import DeleteIcon from "@mui/icons-material/Delete";
 import FitnessCenterIcon from "@mui/icons-material/FitnessCenter";
 import KeyboardArrowDownIcon from "@mui/icons-material/KeyboardArrowDown";
 import { EQUIP_TYPES } from "./constants";
-import { getEquipmentIcons } from "../../../api/owner";
 
 const BASE_URL = import.meta.env.VITE_API_BASE_URL || "http://localhost:8080";
 
-function deriveLabel(filename) {
-  return filename
-    .replace(/\.\w+$/, "")  // 확장자 제거
-    .replace(/_\d+$/, "")   // _100, _50 등 크기 접미사 제거
-    .replace(/_/g, " ");    // 언더스코어 → 공백
-}
-
-export default function EquipmentStep({ list, form, onFormChange, onAdd, onRemove }) {
-  const [icons, setIcons] = useState([]);
-  const [iconsLoading, setIconsLoading] = useState(false);
+export default function EquipmentStep({ list, form, onFormChange, onAdd, onRemove, icons = [], iconsLoading = false }) {
   const [anchorEl, setAnchorEl] = useState(null);
 
   const open = Boolean(anchorEl);
-
-  useEffect(() => {
-    setIconsLoading(true);
-    getEquipmentIcons()
-      .then((data) =>
-        setIcons(
-          (data ?? []).map((item) => ({
-            filename: item.filename,
-            url: item.url,
-            label: deriveLabel(item.filename),
-            type: item.type ?? "MACHINE",
-          }))
-        )
-      )
-      .catch(() => {})
-      .finally(() => setIconsLoading(false));
-  }, []);
 
   const getTypeMeta = (v) => EQUIP_TYPES.find((t) => t.value === v) ?? EQUIP_TYPES[0];
 

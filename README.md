@@ -3,3 +3,7 @@
 
 # Spring Dependency
 - Spring web, Spring data jpa, Lombok, Thymeleaf, H2 database
+
+TODO
+- 헬스장 등록 3단계 개선
+- 예약시 redis 분산 락 적용

@@ -36,9 +36,13 @@ import skku.gymbarofit.core.user.owner.dto.OwnerDetailResponseDto;
 import skku.gymbarofit.core.user.owner.dto.OwnerRegisterRequestDto;
 import skku.gymbarofit.core.user.owner.service.OwnerInternalService;
 
+import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.ObjectMapper;
+
 import java.time.DayOfWeek;
 import java.time.LocalTime;
 import java.util.List;
+import java.util.Optional;
 import java.util.stream.IntStream;
 
 @Transactional
@@ -76,6 +80,7 @@ public class OwnerService {
     @Transactional(readOnly = true)
     public List<OwnerGymSummaryDto> getMyGyms(Long ownerId) {
         return gymRepository.findByOwner_Id(ownerId).stream()
+                .filter(gym -> gym.getStatus() != GymStatus.DRAFT)
                 .map(this::buildSummary)
                 .toList();
     }
@@ -102,6 +107,35 @@ public class OwnerService {
         return OwnerGymSummaryDto.of(gym, 0, 0, 0, 0);
     }
 
+    @Transactional(readOnly = true)
+    public Optional<OwnerGymSummaryDto> getDraftGym(Long ownerId) {
+        return gymRepository.findByOwner_IdAndStatus(ownerId, GymStatus.DRAFT)
+                .map(gym -> {
+                    int equipmentCount = equipmentRepository.countByGym_Id(gym.getId());
+                    int currentStep;
+                    if (gym.getMapData() != null) {
+                        try {
+                            ObjectMapper mapper = new ObjectMapper();
+                            JsonNode node = mapper.readTree(gym.getMapData());
+                            // completedStep: 2 → 맵 배치 단계, 3 → 락커 등록 단계
+                            currentStep = node.path("completedStep").asInt(3);
+                        } catch (Exception e) {
+                            currentStep = 3;
+                        }
+                    } else if (equipmentCount > 0) {
+                        currentStep = 2;
+                    } else {
+                        currentStep = 1;
+                    }
+                    return OwnerGymSummaryDto.of(gym, equipmentCount, 0, 0, 0, currentStep);
+                });
+    }
+
+    public void cancelDraftGym(Long ownerId, Long gymId) {
+        Gym gym = gymInternalService.findById(gymId);
+        gym.cancel();
+    }
+
     public void finalizeGym(Long ownerId, Long gymId) {
         Gym gym = gymInternalService.findById(gymId);
         gym.activate();
@@ -118,12 +152,13 @@ public class OwnerService {
         return gym.getMapData();
     }
 
-    public void addEquipments(Long ownerId, Long gymId, EquipmentCreateRequestDto dto) {
+    public List<Long> addEquipments(Long ownerId, Long gymId, EquipmentCreateRequestDto dto) {
         Gym gym = gymInternalService.findById(gymId);
         List<Equipment> list = IntStream.range(0, dto.count())
-                .mapToObj(i -> Equipment.create(gym, dto.name(), dto.type(), dto.imageUrl()))
+                .mapToObj(i -> Equipment.create(gym, dto.name(), dto.type(), dto.imageUrl(), dto.location()))
                 .toList();
         equipmentRepository.saveAll(list);
+        return list.stream().map(Equipment::getId).toList();
     }
 
     public void addLockerZone(Long ownerId, Long gymId, LockerZoneCreateRequestDto dto) {
