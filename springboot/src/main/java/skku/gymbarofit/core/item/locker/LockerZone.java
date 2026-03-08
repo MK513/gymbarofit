@@ -43,4 +43,11 @@ public class LockerZone {
         zone.columnCount = columnCount;
         return zone;
     }
+
+    public void update(String name, SizeStatus size, int rowCount, int columnCount) {
+        this.name = name;
+        this.lockerSize = size;
+        this.rowCount = rowCount;
+        this.columnCount = columnCount;
+    }
 }

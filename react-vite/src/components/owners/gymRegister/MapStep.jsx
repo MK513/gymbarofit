@@ -4,7 +4,7 @@ import { Box, Paper, TextField, Typography, Stack, Chip } from "@mui/material";
 import { GRID_SIZE, EQUIP_COLORS, EQUIP_ICONS } from "../gymMap/constants";
 import EquipmentLayer from "../gymMap/EquipmentLayer";
 
-export default function MapStep({ equipment, initialPlaced = [], onPlacedChange, onMapMetaChange }) {
+export default function MapStep({ equipment, initialPlaced = [], onPlacedChange, onMapMetaChange, initialCols = 20, initialRows = 15 }) {
   const containerRef = useRef(null);
   const stageRef = useRef(null);
   const [stageSize, setStageSize] = useState({ width: 600, height: 420 });
@@ -27,8 +27,8 @@ export default function MapStep({ equipment, initialPlaced = [], onPlacedChange,
   const [contextMenu, setContextMenu] = useState(null);
 
   // 맵 크기 (칸 단위)
-  const [mapCols, setMapCols] = useState(20);
-  const [mapRows, setMapRows] = useState(15);
+  const [mapCols, setMapCols] = useState(initialCols);
+  const [mapRows, setMapRows] = useState(initialRows);
 
   const MAP_W = mapCols * GRID_SIZE;
   const MAP_H = mapRows * GRID_SIZE;
@@ -147,10 +147,11 @@ export default function MapStep({ equipment, initialPlaced = [], onPlacedChange,
         equipmentId: dropping.id,
         name:        dropping.name,
         type:        dropping.type,
+        category:    dropping.category ?? "",
         iconUrl:     dropping.iconUrl ?? "",
         gridX, gridY,
-        spanW: 1,
-        spanH: 1,
+        spanW: 2,
+        spanH: 2,
         status:      "normal",
       },
     ];
@@ -277,8 +278,8 @@ export default function MapStep({ equipment, initialPlaced = [], onPlacedChange,
             ) : (
               <Stack spacing={0.5}>
                 {equipment.map((eq) => {
-                  const color = EQUIP_COLORS[eq.type] ?? "#6b7280";
-                  const icon  = EQUIP_ICONS[eq.type]  ?? "🏋️";
+                  const color = EQUIP_COLORS[eq.category ?? eq.type] ?? "#6b7280";
+                  const icon  = EQUIP_ICONS[eq.category  ?? eq.type] ?? "🏋️";
                   const isPlaced = placedEquipIds.includes(eq.id);
                   return (
                     <Box

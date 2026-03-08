@@ -9,6 +9,8 @@ import skku.gymbarofit.api.global.annotation.EquipmentId;
 import skku.gymbarofit.api.global.annotation.UsageId;
 import skku.gymbarofit.api.notification.NotificationFacade;
 import skku.gymbarofit.api.global.annotation.NotifyEquipmentChange;
+import skku.gymbarofit.api.user.owner.dto.OwnerGymEquipmentDto;
+import skku.gymbarofit.core.item.enums.ItemStatus;
 import skku.gymbarofit.core.item.equipment.dto.EquipmentListResponseDto;
 import skku.gymbarofit.core.item.equipment.dto.EquipmentResponseDto;
 import skku.gymbarofit.core.gym.Gym;
@@ -126,6 +128,13 @@ public class EquipmentService {
         equipmentLogInternalService.save(
                 EquipmentLog.from(usage, EquipmentEventType.USAGE_STARTED)
         );
+    }
+
+    @NotifyEquipmentChange
+    public OwnerGymEquipmentDto updateStatus(@EquipmentId Long equipmentId, EquipmentStatusUpdateRequestDto dto) {
+        Equipment equipment = equipmentInternalService.findById(equipmentId);
+        equipment.updateStatus(ItemStatus.valueOf(dto.status()));
+        return OwnerGymEquipmentDto.from(equipment);
     }
 }
 

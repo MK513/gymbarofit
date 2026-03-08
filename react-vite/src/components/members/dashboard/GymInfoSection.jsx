@@ -80,7 +80,7 @@ export default function GymInfoSection({ userName, currentGym, myGyms, crowdStat
 
         <Chip 
           icon={<PeopleAltIcon fontSize="small" style={{ color: crowdStatus.color }} />} 
-          label={`현재 헬스장: ${crowdStatus.label}`} 
+          label={`${crowdStatus.label}`} 
           size="small"
           sx={{ 
             bgcolor: crowdStatus.bgColor, 

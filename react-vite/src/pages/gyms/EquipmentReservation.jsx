@@ -43,7 +43,8 @@ export default function EquipmentReservation() {
       id: item.id,
       name: item.name,
       type: item.type, 
-      location: item.location,
+      gridX: item.gridX,
+      gridY: item.gridY,
       imageUrl: item.imageUrl || null, 
       itemStatus: item.itemStatus, 
       usageStatus: item.usageStatus, 
@@ -260,7 +261,7 @@ export default function EquipmentReservation() {
                     <Typography variant="h6" fontWeight="bold">{selectedMachine.name}</Typography>
                     {selectedMachine.itemStatus !== "OK" && <Chip label={getStatusLabel(selectedMachine)} size="small" color="error" variant="outlined" />}
                   </Stack>
-                  <Typography variant="body2" color="text.secondary">{selectedMachine.type} Zone ({selectedMachine.location})</Typography>
+                  <Typography variant="body2" color="text.secondary">{selectedMachine.type} Zone {selectedMachine.gridX != null ? `(${selectedMachine.gridX}, ${selectedMachine.gridY})` : ""}</Typography>
                 </Box>
               </Stack>
               <Divider sx={{ mb: 3 }} />

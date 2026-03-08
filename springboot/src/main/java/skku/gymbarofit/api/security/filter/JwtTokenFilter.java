@@ -83,7 +83,9 @@ public class JwtTokenFilter extends OncePerRequestFilter {
                 || path.equals("/members/login")
                 || path.equals("/members/register")
                 || path.equals("/owners/login")
-                || path.equals("/owners/register");
+                || path.equals("/owners/register")
+                || path.equals("/auth/refresh")
+                || path.equals("/auth/logout");
     }
 
     private String getJwtTokenFromRequest(HttpServletRequest request) {

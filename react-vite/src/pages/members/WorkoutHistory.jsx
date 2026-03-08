@@ -360,29 +360,29 @@ function ActivityReportCard({ title, subtitle, loading, days, minutes, calories 
     <Paper
       elevation={0}
       sx={{
-        p: 3, mb: 3, borderRadius: 4, color: 'white',
-        backgroundImage: 'linear-gradient(45deg, #1976d2 30%, #42a5f5 90%)',
-        boxShadow: '0 10px 20px rgba(25, 118, 210, 0.2)'
+        p: 3, mb: 3, borderRadius: 3,
+        bgcolor: 'white',
+        border: '1px solid #eef2f6',
       }}
     >
-      <Typography variant="subtitle2" sx={{ opacity: 0.9, fontWeight: 'bold' }}>{title}</Typography>
+      <Typography variant="subtitle2" fontWeight="bold" color="text.secondary">{title}</Typography>
       {subtitle && (
-        <Typography variant="caption" sx={{ opacity: 0.75, fontWeight: 'bold' }}>{subtitle}</Typography>
+        <Typography variant="caption" color="text.disabled" fontWeight="bold">{subtitle}</Typography>
       )}
       {loading ? (
         <Box display="flex" justifyContent="center" mt={3}>
-          <CircularProgress size={24} sx={{ color: 'white' }} />
+          <CircularProgress size={24} />
         </Box>
       ) : (
-        <Stack direction="row" justifyContent="space-between" mt={3}>
+        <Stack direction="row" justifyContent="space-between" mt={2.5}>
           {[
             { label: '운동 횟수', value: days, unit: '일' },
             { label: '누적 시간', value: minutes, unit: '분' },
             { label: '소모 칼로리', value: calories, unit: 'kcal' },
           ].map(({ label, value, unit }) => (
             <Box key={label}>
-              <Typography variant="h5" fontWeight="900">{value}</Typography>
-              <Typography variant="caption" sx={{ opacity: 0.8, fontWeight: 'bold' }}>{label} ({unit})</Typography>
+              <Typography variant="h5" fontWeight="900" color="primary.main">{value}</Typography>
+              <Typography variant="caption" color="text.secondary" fontWeight="bold">{label} ({unit})</Typography>
             </Box>
           ))}
         </Stack>

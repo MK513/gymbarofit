@@ -3,22 +3,13 @@ import { tokenService } from "../utils/tokenService";
 
 const AuthContext = createContext(null);
 
-const AUTH_BYPASS = import.meta.env.VITE_AUTH_BYPASS === "true";
-const BYPASS_ROLE = import.meta.env.VITE_AUTH_BYPASS_ROLE || "owner";
-const BYPASS_USER = { name: "개발자(bypass)", role: BYPASS_ROLE };
-const BYPASS_TOKEN = "dev-bypass-token";
-
 export function AuthProvider({ children }) {
   const [initialized, setInitialized] = useState(false);
-  const [user, setUser] = useState(AUTH_BYPASS ? BYPASS_USER : null);
-  const [accessToken, setAccessToken] = useState(AUTH_BYPASS ? BYPASS_TOKEN : null);
+  const [user, setUser] = useState(null);
+  const [accessToken, setAccessToken] = useState(null);
 
   // 앱 시작 시 localStorage에서 복원
   useEffect(() => {
-    if (AUTH_BYPASS) {
-      setInitialized(true);
-      return;
-    }
     try {
       const storedUser = tokenService.getUser();
       const storedToken = tokenService.getToken();
@@ -36,11 +27,10 @@ export function AuthProvider({ children }) {
     tokenService.clear();
   };
 
-  // 401 토큰 만료 시 자동 로그아웃 (bypass 모드에서는 스킵)
+  // 401 토큰 만료 시 자동 로그아웃
   const logoutRef = useRef(logout);
   logoutRef.current = logout;
   useEffect(() => {
-    if (AUTH_BYPASS) return;
     const handler = () => logoutRef.current();
     window.addEventListener("auth:unauthorized", handler);
     return () => window.removeEventListener("auth:unauthorized", handler);

@@ -15,3 +15,11 @@ export async function registerGym(pathVariable) {
 export async function getEquipments(pathVariable) {
   return call("/gyms/{gymId}/equipments", "GET", null, pathVariable);
 }
+
+export async function checkIn(pathVariable) {
+  return call("/gyms/{gymId}/checkin", "POST", null, pathVariable);
+}
+
+export async function checkOut(pathVariable) {
+  return call("/gyms/{gymId}/checkout", "POST", null, pathVariable);
+}

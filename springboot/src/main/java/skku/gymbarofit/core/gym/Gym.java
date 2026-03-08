@@ -77,4 +77,30 @@ public class Gym extends BaseTimeEntity {
     public void saveMap(String mapJson) {
         this.mapData = mapJson;
     }
+
+    public void update(String name, String postalCode, String address, int maxCapacity) {
+        this.name = name;
+        this.postalCode = postalCode;
+        this.address = address;
+        this.maxCapacity = maxCapacity;
+    }
+
+    public void checkIn() {
+        this.currentOccupancy++;
+        updateCrowdLevel();
+    }
+
+    public void checkOut() {
+        this.currentOccupancy = Math.max(0, this.currentOccupancy - 1);
+        updateCrowdLevel();
+    }
+
+    private void updateCrowdLevel() {
+        if (this.maxCapacity == 0) {
+            this.crowdLevel = GymCrowdLevel.VERY_COMFORTABLE;
+            return;
+        }
+        int percent = this.currentOccupancy * 100 / this.maxCapacity;
+        this.crowdLevel = GymCrowdLevel.from(percent);
+    }
 }

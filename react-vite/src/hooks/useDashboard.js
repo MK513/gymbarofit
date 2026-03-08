@@ -28,6 +28,9 @@ export function useDashboard(initialGym) {
   const [crowdStatus, setCrowdStatus] = useState({
     label: "정보 없음", bgColor: "#f5f5f5", color: "#9e9e9e", borderColor: "#e0e0e0",
   });
+  const [checkInStatus, setCheckInStatus] = useState({
+    isCheckedIn: false, checkedToday: false, streak: 0, checkedInAt: null,
+  });
 
   const loadGymData = async (gymToLoad) => {
     try {
@@ -89,6 +92,18 @@ export function useDashboard(initialGym) {
           activities: res.history.recentThreeUsages || [],
         });
       }
+
+      if (res.checkInStatus) {
+        const cs = res.checkInStatus;
+        setCheckInStatus({
+          isCheckedIn: cs.checkedIn,
+          checkedToday: cs.checkedToday,
+          streak: cs.streak,
+          checkedInAt: cs.checkedInAt,
+        });
+      } else {
+        setCheckInStatus({ isCheckedIn: false, checkedToday: false, streak: 0, checkedInAt: null });
+      }
     } catch (error) {
       console.error("정보 로딩 실패", error);
       showNotification("정보를 불러오지 못했습니다.", "error");
@@ -108,6 +123,7 @@ export function useDashboard(initialGym) {
     openRefundDialog, setOpenRefundDialog,
     myGyms, currentGym,
     crowdStatus,
+    checkInStatus, setCheckInStatus,
     loadGymData,
   };
 }

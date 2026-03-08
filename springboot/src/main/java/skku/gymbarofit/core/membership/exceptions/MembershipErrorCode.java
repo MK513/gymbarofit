@@ -9,7 +9,8 @@ import skku.gymbarofit.core.global.exception.ErrorCode;
 @RequiredArgsConstructor
 public enum MembershipErrorCode implements ErrorCode{
 
-    MEMBERSHIP_ALREADY_EXISTS(HttpStatus.NOT_FOUND, "이미 등록된 멤버쉽입니다.");
+    MEMBERSHIP_ALREADY_EXISTS(HttpStatus.NOT_FOUND, "이미 등록된 멤버쉽입니다."),
+    MEMBERSHIP_NOT_FOUND(HttpStatus.NOT_FOUND, "멤버쉽이 없습니다.");
 
     private final HttpStatus status;
     private final String message;

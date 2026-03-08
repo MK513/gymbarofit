@@ -5,5 +5,6 @@ public record EquipmentCreateRequestDto(
         String type,
         int count,
         String imageUrl,
-        String location
+        Integer gridX,
+        Integer gridY
 ) {}

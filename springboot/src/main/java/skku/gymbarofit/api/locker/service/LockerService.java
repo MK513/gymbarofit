@@ -171,6 +171,27 @@ public class LockerService {
         return LockerRentResponseDto.from(lockerUsageInternalService.findById(usageId));
     }
 
+    public LockerResponseDto updateLockerStatus(Long ownerId, Long lockerId, LockerStatusUpdateRequestDto dto) {
+        Locker locker = lockerInternalService.findById(lockerId);
+
+        Long gymOwnerId = locker.getLockerZone().getGym().getOwner().getId();
+        if (!gymOwnerId.equals(ownerId)) {
+            throw new LockerException(LockerErrorCode.LOCKER_NOT_FOUND);
+        }
+
+        locker.updateStatus(ItemStatus.valueOf(dto.status()));
+
+        Long zoneId = locker.getLockerZone().getId();
+        LockerUsageStatus usageStatus = lockerUsageInternalService.findUnavailableByZoneId(zoneId)
+                .stream()
+                .filter(u -> u.getLocker().getId().equals(lockerId))
+                .map(LockerUsage::getStatus)
+                .findFirst()
+                .orElse(null);
+
+        return LockerResponseDto.of(locker, usageStatus);
+    }
+
     public void extend(Long paymentId, LockerExtendRequestDto request) {
         Payment payment = paymentInternalService.findByIdForUpdate(paymentId);
         LockerUsage lockerUsage = lockerUsageInternalService.findActiveByIdForUpdate(payment.getTargetId());

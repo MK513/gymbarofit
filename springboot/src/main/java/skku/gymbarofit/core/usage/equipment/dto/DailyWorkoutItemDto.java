@@ -20,7 +20,7 @@ public record DailyWorkoutItemDto(
         );
     }
 
-    static float calcCalories(EquipmentUsage u) {
+    public static float calcCalories(EquipmentUsage u) {
         int min = u.getDurationMinutes();
         if (min <= 0) return 0f;
         float met = u.getEquipment().getMet();

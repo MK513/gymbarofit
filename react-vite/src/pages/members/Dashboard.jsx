@@ -5,6 +5,7 @@ import { useNavigate } from "react-router-dom";
 import { useAuth } from "../../context/AuthContext";
 import { refundLocker } from "../../api/locker";
 import { startUsage, endUsage, leaveQueue } from "../../api/equipment";
+import { checkIn, checkOut } from "../../api/gym";
 import { useNotification } from "../../context/NotificationContext";
 import { useSseNotifications } from "../../context/SseNotification";
 import { useDashboard } from "../../hooks/useDashboard";
@@ -12,15 +13,15 @@ import { useDashboard } from "../../hooks/useDashboard";
 // 하위 컴포넌트
 import DashboardHeader from "../../components/members/dashboard/DashboardHeader";
 import GymInfoSection from "../../components/members/dashboard/GymInfoSection";
+import AttendanceCard from "../../components/members/dashboard/AttendanceCard";
 import StatsCard from "../../components/members/dashboard/StatsCard";
 import EquipmentCard from "../../components/members/dashboard/EquipmentCard";
 import LockerCard from "../../components/members/dashboard/LockerCard";
-import QrCodeDialog from "../../components/members/dashboard/QrCodeDialog";
 import RefundDialog from "../../components/members/dashboard/RefundDialog";
 
 export default function Dashboard() {
   const navigate = useNavigate();
-  const { user, logout } = useAuth();
+  const { user, logout, updateGym } = useAuth();
   const { showNotification } = useNotification();
   const { notifications } = useSseNotifications(user?.id);
 
@@ -28,10 +29,10 @@ export default function Dashboard() {
     lockerStatus, setLockerStatus,
     equipmentInfo, setEquipmentInfo,
     historyInfo,
-    openQr, setOpenQr,
     openRefundDialog, setOpenRefundDialog,
     myGyms, currentGym,
     crowdStatus,
+    checkInStatus, setCheckInStatus,
     loadGymData,
   } = useDashboard(user?.gym ?? null);
 
@@ -60,7 +61,7 @@ export default function Dashboard() {
   };
 
   const handleGymSelect = async (gym) => {
-    user.gym = gym;
+    updateGym(gym);
     await loadGymData(gym);
   };
 
@@ -112,6 +113,36 @@ export default function Dashboard() {
     }
   };
 
+  const handleCheckIn = async () => {
+    try {
+      const res = await checkIn({ gymId: currentGym.id });
+      setCheckInStatus({
+        isCheckedIn: res.checkedIn,
+        checkedToday: res.checkedToday,
+        streak: res.streak,
+        checkedInAt: res.checkedInAt,
+      });
+      showNotification("체크인 완료! 즐거운 운동 되세요.", "success");
+    } catch (e) {
+      showNotification("체크인에 실패했습니다.", "error");
+    }
+  };
+
+  const handleCheckOut = async () => {
+    try {
+      const res = await checkOut({ gymId: currentGym.id });
+      setCheckInStatus({
+        isCheckedIn: res.checkedIn,
+        checkedToday: res.checkedToday,
+        streak: res.streak,
+        checkedInAt: res.checkedInAt,
+      });
+      showNotification("체크아웃 완료! 수고하셨습니다.", "success");
+    } catch (e) {
+      showNotification("체크아웃에 실패했습니다.", "error");
+    }
+  };
+
   return (
     <Box sx={{ flexGrow: 1, bgcolor: "#f5f7fa", minHeight: "100vh" }}>
       <DashboardHeader onLogout={handleLogout} />
@@ -127,6 +158,14 @@ export default function Dashboard() {
             onGymSelect={handleGymSelect}
             onRegister={() => navigate("/gyms/register")}
           />
+
+          {currentGym && (
+            <AttendanceCard
+              attendance={checkInStatus}
+              onCheckIn={handleCheckIn}
+              onCheckOut={handleCheckOut}
+            />
+          )}
 
           <StatsCard
             totalMinutes={historyInfo.totalMinutes}
@@ -152,8 +191,6 @@ export default function Dashboard() {
 
         </Stack>
       </Container>
-
-      <QrCodeDialog open={openQr} onClose={() => setOpenQr(false)} />
 
       <RefundDialog
         open={openRefundDialog}

@@ -32,4 +32,8 @@ public class Locker{
         locker.itemInfo = ItemInfo.create("락커 #" + lockerNumber, ItemStatus.OK);
         return locker;
     }
+
+    public void updateStatus(ItemStatus status) {
+        this.itemInfo = ItemInfo.create(this.itemInfo.getName(), status);
+    }
 }

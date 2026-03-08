@@ -13,9 +13,12 @@ import EquipmentReservation from "./pages/gyms/EquipmentReservation"
 import MembershipRegister from "./pages/gyms/MembershipRegister"
 import LockerRent from "./pages/lockers/Rent"
 import LockerExtend from "./pages/lockers/Extend"
+import OwnerLayout from "./pages/owners/OwnerLayout"
 import OwnerDashboard from "./pages/owners/Dashboard"
 import GymRegister from "./pages/owners/GymRegister"
-import GymMapEditor from "./pages/owners/GymMapEditor"
+import GymDetail from "./pages/owners/GymDetail"
+import GymLockerManage from "./pages/owners/GymLockerManage"
+import GymEquipmentManage from "./pages/owners/GymEquipmentManage"
 
 export default function App() {
   return (
@@ -42,9 +45,15 @@ export default function App() {
 
           {/* Owner 전용 */}
           <Route element={<ProtectedRoute requiredRole="owner" />}>
-            <Route path="/owners" element={<OwnerDashboard />} />
+            {/* 공유 레이아웃 (AppBar + 사이드바) */}
+            <Route element={<OwnerLayout />}>
+              <Route path="/owners" element={<OwnerDashboard />} />
+              <Route path="/owners/gyms/:gymId" element={<GymDetail />} />
+              <Route path="/owners/gyms/:gymId/lockers" element={<GymLockerManage />} />
+              <Route path="/owners/gyms/:gymId/equipments" element={<GymEquipmentManage />} />
+            </Route>
+            {/* 풀스크린 독립 페이지 */}
             <Route path="/owners/gyms/register" element={<GymRegister />} />
-            <Route path="/owners/gyms/:gymId/map" element={<GymMapEditor />} />
           </Route>
         </Routes>
 

@@ -16,6 +16,7 @@ export default function EquipmentLayer({
   equipment,
   tool,
   selectedIds,
+  highlightEquipId,
   onSelect,
   onMove,
   onUpdate,
@@ -122,20 +123,23 @@ export default function EquipmentLayer({
   return (
     <Layer>
       {equipment.map((item) => {
-        const color = EQUIP_COLORS[item.type] ?? "#6b7280";
-        const icon  = EQUIP_ICONS[item.type]  ?? "🏋️";
+        const color = EQUIP_COLORS[item.category ?? item.type] ?? "#6b7280";
+        const icon  = EQUIP_ICONS[item.category  ?? item.type] ?? "🏋️";
         const isSelected   = selectedIds.includes(item.id);
         const isPreview    = dragPreview?.id === item.id;
         const hasCollision = isPreview && dragPreview.collision;
         const isResizingThis = resizing?.id === item.id;
 
         const status = item.status ?? "normal";
+        const isHighlighted = highlightEquipId != null && item.equipmentId === highlightEquipId;
         let borderColor = isSelected ? "#2563eb" : color;
         let borderWidth = isSelected ? 3 : 1.5;
         let opacity = 1;
+        let shadowColor = null;
         if (status === "maintenance") { borderColor = "#f59e0b"; borderWidth = 3; }
         if (status === "unavailable") { borderColor = "#ef4444"; opacity = 0.5; }
         if (hasCollision) { borderColor = "#ef4444"; borderWidth = 3; }
+        if (isHighlighted) { borderColor = "#f57c00"; borderWidth = 4; shadowColor = "#f57c00"; }
 
         // spanW/spanH: 리사이즈 프리뷰 → item 값 → 레거시 1.5배
         const sw = resizeSpan[item.id]?.spanW ?? item.spanW;
@@ -146,12 +150,21 @@ export default function EquipmentLayer({
         const x = item.gridX * GRID_SIZE;
         const y = item.gridY * GRID_SIZE;
 
-        // 아이콘 영역
+        // 아이콘 영역 — 이미지는 원본 비율 유지하여 중앙 배치
         const imgPad = 4;
-        const imgW = Math.max(1, sizeW - imgPad * 2);
-        const imgH = Math.max(1, sizeH - imgPad * 2 - 14);
         const iconFontSize = Math.min(22, Math.max(10, Math.floor(sizeH * 0.38)));
         const iconY = Math.max(2, (sizeH - 14 - iconFontSize) / 2);
+        // 이미지 비율 유지: 가용 영역 안에서 contain
+        const availW = Math.max(1, sizeW - imgPad * 2);
+        const availH = Math.max(1, sizeH - imgPad * 2 - 14);
+        const nativeImg = imageMap[item.iconUrl];
+        const nativeW = nativeImg?.width  || availW;
+        const nativeH = nativeImg?.height || availH;
+        const ratio = Math.min(availW / nativeW, availH / nativeH);
+        const imgW = nativeW * ratio;
+        const imgH = nativeH * ratio;
+        const imgX = imgPad + (availW - imgW) / 2;
+        const imgY = imgPad + (availH - imgH) / 2;
 
         return (
           <Group
@@ -177,12 +190,15 @@ export default function EquipmentLayer({
               stroke={borderColor}
               strokeWidth={borderWidth}
               cornerRadius={4}
+              shadowColor={shadowColor ?? undefined}
+              shadowBlur={shadowColor ? 12 : 0}
+              shadowOpacity={shadowColor ? 0.6 : 0}
             />
             {/* 아이콘 */}
             {imageMap[item.iconUrl] ? (
               <KonvaImage
                 image={imageMap[item.iconUrl]}
-                x={imgPad} y={imgPad}
+                x={imgX} y={imgY}
                 width={imgW} height={imgH}
                 listening={false}
               />

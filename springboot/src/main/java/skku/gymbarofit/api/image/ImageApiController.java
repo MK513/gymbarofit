@@ -35,11 +35,18 @@ public class ImageApiController {
 
         List<Map<String, String>> icons = Arrays.stream(files)
                 .sorted(Comparator.comparing(File::getName))
-                .map(f -> Map.of(
-                        "filename", f.getName(),
-                        "url", "/images/" + URLEncoder.encode(f.getName(), StandardCharsets.UTF_8).replace("+", "%20"),
-                        "type", EquipmentType.fromFilename(f.getName()).name()
-                ))
+                .map(f -> {
+                    String kindName = f.getName()
+                            .replaceAll("\\.[^.]+$", "")  // 확장자 제거
+                            .replaceAll("_\\d+$", "");     // _100, _50 등 크기 접미사 제거
+                    String category = EquipmentType.fromFilename(f.getName()).name();
+                    return Map.of(
+                            "filename", f.getName(),
+                            "url", "/images/" + URLEncoder.encode(f.getName(), StandardCharsets.UTF_8).replace("+", "%20"),
+                            "type",     kindName,   // 기구 종류명 (예: "러닝머신")
+                            "category", category    // 카테고리 enum명 (예: "CARDIO")
+                    );
+                })
                 .toList();
 
         return ResponseEntity.ok(icons);

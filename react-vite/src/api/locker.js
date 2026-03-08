@@ -23,3 +23,7 @@ export async function refundLocker(pathVariable) {
 export async function extendLocker(dto, pathVariable) {
   return call("/lockers/usages/{usageId}/extend", "POST", dto, pathVariable);
 }
+
+export async function updateLockerStatus(dto, pathVariable) {
+  return call("/lockers/{lockerId}/status", "PATCH", dto, pathVariable);
+}

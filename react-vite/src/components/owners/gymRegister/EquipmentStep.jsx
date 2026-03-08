@@ -34,9 +34,10 @@ export default function EquipmentStep({ list, form, onFormChange, onAdd, onRemov
 
   const handleIconChange = (filename) => {
     const icon = icons.find((i) => i.filename === filename);
-    onFormChange({ target: { name: "imageUrl", value: filename } });
-    onFormChange({ target: { name: "name",     value: icon?.label ?? "" } });
-    onFormChange({ target: { name: "type",     value: icon?.type ?? "MACHINE" } });
+    onFormChange({ target: { name: "imageUrl",  value: filename } });
+    onFormChange({ target: { name: "name",      value: icon?.label ?? "" } });
+    onFormChange({ target: { name: "type",      value: icon?.label ?? "" } });
+    onFormChange({ target: { name: "category",  value: icon?.category ?? "MACHINE" } });
     setAnchorEl(null);
   };
 
@@ -203,7 +204,7 @@ export default function EquipmentStep({ list, form, onFormChange, onAdd, onRemov
         <Paper elevation={0} sx={{ border: "1px solid #eef2f6", borderRadius: 2, overflow: "hidden" }}>
           <List dense disablePadding>
             {list.map((item, idx) => {
-              const meta = getTypeMeta(item.type);
+              const meta = getTypeMeta(item.category ?? item.type);
               const itemIcon = icons.find((i) => i.filename === item.imageUrl);
               return (
                 <React.Fragment key={item.id}>

@@ -25,27 +25,41 @@ public class Equipment{
 
     private String imageUrl;
 
-    private String serialNumber;
-
-    private float met;
-
     @Embedded
     private ItemInfo itemInfo;
 
-    private String location;
+    private Integer gridX;
 
-    public static Equipment create(Gym gym, String name, String type, String imageUrl, String location) {
+    private Integer gridY;
+
+    public static Equipment create(Gym gym, String name, String type, String imageUrl, Integer gridX, Integer gridY) {
         Equipment e = new Equipment();
         e.gym = gym;
         e.type = type;
         e.imageUrl = imageUrl;
         e.itemInfo = ItemInfo.create(name, ItemStatus.OK);
-        try {
-            e.met = (float) EquipmentType.valueOf(type).getDefaultMet();
-        } catch (IllegalArgumentException ex) {
-            e.met = (float) EquipmentType.MACHINE.getDefaultMet();
-        }
-        e.location = location;
+        e.gridX = gridX;
+        e.gridY = gridY;
         return e;
+    }
+
+    public void update(String name, String type, String imageUrl) {
+        this.itemInfo = ItemInfo.create(name, this.itemInfo.getStatus());
+        this.type = type;
+        this.imageUrl = imageUrl;
+    }
+
+    public void updateStatus(ItemStatus status) {
+        this.itemInfo = ItemInfo.create(this.itemInfo.getName(), status);
+    }
+
+    /** 기구 종류명으로부터 카테고리 enum 명을 반환 (예: "CARDIO") */
+    public String getCategory() {
+        return EquipmentType.fromFilename(this.type).name();
+    }
+
+    /** MET 값을 DB에 저장하지 않고 EquipmentType enum에서 실시간 계산 */
+    public float getMet() {
+        return (float) EquipmentType.fromFilename(this.type).getDefaultMet();
     }
 }

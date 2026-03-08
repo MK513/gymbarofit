@@ -25,20 +25,13 @@ import {
 
 const BASE_URL = import.meta.env.VITE_API_BASE_URL || "http://localhost:8080";
 
-function deriveLabel(filename) {
-  return filename
-    .replace(/\.\w+$/, "")
-    .replace(/_\d+$/, "")
-    .replace(/_/g, " ");
-}
-
 import ArrowBackIcon from "@mui/icons-material/ArrowBack";
 
 import BasicInfoStep from "../../components/owners/gymRegister/BasicInfoStep";
 import EquipmentStep from "../../components/owners/gymRegister/EquipmentStep";
 import LockerStep from "../../components/owners/gymRegister/LockerStep";
 import MapStep from "../../components/owners/gymRegister/MapStep";
-import { DEFAULT_OPERATING_HOURS, LOCKER_SIZES, STEPS } from "../../components/owners/gymRegister/constants";
+import { DEFAULT_OPERATING_HOURS, STEPS } from "../../components/owners/gymRegister/constants";
 
 export default function GymRegister() {
   const navigate = useNavigate();
@@ -60,8 +53,8 @@ export default function GymRegister() {
           (data ?? []).map((item) => ({
             filename: item.filename,
             url: item.url,
-            label: deriveLabel(item.filename),
-            type: item.type ?? "MACHINE",
+            label: item.type,                    // 기구 종류명 ("러닝머신")
+            category: item.category ?? "MACHINE", // 카테고리 enum ("CARDIO")
           }))
         )
       )
@@ -110,8 +103,9 @@ export default function GymRegister() {
                 id: `p-${re.id}`,
                 equipmentId: re.id,
                 name: re.name,
-                type: el?.type ?? "",
-                iconUrl: el?.iconUrl ?? "",
+                type:     el?.type ?? "",
+                category: el?.category ?? "",
+                iconUrl:  el?.iconUrl ?? "",
                 gridX: re.gridX,
                 gridY: re.gridY,
                 spanW: re.spanW ?? 1,
@@ -140,7 +134,8 @@ export default function GymRegister() {
   const [equipList, setEquipList] = useState([]);
   const [equipForm, setEquipForm] = useState({
     name: "",
-    type: "CARDIO",
+    type: "",
+    category: "MACHINE",
     count: 1,
     imageUrl: "",
   });
@@ -151,9 +146,7 @@ export default function GymRegister() {
   const [initialPlaced, setInitialPlaced] = useState([]);
 
   /* Step 4 */
-  const [lockerZones, setLockerZones] = useState(
-    LOCKER_SIZES.map((s) => ({ size: s.value, rowCount: "", columnCount: "" }))
-  );
+  const [lockerZones, setLockerZones] = useState([]);
 
   /* ─── 핸들러 ────────────────────────────────────── */
   const handleGymChange = (e) =>
@@ -181,10 +174,19 @@ export default function GymRegister() {
   const handleRemoveEquip = (id) =>
     setEquipList((p) => p.filter((e) => e.id !== id));
 
-  const handleLockerChange = (size, field, value) =>
+  const handleLockerChange = (id, field, value) =>
     setLockerZones((p) =>
-      p.map((z) => (z.size === size ? { ...z, [field]: value } : z))
+      p.map((z) => (z.id === id ? { ...z, [field]: value } : z))
     );
+
+  const handleAddLockerZone = () =>
+    setLockerZones((p) => [
+      ...p,
+      { id: Date.now(), name: "", size: "SMALL", rowCount: "", columnCount: "" },
+    ]);
+
+  const handleRemoveLockerZone = (id) =>
+    setLockerZones((p) => p.filter((z) => z.id !== id));
 
   const buildGymDto = () => ({
     name: gymForm.name,
@@ -257,11 +259,8 @@ export default function GymRegister() {
       const registeredEquips = [];
       for (const equip of equipList) {
         const count = Number(equip.count);
-        const baseName = equip.imageUrl
-          ? equip.imageUrl.replace(/(_\d+)?\.[^.]+$/, "")
-          : equip.name;
         for (let i = 1; i <= count; i++) {
-          const name = count === 1 ? baseName : `${baseName} ${i}`;
+          const name = equip.name;
           registeredEquips.push({
             id: `temp-${equip.id}-${i}`,  // Step 4에서 실제 DB ID로 교체됨
             name,
@@ -315,7 +314,7 @@ export default function GymRegister() {
   /* Step 4: equipment DB 저장 → map_data ID 갱신 → 락커 등록 → 등록 완료 */
   const handleFinish = async () => {
     const zones = lockerZones.filter(
-      (z) => Number(z.rowCount) > 0 && Number(z.columnCount) > 0
+      (z) => z.name.trim() && Number(z.rowCount) > 0 && Number(z.columnCount) > 0
     );
 
     setLoading(true);
@@ -324,16 +323,10 @@ export default function GymRegister() {
       const tempToRealId = {};
       for (const equip of equipList) {
         const count = Number(equip.count);
-        const baseName = equip.imageUrl
-          ? equip.imageUrl.replace(/(_\d+)?\.[^.]+$/, "")
-          : equip.name;
         for (let i = 1; i <= count; i++) {
-          const name = count === 1 ? baseName : `${baseName} ${i}`;
+          const name = equip.name;
           const tempId = `temp-${equip.id}-${i}`;
           const placedItem = placedEquipments.find(p => p.equipmentId === tempId);
-          const location = placedItem
-            ? JSON.stringify({ gridX: placedItem.gridX, gridY: placedItem.gridY })
-            : null;
           const realIds = await createOwnerGymEquipments(
             {
               name,
@@ -342,7 +335,8 @@ export default function GymRegister() {
               imageUrl: equip.imageUrl
                 ? `${BASE_URL}/images/${equip.imageUrl}`
                 : "",
-              location,
+              gridX: placedItem?.gridX ?? null,
+              gridY: placedItem?.gridY ?? null,
             },
             { gymId }
           );
@@ -367,6 +361,7 @@ export default function GymRegister() {
       for (const zone of zones) {
         await createOwnerGymLockerZones(
           {
+            name:        zone.name,
             size:        zone.size,
             rowCount:    Number(zone.rowCount),
             columnCount: Number(zone.columnCount),
@@ -392,9 +387,9 @@ export default function GymRegister() {
 
   const stepDescriptions = [
     "헬스장 기본 정보를 입력해주세요.",
-    "운동 기구를 등록하세요. 동종 기구는 수량을 입력하면 번호가 붙어 개별 등록됩니다.",
+    "운동 기구를 등록하세요. 동종 기구는 수량을 입력하면 개별 등록됩니다.",
     "등록된 기구를 맵에 배치하세요. 건너뛰기하면 나중에 맵 편집에서 배치할 수 있습니다.",
-    "보관함을 사이즈별로 등록하세요. 행·열을 입력하지 않으면 해당 사이즈는 건너뜁니다.",
+    "보관함 구역을 추가하고 이름, 사이즈(소·중·대), 행·열을 설정하세요.",
   ];
 
   return (
@@ -490,8 +485,9 @@ export default function GymRegister() {
               const iconObj = icons.find((ic) => ic.filename === el?.imageUrl);
               return {
                 ...re,
-                type: el?.type ?? "",
-                iconUrl: iconObj ? `${BASE_URL}${iconObj.url}` : "",
+                type:     el?.type ?? "",
+                category: el?.category ?? "",
+                iconUrl:  iconObj ? `${BASE_URL}${iconObj.url}` : "",
               };
             })}
             initialPlaced={initialPlaced}
@@ -500,7 +496,12 @@ export default function GymRegister() {
           />
         )}
         {activeStep === 3 && (
-          <LockerStep zones={lockerZones} onChange={handleLockerChange} />
+          <LockerStep
+              zones={lockerZones}
+              onChange={handleLockerChange}
+              onAdd={handleAddLockerZone}
+              onRemove={handleRemoveLockerZone}
+            />
         )}
       </Box>
 

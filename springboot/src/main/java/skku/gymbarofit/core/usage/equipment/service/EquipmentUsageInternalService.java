@@ -2,11 +2,13 @@ package skku.gymbarofit.core.usage.equipment.service;
 
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import skku.gymbarofit.core.item.equipment.exception.EquipmentErrorCode;
 import skku.gymbarofit.core.item.equipment.exception.EquipmentException;
 import skku.gymbarofit.core.usage.equipment.EquipmentUsage;
+import skku.gymbarofit.core.usage.equipment.dto.DailyWorkoutItemDto;
 import skku.gymbarofit.core.usage.equipment.dto.WorkoutHistoryResponseDto;
 import skku.gymbarofit.core.usage.equipment.enums.EquipmentUsageStatus;
 import skku.gymbarofit.core.usage.equipment.repository.EquipmentUsageRepository;
@@ -95,17 +97,22 @@ public class EquipmentUsageInternalService {
     }
 
     public float getTodayTotalCalories(Long memberId) {
-        return equipmentUsageRepository.sumCaloriesForToday(
-                memberId,
-                startOfToday(),
-                startOfTomorrow()
-        );
+        return (float) equipmentUsageRepository.findCompletedForToday(
+                        memberId,
+                        startOfToday(),
+                        startOfTomorrow(),
+                        Pageable.unpaged()
+                ).stream()
+                .mapToDouble(DailyWorkoutItemDto::calcCalories)
+                .sum();
     }
 
-    public List<EquipmentUsage> getRecentThreeActivities(Long memberId) {
-        return equipmentUsageRepository.findTop3ByMemberIdAndStatusOrderByEndAtDesc(
+    public List<EquipmentUsage> getRecentThreeActivitiesToday(Long memberId) {
+        return equipmentUsageRepository.findCompletedForToday(
                 memberId,
-                EquipmentUsageStatus.COMPLETED
+                startOfToday(),
+                startOfTomorrow(),
+                PageRequest.of(0, 3)
         );
     }
 

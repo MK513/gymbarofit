@@ -1,5 +1,6 @@
 package skku.gymbarofit.api.user.dto;
 
+import com.fasterxml.jackson.annotation.JsonInclude;
 import lombok.Getter;
 import skku.gymbarofit.api.security.dto.JwtTokenDto;
 import skku.gymbarofit.core.user.dto.UserRequestInfo;
@@ -12,8 +13,12 @@ public class OwnerLoginResponseDto {
     private final UserRequestInfo userInfo;
     private final JwtTokenDto token;
 
-    public OwnerLoginResponseDto(JwtTokenDto tokenDto, Owner owner) {
+    @JsonInclude(JsonInclude.Include.NON_NULL)
+    private final String refreshToken;
+
+    public OwnerLoginResponseDto(JwtTokenDto tokenDto, Owner owner, String rawRefreshToken) {
         this.token = tokenDto;
+        this.refreshToken = rawRefreshToken;
         this.userInfo = UserRequestInfo.builder()
                 .id(owner.getId())
                 .email(owner.getEmail())

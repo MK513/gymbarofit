@@ -4,6 +4,7 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+import skku.gymbarofit.api.user.owner.dto.OwnerGymEquipmentDto;
 import skku.gymbarofit.api.global.annotation.CurrentUserId;
 
 @RestController
@@ -60,6 +61,12 @@ public class EquipmentApiController {
         return ResponseEntity.noContent().build();
     }
 
-
-
+    // 기구 상태 변경
+    @PatchMapping("/{equipmentId}/status")
+    public ResponseEntity<OwnerGymEquipmentDto> updateEquipmentStatus(
+            @PathVariable Long equipmentId,
+            @RequestBody EquipmentStatusUpdateRequestDto dto
+    ) {
+        return ResponseEntity.ok(equipmentService.updateStatus(equipmentId, dto));
+    }
 }
