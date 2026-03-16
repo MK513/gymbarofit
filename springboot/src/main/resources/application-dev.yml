@@ -6,7 +6,7 @@ spring:
   sql:
     init:
       mode: always
-      data-locations: classpath:data-dev.sql
+      data-locations: classpath:data-dev.sql,classpath:data-dev-sample.sql
   datasource:
     url: ${H2_DB_URL}
     username: ${H2_DB_USERNAME}
@@ -21,3 +21,6 @@ logging.level:
 app:
   upload:
     dir: C:/Users/finem/Desktop/gymbarofit/springboot/images
+  jwt:
+    refresh-token:
+      secure-cookie: false # localhost는 HTTPS 미사용

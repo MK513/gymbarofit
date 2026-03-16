@@ -96,30 +96,55 @@ public interface EquipmentUsageRepository extends JpaRepository<EquipmentUsage, 
     );
 
     @Query("""
-        select coalesce(
-            sum(
-                (u.durationMinutes / 60.0)
-                * e.met
-                * m.weight
-            ), 0
-        )
+        select u
         from EquipmentUsage u
-        join u.equipment e
-        join u.member m
+        join fetch u.member m
         where m.id = :memberId
           and u.status = skku.gymbarofit.core.usage.equipment.enums.EquipmentUsageStatus.COMPLETED
           and u.endAt >= :startOfDay
           and u.endAt < :endOfDay
     """)
-    float sumCaloriesForToday(
+    List<EquipmentUsage> findCompletedForToday(
             @Param("memberId") Long memberId,
             @Param("startOfDay") LocalDateTime startOfDay,
-            @Param("endOfDay") LocalDateTime endOfDay
+            @Param("endOfDay") LocalDateTime endOfDay,
+            Pageable pageable
     );
 
-    List<EquipmentUsage> findTop3ByMemberIdAndStatusOrderByEndAtDesc(
-            Long memberId,
-            EquipmentUsageStatus status
+    @Query("""
+        select e.itemInfo.name, count(u)
+        from EquipmentUsage u
+        join u.equipment e
+        where e.gym.id = :gymId
+          and u.status = skku.gymbarofit.core.usage.equipment.enums.EquipmentUsageStatus.IN_USE
+        group by e.itemInfo.name
+    """)
+    List<Object[]> countInUseGroupByEquipmentName(@Param("gymId") Long gymId);
+
+    @Query("""
+        select e.type, count(u)
+        from EquipmentUsage u
+        join u.equipment e
+        where e.gym.id = :gymId
+          and u.status = skku.gymbarofit.core.usage.equipment.enums.EquipmentUsageStatus.IN_USE
+        group by e.type
+    """)
+    List<Object[]> countInUseGroupByEquipmentType(@Param("gymId") Long gymId);
+
+    @Query("""
+        select e.itemInfo.name, coalesce(sum(u.durationMinutes), 0)
+        from EquipmentUsage u
+        join u.equipment e
+        where e.gym.id = :gymId
+          and u.status = skku.gymbarofit.core.usage.equipment.enums.EquipmentUsageStatus.COMPLETED
+          and u.endAt >= :startOfMonth
+          and u.endAt < :startOfNextMonth
+        group by e.itemInfo.name
+    """)
+    List<Object[]> sumDurationGroupByEquipmentName(
+            @Param("gymId") Long gymId,
+            @Param("startOfMonth") LocalDateTime startOfMonth,
+            @Param("startOfNextMonth") LocalDateTime startOfNextMonth
     );
 
     @Query("""

@@ -16,7 +16,7 @@ import {
   CircularProgress
 } from "@mui/material";
 import { useNavigate, useParams } from "react-router-dom";
-import { getLockerInfo, extendLocker } from "../../api/Api";
+import { getLockerInfo, extendLocker } from "../../api/locker";
 import { useNotification } from "../../context/NotificationContext";
 import LockerPaymentDialog from "../../components/lockers/LockerPaymentDialog";; // Dialog 컴포넌트 import
 
@@ -91,7 +91,7 @@ export default function Extension() {
 
       // 성공 시 처리
       showNotification(`${selectedDuration}개월 연장이 완료되었습니다.`, "success");
-      navigate("/"); 
+      navigate("/members");
 
     } catch (error) {
       console.error("연장 실패:", error);

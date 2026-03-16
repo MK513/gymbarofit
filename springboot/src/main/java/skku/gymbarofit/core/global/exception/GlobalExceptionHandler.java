@@ -7,6 +7,7 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
+import org.springframework.web.servlet.resource.NoResourceFoundException;
 import skku.gymbarofit.core.global.exception.mapper.EquipmentExceptionMapper;
 import skku.gymbarofit.core.global.exception.mapper.LockerExceptionMapper;
 import skku.gymbarofit.core.item.equipment.exception.EquipmentErrorCode;
@@ -17,6 +18,12 @@ import java.util.Map;
 @Slf4j
 @RestControllerAdvice
 public class GlobalExceptionHandler {
+
+    // Get('/') ERROR 로그 안 찍힘
+    @ExceptionHandler(NoResourceFoundException.class)
+    public ResponseEntity<Void> handleNoResource(NoResourceFoundException e) {
+        return ResponseEntity.notFound().build();
+    }
 
     @ExceptionHandler(BusinessException.class)
     public ResponseEntity<ErrorResponse> handleBusinessException(BusinessException e) {
@@ -33,7 +40,7 @@ public class GlobalExceptionHandler {
         return ErrorResponse.toResponseEntity(mappedException.getErrorCode());
     }
 
-    @ExceptionHandler(Exception.class) // ✅ 모든 예외 처리
+    @ExceptionHandler(Exception.class) // 모든 예외 처리
     public ResponseEntity<?> handleAll(Exception e) {
 
         log.error("Unhandled Exception: ", e);

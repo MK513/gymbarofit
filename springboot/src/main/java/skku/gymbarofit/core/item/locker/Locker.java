@@ -3,6 +3,7 @@ package skku.gymbarofit.core.item.locker;
 import jakarta.persistence.*;
 import lombok.Getter;
 import skku.gymbarofit.core.item.ItemInfo;
+import skku.gymbarofit.core.item.enums.ItemStatus;
 
 import static jakarta.persistence.FetchType.LAZY;
 
@@ -23,4 +24,16 @@ public class Locker{
     private ItemInfo itemInfo;
 
     private int lockerNumber;
+
+    public static Locker create(LockerZone zone, int lockerNumber) {
+        Locker locker = new Locker();
+        locker.lockerZone = zone;
+        locker.lockerNumber = lockerNumber;
+        locker.itemInfo = ItemInfo.create("락커 #" + lockerNumber, ItemStatus.OK);
+        return locker;
+    }
+
+    public void updateStatus(ItemStatus status) {
+        this.itemInfo = ItemInfo.create(this.itemInfo.getName(), status);
+    }
 }

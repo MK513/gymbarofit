@@ -23,4 +23,16 @@ public interface MembershipRepository extends JpaRepository<Membership, Long> {
     boolean existsByMemberIdAndGymId(Long memberId, Long gymId);
 
     Optional<Membership> findFirstByMember_Id(Long memberId);
+
+    /**
+     * 해당 헬스장의 특정 연월 신규 가입 수
+     */
+    @Query("SELECT COUNT(m) FROM Membership m WHERE m.gym.id = :gymId AND YEAR(m.createdAt) = :year AND MONTH(m.createdAt) = :month")
+    int countNewByGymAndMonth(@Param("gymId") Long gymId, @Param("year") int year, @Param("month") int month);
+
+    /**
+     * 해당 헬스장의 특정 연월 만료 예정 회원 수 (ACTIVE 상태, 해당 월 내 만료)
+     */
+    @Query("SELECT COUNT(m) FROM Membership m WHERE m.gym.id = :gymId AND m.status = 'ACTIVE' AND YEAR(m.expiredAt) = :year AND MONTH(m.expiredAt) = :month")
+    int countExpiringByGymAndMonth(@Param("gymId") Long gymId, @Param("year") int year, @Param("month") int month);
 }

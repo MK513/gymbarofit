@@ -14,8 +14,10 @@ import java.util.stream.Collectors;
 public record EquipmentResponseDto (
         Long id,
         String name,
-        String location,
+        Integer gridX,
+        Integer gridY,
         String type,
+        String category,
         String imageUrl,
         Integer waitingCount,
         ItemStatus itemStatus,
@@ -49,8 +51,10 @@ public record EquipmentResponseDto (
         return EquipmentResponseDto.builder()
                 .id(equipment.getId())
                 .name(equipment.getItemInfo().getName())
-                .location(equipment.getLocation())
+                .gridX(equipment.getGridX())
+                .gridY(equipment.getGridY())
                 .type(equipment.getType())
+                .category(equipment.getCategory())
                 .imageUrl(equipment.getImageUrl())
                 .waitingCount(waitingCount)
                 .itemStatus(equipment.getItemInfo().getStatus())
@@ -62,8 +66,10 @@ public record EquipmentResponseDto (
         return EquipmentResponseDto.builder()
                 .id(equipment.getId())
                 .name(equipment.getItemInfo().getName())
-                .location(equipment.getLocation())
+                .gridX(equipment.getGridX())
+                .gridY(equipment.getGridY())
                 .type(equipment.getType())
+                .category(equipment.getCategory())
                 .imageUrl(equipment.getImageUrl())
                 .waitingCount(waitingCount)
                 .itemStatus(equipment.getItemInfo().getStatus())

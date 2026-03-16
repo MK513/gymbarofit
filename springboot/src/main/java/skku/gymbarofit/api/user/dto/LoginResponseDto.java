@@ -1,5 +1,6 @@
 package skku.gymbarofit.api.user.dto;
 
+import com.fasterxml.jackson.annotation.JsonInclude;
 import lombok.Getter;
 import lombok.ToString;
 import skku.gymbarofit.api.security.dto.JwtTokenDto;
@@ -16,8 +17,12 @@ public class LoginResponseDto {
     private final UserRequestInfo userInfo;
     private final JwtTokenDto token;
 
-    public LoginResponseDto(JwtTokenDto tokenDto, Member member, Gym gym) {
+    @JsonInclude(JsonInclude.Include.NON_NULL)
+    private final String refreshToken;
+
+    public LoginResponseDto(JwtTokenDto tokenDto, Member member, Gym gym, String rawRefreshToken) {
         this.token = tokenDto;
+        this.refreshToken = rawRefreshToken;
         this.userInfo = UserRequestInfo.builder()
                 .id(member.getId())
                 .email(member.getEmail())

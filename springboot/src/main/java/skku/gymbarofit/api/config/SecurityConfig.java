@@ -77,9 +77,14 @@ public class SecurityConfig {
                         .requestMatchers(org.springframework.http.HttpMethod.OPTIONS, "/**").permitAll()
                         .requestMatchers("/members/register", "/members/login").permitAll()
                         .requestMatchers("/owners/register", "/owners/login").permitAll()
+                        .requestMatchers("/auth/refresh", "/auth/logout").permitAll()
                         .requestMatchers("/memberships/**").hasRole("MEMBER")
                         .requestMatchers("/members/**").hasRole("MEMBER")
                         .requestMatchers("/owners/**").hasRole("OWNER")
+                        .requestMatchers(
+                                "/gyms/*/checkin",
+                                "/gyms/*/checkout"
+                        ).hasRole("MEMBER")
                         .requestMatchers(
                                 "/", "/index.html", "/assets/**", "/*.ico", "/error"
                         ).permitAll()
@@ -116,6 +121,7 @@ public class SecurityConfig {
         allowedHttpMethods.add("GET");
         allowedHttpMethods.add("POST");
         allowedHttpMethods.add("PUT");
+        allowedHttpMethods.add("PATCH");
         allowedHttpMethods.add("DELETE");
         allowedHttpMethods.add("OPTIONS");
         configuration.setAllowedMethods(allowedHttpMethods);
