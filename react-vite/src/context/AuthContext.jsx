@@ -1,61 +1,55 @@
-import React, { createContext, useContext, useEffect, useMemo, useState } from "react";
+import React, { createContext, useContext, useEffect, useMemo, useRef, useState } from "react";
+import { tokenService } from "../utils/tokenService";
 
 const AuthContext = createContext(null);
 
-const USER_KEY = "USER";
-const TOKEN_KEY = "ACCESS_TOKEN";
-
 export function AuthProvider({ children }) {
-  const [initialized, setInitialized] = useState(false); // ✅ 복원 완료 여부
+  const [initialized, setInitialized] = useState(false);
   const [user, setUser] = useState(null);
   const [accessToken, setAccessToken] = useState(null);
 
-  // ✅ 앱 시작 시 localStorage에서 복원
+  // 앱 시작 시 localStorage에서 복원
   useEffect(() => {
     try {
-      const storedUser = localStorage.getItem(USER_KEY);
-      const storedToken = localStorage.getItem(TOKEN_KEY);
+      const storedUser = tokenService.getUser();
+      const storedToken = tokenService.getToken();
 
-      if (storedUser) setUser(JSON.parse(storedUser));
+      if (storedUser) setUser(storedUser);
       if (storedToken) setAccessToken(storedToken);
     } finally {
       setInitialized(true);
     }
   }, []);
 
-  // ✅ 로그인: user/token 저장 + state 반영
-  const login = (userData, token) => {
-    setUser(userData);
-    setAccessToken(token);
-
-    localStorage.setItem(USER_KEY, JSON.stringify(userData));
-    localStorage.setItem(TOKEN_KEY, token);
-  };
-
-  // ✅ 로그아웃: 전부 제거
   const logout = () => {
     setUser(null);
     setAccessToken(null);
-
-    localStorage.removeItem(USER_KEY);
-    localStorage.removeItem(TOKEN_KEY);
+    tokenService.clear();
   };
 
-  // ✅ 인증 여부는 "user && token" 기준 추천
+  // 401 토큰 만료 시 자동 로그아웃
+  const logoutRef = useRef(logout);
+  logoutRef.current = logout;
+  useEffect(() => {
+    const handler = () => logoutRef.current();
+    window.addEventListener("auth:unauthorized", handler);
+    return () => window.removeEventListener("auth:unauthorized", handler);
+  }, []);
+
+  const login = (userData, token) => {
+    setUser(userData);
+    setAccessToken(token);
+    tokenService.setUser(userData);
+    tokenService.setToken(token);
+  };
+
   const isAuthed = !!user && !!accessToken;
 
   const updateGym = (newGym) => {
     setUser((prevUser) => {
       if (!prevUser) return prevUser;
-
-      const updatedUser = {
-        ...prevUser,
-        gym: newGym,
-      };
-
-      // localStorage도 함께 갱신
-      localStorage.setItem("USER", JSON.stringify(updatedUser));
-
+      const updatedUser = { ...prevUser, gym: newGym };
+      tokenService.setUser(updatedUser);
       return updatedUser;
     });
   };

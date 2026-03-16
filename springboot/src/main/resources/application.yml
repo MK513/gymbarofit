@@ -19,3 +19,6 @@ app:
       prefix: Bearer
     token:
       expireTime: 86400000 # 24시간 (ms)
+    refresh-token:
+      expireTime: 1209600000 # 14일 (ms)
+      secure-cookie: true

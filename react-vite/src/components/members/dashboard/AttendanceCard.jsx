@@ -1,70 +1,79 @@
 import React from "react";
-import { Paper, Stack, Box, Avatar, Typography, Button } from "@mui/material";
+import { Paper, Box, Avatar, Typography, Button } from "@mui/material";
 import LocalFireDepartmentIcon from '@mui/icons-material/LocalFireDepartment';
-import CheckCircleIcon from '@mui/icons-material/CheckCircle';
-import QrCodeIcon from '@mui/icons-material/QrCode';
+import LogoutIcon from '@mui/icons-material/Logout';
 
-export default function AttendanceCard({ attendance, onCheckIn, onOpenQr }) {
+export default function AttendanceCard({ attendance, onCheckIn, onCheckOut }) {
+  const { isCheckedIn, checkedToday, streak } = attendance;
+
+  let headerText;
+  if (isCheckedIn) headerText = "현재 입장 중";
+  else if (checkedToday) headerText = "오늘 출석 완료!";
+  else headerText = streak > 0 ? `${streak}일 연속 🔥` : "오늘 출석하세요!";
+
+  let subText;
+  if (isCheckedIn) subText = "운동 마치면 체크아웃 해주세요.";
+  else if (checkedToday) subText = "내일도 화이팅!";
+  else subText = "오늘도 출석 갱신!";
+
   return (
-    <Paper 
-      elevation={0} 
-      sx={{ 
-        p: 3, 
-        borderRadius: 4, 
-        background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)', 
-        color: 'white',
-        boxShadow: '0 8px 32px rgba(118, 75, 162, 0.2)'
+    <Paper
+      elevation={0}
+      sx={{
+        p: 3,
+        borderRadius: 3,
+        bgcolor: 'white',
+        border: '1px solid #eef2f6',
       }}
     >
-      <Stack spacing={2}>
-        <Box display="flex" alignItems="center">
-          <Avatar sx={{ bgcolor: 'rgba(255,255,255,0.2)', width: 56, height: 56, mr: 2 }}>
-            <LocalFireDepartmentIcon sx={{ color: '#fff', fontSize: 32 }} />
-          </Avatar>
-          <Box>
-            <Typography variant="h5" fontWeight="800" sx={{ mb: 0.5 }}>
-              {attendance.checkedToday ? "오늘 출석 완료!" : `${attendance.streak}일 연속 🔥`}
-            </Typography>
-            <Typography variant="body2" sx={{ opacity: 0.9 }}>
-              {attendance.checkedToday ? "내일도 화이팅!" : "오늘도 출석 갱신!"}
-            </Typography>
-          </Box>
+      <Box display="flex" alignItems="center">
+        <Avatar sx={{ bgcolor: '#ede7f6', width: 56, height: 56, mr: 2 }}>
+          <LocalFireDepartmentIcon sx={{ color: '#764ba2', fontSize: 32 }} />
+        </Avatar>
+        <Box sx={{ flexGrow: 1 }}>
+          <Typography variant="h5" fontWeight="800" sx={{ mb: 0.5, color: '#333' }}>
+            {headerText}
+          </Typography>
+          <Typography variant="body2" sx={{ color: 'text.secondary' }}>
+            {subText}
+          </Typography>
         </Box>
-
-        <Stack direction="row" spacing={1.5} sx={{ width: '100%' }}>
-          <Button 
-            fullWidth
-            variant="contained" 
-            onClick={onCheckIn}
-            disabled={attendance.checkedToday}
-            startIcon={attendance.checkedToday ? <CheckCircleIcon /> : <LocalFireDepartmentIcon />}
-            sx={{ 
-              bgcolor: attendance.checkedToday ? 'rgba(0,0,0,0.2)' : 'white', 
-              color: attendance.checkedToday ? '#ddd' : '#764ba2', 
-              fontWeight: 'bold', 
-              py: 1.2,
-              '&:hover': { bgcolor: '#f5f5f5' } 
-            }}
-          >
-            {attendance.checkedToday ? "완료됨" : "출석하기"}
-          </Button>
-          <Button 
-            fullWidth
-            variant="outlined" 
-            onClick={onOpenQr}
-            startIcon={<QrCodeIcon />}
-            sx={{ 
-              borderColor: 'rgba(255,255,255,0.6)', 
-              color: 'white', 
+        {isCheckedIn ? (
+          <Button
+            variant="outlined"
+            onClick={onCheckOut}
+            startIcon={<LogoutIcon />}
+            sx={{
               fontWeight: 'bold',
               py: 1.2,
-              '&:hover': { borderColor: 'white', bgcolor: 'rgba(255,255,255,0.1)' } 
+              px: 2,
+              whiteSpace: 'nowrap',
+              borderColor: '#764ba2',
+              color: '#764ba2',
+              '&:hover': { bgcolor: '#f3e5f5', borderColor: '#764ba2' }
             }}
           >
-            입장 QR
+            나가기
           </Button>
-        </Stack>
-      </Stack>
+        ) : (
+          <Button
+            variant="contained"
+            onClick={onCheckIn}
+            startIcon={<LocalFireDepartmentIcon />}
+            sx={{
+              bgcolor: '#764ba2',
+              color: 'white',
+              fontWeight: 'bold',
+              py: 1.2,
+              px: 2,
+              whiteSpace: 'nowrap',
+              '&:hover': { bgcolor: '#5e3a8a' }
+            }}
+          >
+            이용 시작
+          </Button>
+        )}
+      </Box>
     </Paper>
   );
 }

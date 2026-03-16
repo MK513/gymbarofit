@@ -8,6 +8,8 @@ import org.springframework.transaction.annotation.Transactional;
 import skku.gymbarofit.core.gym.dto.GymResponseDto;
 import skku.gymbarofit.core.item.equipment.Equipment;
 import skku.gymbarofit.core.item.equipment.service.EquipmentInternalService;
+import skku.gymbarofit.core.log.dto.AccessStatusDto;
+import skku.gymbarofit.core.log.service.AccessLogInternalService;
 import skku.gymbarofit.core.log.service.EquipmentLogInternalService;
 import skku.gymbarofit.core.membership.dto.MembershipInfoResponseDto;
 import skku.gymbarofit.core.gym.Gym;
@@ -37,6 +39,7 @@ public class MembershipService {
     private final EquipmentUsageInternalService equipmentUsageInternalService;
     private final EquipmentInternalService equipmentInternalService;
     private final EquipmentLogInternalService equipmentLogInternalService;
+    private final AccessLogInternalService accessLogInternalService;
 
     @Transactional(readOnly = true)
     public MembershipInfoResponseDto getInfo(Long gymId, Long memberId) {
@@ -49,7 +52,9 @@ public class MembershipService {
 
         EquipmentHistoryResponseDto historyDto = getHistoryDto(memberId);
 
-        return MembershipInfoResponseDto.from(gymResponseDto, lockerUsage, equipmentUsageResponseDto, historyDto);
+        AccessStatusDto checkInStatus = accessLogInternalService.getAccessStatus(memberId, gymId);
+
+        return MembershipInfoResponseDto.from(gymResponseDto, lockerUsage, equipmentUsageResponseDto, historyDto, checkInStatus);
     }
 
     private EquipmentUsageResponseDto getEquipmentUsageResponseDto(Long memberId) {
@@ -72,7 +77,7 @@ public class MembershipService {
         float todayTotalCalories = equipmentUsageInternalService.getTodayTotalCalories(memberId);
         todayTotalCalories = Math.round(todayTotalCalories * 10.0f) / 10.0f;
 
-        List<EquipmentRecordResponseDto> recentThreeUsages = equipmentUsageInternalService.getRecentThreeActivities(memberId)
+        List<EquipmentRecordResponseDto> recentThreeUsages = equipmentUsageInternalService.getRecentThreeActivitiesToday(memberId)
                 .stream().map(EquipmentRecordResponseDto::from)
                 .toList();
 

@@ -290,7 +290,7 @@ return fetch(url, options).then(async (response) => {
 try {
   await rentLocker({ lockerId, gymId, plan, paymentMethod });
   showNotification("대여가 완료되었습니다.", "success");
-  navigate("/");
+  navigate("/members");
 } catch (err) {
   showNotification(err.message || "오류가 발생했습니다.", "error");
 }
