@@ -1,61 +1,44 @@
 import React, { useState } from "react";
 import { useNavigate, Link } from "react-router-dom";
 import {
-  Container,
   TextField,
   Button,
   Typography,
   Box,
-  Paper,
   InputAdornment,
-  Avatar,
-  ToggleButton,
-  ToggleButtonGroup,
-  Divider,
+  IconButton,
 } from "@mui/material";
-
-// 아이콘 import (없다면 npm install @mui/icons-material 필요)
+import EmailOutlinedIcon from "@mui/icons-material/EmailOutlined";
 import LockOutlinedIcon from "@mui/icons-material/LockOutlined";
-import EmailIcon from "@mui/icons-material/Email";
-import KeyIcon from "@mui/icons-material/Key";
-import PersonIcon from "@mui/icons-material/Person";
-import StoreIcon from "@mui/icons-material/Store";
+import Visibility from "@mui/icons-material/Visibility";
+import VisibilityOff from "@mui/icons-material/VisibilityOff";
+import PersonOutlineIcon from "@mui/icons-material/PersonOutline";
+import StorefrontOutlinedIcon from "@mui/icons-material/StorefrontOutlined";
+import FitnessCenterIcon from "@mui/icons-material/FitnessCenter";
 
-
-import { loginMember, loginOwner } from "../api/Api";
+import { loginMember, loginOwner } from "../api/auth";
 import { useAuth } from "../context/AuthContext";
 
 export default function Login() {
   const navigate = useNavigate();
   const { login } = useAuth();
-  
-  const [role, setRole] = useState("member"); // member | owner
-
-  const handleRoleChange = (event, newRole) => {
-    if (newRole !== null) {
-      setRole(newRole);
-    }
-  };
+  const [role, setRole] = useState("member");
+  const [showPw, setShowPw] = useState(false);
 
   const handleLogin = async (e) => {
     e.preventDefault();
     const data = new FormData(e.target);
     const email = data.get("email");
     const pw = data.get("pw");
-
     try {
       const dto = { email, password: pw };
-
       if (role === "member") {
         const res = await loginMember(dto);
-
-        login(res.userInfo, res.token.accessToken);
-
+        login({ ...res.userInfo, role }, res.token.accessToken);
         navigate("/members");
       } else {
         const res = await loginOwner(dto);
-
-        login(res.userInfo, res.token.accessToken);
+        login({ ...res.userInfo, role }, res.token.accessToken);
         navigate("/owners");
       }
     } catch (e) {
@@ -65,88 +48,285 @@ export default function Login() {
   };
 
   return (
-    <Container component="main" maxWidth="xs">
+    <Box
+      sx={{
+        height: "100vh",
+        overflow: "hidden",
+        maxWidth: "100vw",
+        display: "flex",
+        flexDirection: { xs: "column", md: "row" },
+      }}
+    >
+      {/* ━━━━━ LEFT : 히어로 패널 ━━━━━ */}
       <Box
         sx={{
-          // 모바일(xs)에선 위쪽 여백 4, 태블릿 이상(sm)에선 8
-          marginTop: { xs: 4, sm: 8 }, 
+          width: { xs: "100%", md: "50%" },
+          height: { xs: "64px", sm: "35vh", md: "100vh" },
+          flexShrink: 0,
+          background: "linear-gradient(150deg, #0d1117 0%, #151f2e 100%)",
+          position: "relative",
+          overflow: "hidden",
           display: "flex",
           flexDirection: "column",
-          alignItems: "center",
-          // 화면 높이가 작을 때도 중앙 정렬이 잘 되도록 설정
-          minHeight: "80vh",
-          justifyContent: "center", 
+          justifyContent: { xs: "center", md: "flex-end" },
+          p: { xs: "0 24px", sm: "28px 44px", md: "0 60px 72px 60px" },
         }}
       >
-        <Paper
+        {/* 장식: 상단 우측 링 */}
+        <Box
           sx={{
-            boxShadow: { xs: "none", sm: 6 }, // 모바일: 그림자 없음 / PC: 그림자 레벨 6
-            borderRadius: { xs: 0, sm: 3 },   // 모바일: 네모 반듯하게 / PC: 둥글게
-            p: { xs: 3, sm: 4 },
-            display: "flex",
-            flexDirection: "column",
-            alignItems: "center",
-            width: "100%",
-            background: "#ffffff",
+            position: "absolute",
+            top: { xs: -100, md: -140 },
+            right: { xs: -100, md: -120 },
+            width: { xs: 300, md: 500 },
+            height: { xs: 300, md: 500 },
+            borderRadius: "50%",
+            border: "60px solid #1976D2",
+            opacity: 0.1,
+          }}
+        />
+        {/* 장식: 하단 좌측 링 */}
+        <Box
+          sx={{
+            position: "absolute",
+            bottom: { xs: -70, md: -90 },
+            left: { xs: -70, md: -90 },
+            width: { xs: 220, md: 320 },
+            height: { xs: 220, md: 320 },
+            borderRadius: "50%",
+            border: "40px solid #1976D2",
+            opacity: 0.07,
+          }}
+        />
+        {/* 장식: 사선 스트라이프 */}
+        <Box
+          sx={{
+            position: "absolute",
+            inset: 0,
+            backgroundImage:
+              "repeating-linear-gradient(55deg, transparent, transparent 38px, rgba(255,255,255,0.018) 38px, rgba(255,255,255,0.018) 40px)",
+            pointerEvents: "none",
+          }}
+        />
+        {/* 장식: 우측 하단 워터마크 */}
+        <Typography
+          sx={{
+            position: "absolute",
+            bottom: { xs: -16, md: -28 },
+            right: { xs: -8, md: -16 },
+            fontSize: { xs: "7rem", md: "13rem" },
+            fontWeight: 900,
+            color: "rgba(255,255,255,0.025)",
+            letterSpacing: -6,
+            lineHeight: 1,
+            userSelect: "none",
+            pointerEvents: "none",
           }}
         >
-          <Avatar sx={{ m: 1, bgcolor: "primary.main", width: 56, height: 56 }}>
-            <LockOutlinedIcon fontSize="large" />
-          </Avatar>
-          
-          <Typography component="h1" variant="h5" sx={{ mb: 3, fontWeight: 'bold' }}>
+          GYM
+        </Typography>
+        {/* 액센트 라인: 모바일 → 히어로 하단(폼 바로 위), 데스크톱 → 우측 세로 */}
+        <Box
+          sx={{
+            position: "absolute",
+            bottom: { xs: 0, md: "auto" },
+            top: { xs: "auto", md: 0 },
+            left: { xs: 0, md: "auto" },
+            right: { xs: "auto", md: 0 },
+            width: { xs: "100%", md: 3 },
+            height: { xs: 3, md: "100%" },
+            background: "linear-gradient(90deg, #1976D2, #42a5f5)",
+          }}
+        />
+
+        {/* 컨텐츠 */}
+        <Box sx={{ position: "relative", zIndex: 1 }}>
+          {/* 로고 */}
+          <Box sx={{ display: "flex", alignItems: "center", gap: 1, mb: { xs: 1.5, md: 5 } }}>
+            <Box
+              sx={{
+                width: { xs: 28, md: 36 },
+                height: { xs: 28, md: 36 },
+                borderRadius: 1.5,
+                bgcolor: "#1976D2",
+                display: "flex",
+                alignItems: "center",
+                justifyContent: "center",
+              }}
+            >
+              <FitnessCenterIcon sx={{ color: "white", fontSize: { xs: 16, md: 20 } }} />
+            </Box>
+            <Typography
+              sx={{
+                fontWeight: 900,
+                color: "white",
+                fontSize: { xs: "0.95rem", md: "1rem" },
+                letterSpacing: 3,
+              }}
+            >
+              GYMBAROFIT
+            </Typography>
+          </Box>
+
+          {/* 슬로건 — sm 이상부터 표시 */}
+          <Box sx={{ display: { xs: "none", sm: "block" } }}>
+            <Typography
+              sx={{
+                fontWeight: 900,
+                color: "white",
+                fontSize: { sm: "2rem", md: "2.8rem" },
+                lineHeight: 1.2,
+                letterSpacing: -1,
+              }}
+            >
+              매일의 땀이<br />결과를 만든다
+            </Typography>
+            <Box
+              sx={{
+                mt: 2,
+                width: 48,
+                height: 4,
+                borderRadius: 2,
+                bgcolor: "#1976D2",
+              }}
+            />
+            <Typography
+              sx={{
+                mt: 2,
+                color: "rgba(255,255,255,0.4)",
+                fontSize: "0.875rem",
+                display: { sm: "none", md: "block" },
+              }}
+            >
+              당신의 피트니스 여정을 함께합니다
+            </Typography>
+          </Box>
+        </Box>
+      </Box>
+
+      {/* ━━━━━ RIGHT : 폼 패널 ━━━━━ */}
+      <Box
+        sx={{
+          flex: 1,
+          overflow: "hidden",
+          display: "flex",
+          alignItems: { xs: "flex-start", md: "center" },
+          justifyContent: "center",
+          bgcolor: "#f5f7fa",
+          p: { xs: "40px 28px 0", sm: "32px 36px 0", md: "0 60px" },
+        }}
+      >
+        <Box sx={{ width: "100%", maxWidth: 400 }}>
+          {/* 타이틀 */}
+          <Typography
+            sx={{
+              fontWeight: 800,
+              color: "#111",
+              fontSize: { xs: "1.5rem", md: "1.75rem" },
+              letterSpacing: -0.5,
+              mb: { xs: 1, md: 0.5 },
+            }}
+          >
             로그인
           </Typography>
+          <Typography sx={{ color: "#999", fontSize: "0.875rem", mb: { xs: 4, md: 3.5 } }}>
+            계정 유형을 선택하고 계속하세요
+          </Typography>
 
-          <ToggleButtonGroup
-            value={role}
-            exclusive
-            onChange={handleRoleChange}
-            fullWidth
-            sx={{ mb: 3 }}
+          {/* 역할 탭 */}
+          <Box
+            sx={{
+              display: "flex",
+              bgcolor: "white",
+              border: "1px solid #e4e8ee",
+              borderRadius: 2.5,
+              p: 0.5,
+              gap: 0.5,
+              mb: { xs: 4, md: 3 },
+            }}
           >
-            <ToggleButton value="member" sx={{ py: 1.5 }}>
-              <PersonIcon sx={{ mr: 1 }} />
-              개인 회원
-            </ToggleButton>
-            <ToggleButton value="owner" sx={{ py: 1.5 }}>
-              <StoreIcon sx={{ mr: 1 }} />
-              기업 회원
-            </ToggleButton>
-          </ToggleButtonGroup>
+            {[
+              { value: "member", label: "개인 회원", Icon: PersonOutlineIcon },
+              { value: "owner", label: "기업 회원", Icon: StorefrontOutlinedIcon },
+            ].map(({ value, label, Icon }) => (
+              <Box
+                key={value}
+                onClick={() => setRole(value)}
+                sx={{
+                  flex: 1,
+                  display: "flex",
+                  alignItems: "center",
+                  justifyContent: "center",
+                  gap: 0.7,
+                  py: { xs: 1.5, md: 1.1 },
+                  borderRadius: 2,
+                  cursor: "pointer",
+                  transition: "all 0.18s ease",
+                  bgcolor: role === value ? "#1976D2" : "transparent",
+                  color: role === value ? "white" : "#aaa",
+                  fontWeight: role === value ? 700 : 500,
+                  fontSize: "0.875rem",
+                  userSelect: "none",
+                  "&:hover": {
+                    bgcolor: role === value ? "#1565C0" : "#f0f0f0",
+                  },
+                }}
+              >
+                <Icon sx={{ fontSize: 16 }} />
+                {label}
+              </Box>
+            ))}
+          </Box>
 
-          {/* ▼▼▼ 여기 수정됨: width: "100%" 추가 ▼▼▼ */}
-          <Box component="form" onSubmit={handleLogin} noValidate sx={{ width: "100%", mt: 1 }}>
+          {/* 입력 폼 */}
+          <Box
+            component="form"
+            onSubmit={handleLogin}
+            noValidate
+            sx={{ display: "flex", flexDirection: "column", gap: { xs: 2.5, md: 1.5 } }}
+          >
             <TextField
-              margin="normal"
-              required
               fullWidth
-              id="email"
-              label="이메일 주소"
               name="email"
+              label="이메일 주소"
               autoComplete="email"
               autoFocus
+              sx={fieldSx}
               InputProps={{
                 startAdornment: (
                   <InputAdornment position="start">
-                    <EmailIcon color="action" />
+                    <EmailOutlinedIcon sx={{ fontSize: 17, color: "#c0c8d4" }} />
                   </InputAdornment>
                 ),
               }}
             />
             <TextField
-              margin="normal"
-              required
               fullWidth
               name="pw"
               label="비밀번호"
-              type="password"
-              id="password"
+              type={showPw ? "text" : "password"}
               autoComplete="current-password"
+              sx={fieldSx}
               InputProps={{
                 startAdornment: (
                   <InputAdornment position="start">
-                    <KeyIcon color="action" />
+                    <LockOutlinedIcon sx={{ fontSize: 17, color: "#c0c8d4" }} />
+                  </InputAdornment>
+                ),
+                endAdornment: (
+                  <InputAdornment position="end">
+                    <IconButton
+                      size="small"
+                      edge="end"
+                      tabIndex={-1}
+                      onClick={() => setShowPw((v) => !v)}
+                    >
+                      {showPw ? (
+                        <VisibilityOff sx={{ fontSize: 17, color: "#c0c8d4" }} />
+                      ) : (
+                        <Visibility sx={{ fontSize: 17, color: "#c0c8d4" }} />
+                      )}
+                    </IconButton>
                   </InputAdornment>
                 ),
               }}
@@ -156,29 +336,51 @@ export default function Login() {
               type="submit"
               fullWidth
               variant="contained"
+              disableElevation
               size="large"
-              sx={{ mt: 3, mb: 2, py: 1.5, fontSize: "1.1rem", fontWeight: "bold" }}
+              sx={{
+                mt: 0.5,
+                py: 1.4,
+                borderRadius: 2.5,
+                fontWeight: 800,
+                fontSize: "0.95rem",
+                letterSpacing: 0.5,
+                background: "linear-gradient(90deg, #1565C0 0%, #1976D2 100%)",
+                "&:hover": {
+                  background: "linear-gradient(90deg, #0d47a1 0%, #1565C0 100%)",
+                },
+              }}
             >
               로그인
             </Button>
-
-            <Divider sx={{ my: 2, color: "text.secondary", fontSize: "0.875rem" }}>
-              또는
-            </Divider>
-
-            <Button
-              fullWidth
-              variant="outlined"
-              component={Link}
-              to="/signup"
-              size="large"
-              sx={{ py: 1.2 }}
-            >
-              회원가입 하러가기
-            </Button>
           </Box>
-        </Paper>
+
+          {/* 회원가입 링크 */}
+          <Typography
+            sx={{ textAlign: "center", mt: 3.5, fontSize: "0.875rem", color: "#aaa" }}
+          >
+            아직 계정이 없으신가요?{" "}
+            <Link to="/signup" style={{ textDecoration: "none" }}>
+              <Box
+                component="span"
+                sx={{ color: "#1976D2", fontWeight: 700, cursor: "pointer" }}
+              >
+                회원가입
+              </Box>
+            </Link>
+          </Typography>
+        </Box>
       </Box>
-    </Container>
+    </Box>
   );
 }
+
+const fieldSx = {
+  "& .MuiOutlinedInput-root": {
+    bgcolor: "white",
+    borderRadius: 2.5,
+    "& fieldset": { borderColor: "#e4e8ee" },
+    "&:hover fieldset": { borderColor: "#b0bec5" },
+    "&.Mui-focused fieldset": { borderColor: "#1976D2" },
+  },
+};

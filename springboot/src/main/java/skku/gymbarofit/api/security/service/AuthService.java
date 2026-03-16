@@ -9,6 +9,8 @@ import org.springframework.stereotype.Service;
 import skku.gymbarofit.api.security.dto.JwtTokenDto;
 import skku.gymbarofit.api.security.provider.JwtTokenProvider;
 import skku.gymbarofit.api.security.userdetail.CustomUserDetails;
+import skku.gymbarofit.core.token.RefreshTokenService;
+import skku.gymbarofit.core.token.RefreshTokenService.RotationResult;
 
 import java.time.OffsetDateTime;
 
@@ -18,6 +20,7 @@ public class AuthService {
 
     private final AuthenticationManager authenticationManager;
     private final JwtTokenProvider jwtTokenProvider;
+    private final RefreshTokenService refreshTokenService;
 
     public CustomUserDetails authenticateUser(
             UsernamePasswordAuthenticationToken authenticationToken
@@ -37,4 +40,24 @@ public class AuthService {
 
         return new JwtTokenDto(jwtAccessToken, expiresAt);
     }
+
+    public String issueRefreshToken(CustomUserDetails customUserDetails) {
+        return refreshTokenService.issueRefreshToken(
+                customUserDetails.getUserContext().getId(),
+                customUserDetails.getUserContext().getRole()
+        );
+    }
+
+    public RefreshResult refreshTokens(String rawRefreshToken) {
+        RotationResult rotation = refreshTokenService.validateAndRotate(rawRefreshToken);
+        CustomUserDetails userDetails = new CustomUserDetails(rotation.userContext());
+        JwtTokenDto newAccessToken = createJwtToken(userDetails);
+        return new RefreshResult(newAccessToken, rotation.newRawToken());
+    }
+
+    public void revokeRefreshToken(String rawRefreshToken) {
+        refreshTokenService.revokeByRawToken(rawRefreshToken);
+    }
+
+    public record RefreshResult(JwtTokenDto accessToken, String newRawRefreshToken) {}
 }

@@ -5,7 +5,7 @@ import { useNavigate } from "react-router-dom";
 // Hooks & Context
 import { useAuth } from "../../context/AuthContext";
 import { useNotification } from "../../context/NotificationContext";
-import { getLockerZone, getLockerList, rentLocker } from "../../api/Api";
+import { getLockerZone, getLockerList, rentLocker } from "../../api/locker";
 
 // Utils
 import { mapLockerSizeToGridType } from "../../utils/lockerUtils";
@@ -149,7 +149,7 @@ export default function LockerRent() {
   
       showNotification(`[${currentZoneName}] ${lockerNum}번 보관함 대여 완료!`, "success");
       setIsPaymentDialogOpen(false); 
-      navigate("/"); 
+      navigate("/members");
 
     } catch (error) {
       console.error("보관함 대여 실패:", error);

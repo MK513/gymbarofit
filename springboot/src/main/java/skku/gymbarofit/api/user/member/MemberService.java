@@ -52,10 +52,11 @@ public class MemberService {
         );
 
         JwtTokenDto jwtToken = authService.createJwtToken(customUserDetails);
+        String rawRefreshToken = authService.issueRefreshToken(customUserDetails);
         Member member = memberInternalService.findByEmail(loginRequestDto.getEmail());
         Gym gym = membershipInternalService.findFirstGymByMemberId(member.getId()).orElse(null);
 
-        return new LoginResponseDto(jwtToken, member, gym);
+        return new LoginResponseDto(jwtToken, member, gym, rawRefreshToken);
     }
 
     @Transactional(readOnly = true)

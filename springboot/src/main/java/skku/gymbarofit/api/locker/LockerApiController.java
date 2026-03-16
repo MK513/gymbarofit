@@ -64,4 +64,13 @@ public class LockerApiController {
         return ResponseEntity.ok(lockerFacade.extend(usageId, request));
     }
 
+    @PatchMapping("/{lockerId}/status")
+    public ResponseEntity<LockerResponseDto> updateLockerStatus(
+            @CurrentUserId Long ownerId,
+            @PathVariable Long lockerId,
+            @RequestBody LockerStatusUpdateRequestDto request
+    ) {
+        return ResponseEntity.ok(lockerService.updateLockerStatus(ownerId, lockerId, request));
+    }
+
 }

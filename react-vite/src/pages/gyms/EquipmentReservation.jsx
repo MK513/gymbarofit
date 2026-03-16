@@ -12,7 +12,8 @@ import {
 } from "@mui/icons-material";
 import { useNavigate, useLocation } from "react-router-dom";
 import { useNotification } from "../../context/NotificationContext";
-import { getEquipments, createUsage, createQueue } from "../../api/Api";
+import { getEquipments } from "../../api/gym";
+import { createUsage, createQueue } from "../../api/equipment";
 import { useAuth } from "../../context/AuthContext";
 import { BUCKET_BASE_URL } from "../../api-config";
 import { useSseNotifications } from "../../context/SseNotification";
@@ -42,7 +43,8 @@ export default function EquipmentReservation() {
       id: item.id,
       name: item.name,
       type: item.type, 
-      location: item.location,
+      gridX: item.gridX,
+      gridY: item.gridY,
       imageUrl: item.imageUrl || null, 
       itemStatus: item.itemStatus, 
       usageStatus: item.usageStatus, 
@@ -134,13 +136,13 @@ export default function EquipmentReservation() {
     try {
       showNotification(`${selectedMachine.name} 사용을 시작합니다.`, "success");
       await createUsage({equipmentId: selectedMachine.id});
-      navigate("/");
+      navigate("/members");
     } catch (e) { showNotification(`${selectedMachine.name} 사용에 실패했습니다.`, "error"); }
   };
   const handleJoinQueue = async () => {
     //setMachines(prev => prev.map(m => m.id === selectedMachine.id ? { ...m, queue: m.queue + 1 } : m));
     await createQueue({equipmentId: selectedMachine.id});
-    navigate("/");
+    navigate("/members");
     showNotification(`${selectedMachine.name} 대기열에 등록되었습니다.`, "success");
   };
   const getStatusColor = (machine) => {
@@ -259,7 +261,7 @@ export default function EquipmentReservation() {
                     <Typography variant="h6" fontWeight="bold">{selectedMachine.name}</Typography>
                     {selectedMachine.itemStatus !== "OK" && <Chip label={getStatusLabel(selectedMachine)} size="small" color="error" variant="outlined" />}
                   </Stack>
-                  <Typography variant="body2" color="text.secondary">{selectedMachine.type} Zone ({selectedMachine.location})</Typography>
+                  <Typography variant="body2" color="text.secondary">{selectedMachine.type} Zone {selectedMachine.gridX != null ? `(${selectedMachine.gridX}, ${selectedMachine.gridY})` : ""}</Typography>
                 </Box>
               </Stack>
               <Divider sx={{ mb: 3 }} />
