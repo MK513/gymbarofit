@@ -120,9 +120,14 @@ export default function EquipmentLayer({
 
   const isSelectMode = tool === TOOLS.SELECT || tool === "select";
 
+  console.log(imageMap);
+
   return (
     <Layer>
       {equipment.map((item) => {
+        console.log("item", item)
+        console.log("MAP:", imageMap[item.iconUrl])
+
         const color = EQUIP_COLORS[item.category ?? item.type] ?? "#6b7280";
         const icon  = EQUIP_ICONS[item.category  ?? item.type] ?? "🏋️";
         const isSelected   = selectedIds.includes(item.id);

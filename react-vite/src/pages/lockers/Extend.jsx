@@ -91,7 +91,7 @@ export default function Extension() {
 
       // 성공 시 처리
       showNotification(`${selectedDuration}개월 연장이 완료되었습니다.`, "success");
-      navigate("/members");
+      navigate("/dashboard");
 
     } catch (error) {
       console.error("연장 실패:", error);

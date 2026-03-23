@@ -1,5 +1,7 @@
-import React, { useEffect } from "react";
-import { Box, Container, Stack } from "@mui/material";
+import React, { useEffect, useState } from "react";
+import { Box, Container, Stack, Dialog, DialogTitle, DialogContent, IconButton, Alert, Button } from "@mui/material";
+import CloseIcon from "@mui/icons-material/Close";
+import GymMapViewer from "../../components/common/GymMapViewer";
 import { useNavigate } from "react-router-dom";
 
 import { useAuth } from "../../context/AuthContext";
@@ -23,7 +25,7 @@ export default function Dashboard() {
   const navigate = useNavigate();
   const { user, logout, updateGym } = useAuth();
   const { showNotification } = useNotification();
-  const { notifications } = useSseNotifications(user?.id);
+  const { notifications, connectionFailed, reconnect } = useSseNotifications(user?.id);
 
   const {
     lockerStatus, setLockerStatus,
@@ -128,6 +130,14 @@ export default function Dashboard() {
     }
   };
 
+  const [mapDialogOpen, setMapDialogOpen] = useState(false);
+  const [mapEquipmentId, setMapEquipmentId] = useState(null);
+
+  const handleMapViewClick = (eid) => {
+    setMapEquipmentId(eid);
+    setMapDialogOpen(true);
+  };
+
   const handleCheckOut = async () => {
     try {
       const res = await checkOut({ gymId: currentGym.id });
@@ -148,6 +158,15 @@ export default function Dashboard() {
       <DashboardHeader onLogout={handleLogout} />
 
       <Container maxWidth="sm" sx={{ mt: 3, mb: 4, px: 3 }}>
+        {connectionFailed && (
+          <Alert
+            severity="error"
+            sx={{ mb: 2 }}
+            action={<Button size="small" color="inherit" onClick={reconnect}>재연결</Button>}
+          >
+            실시간 연결이 끊겼습니다. 재연결 버튼을 눌러주세요.
+          </Alert>
+        )}
         <Stack spacing={3} sx={{ width: "100%" }}>
 
           <GymInfoSection
@@ -171,7 +190,7 @@ export default function Dashboard() {
             totalMinutes={historyInfo.totalMinutes}
             totalCalories={historyInfo.totalCalories}
             activities={historyInfo.activities}
-            onMoreClick={() => navigate("/members/history")}
+            onMoreClick={() => navigate("/history")}
           />
 
           <EquipmentCard
@@ -181,6 +200,7 @@ export default function Dashboard() {
             onEndUsageClick={handleEndUsage}
             onCancelReservationClick={handleLeftQueue}
             onReservationClick={handleEquipmentReservationClick}
+            onMapViewClick={handleMapViewClick}
           />
 
           <LockerCard
@@ -198,6 +218,30 @@ export default function Dashboard() {
         onConfirm={handleRefundConfirm}
         lockerNumber={lockerStatus.number}
       />
+
+      <Dialog
+        open={mapDialogOpen}
+        onClose={() => setMapDialogOpen(false)}
+        fullWidth
+        maxWidth="sm"
+        PaperProps={{ sx: { borderRadius: 3 } }}
+      >
+        <DialogTitle sx={{ fontWeight: "bold", pb: 1 }}>
+          기구 위치 확인
+          <IconButton
+            onClick={() => setMapDialogOpen(false)}
+            sx={{ position: "absolute", right: 8, top: 8 }}
+          >
+            <CloseIcon />
+          </IconButton>
+        </DialogTitle>
+        <DialogContent sx={{ px: 2, pb: 3 }}>
+          <GymMapViewer
+            gymId={currentGym?.id}
+            highlightEquipmentId={mapEquipmentId}
+          />
+        </DialogContent>
+      </Dialog>
     </Box>
   );
 }

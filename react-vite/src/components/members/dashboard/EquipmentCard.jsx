@@ -1,9 +1,9 @@
-import { Paper, Box, Typography, Button, Chip, Stack } from "@mui/material";
+import { Paper, Box, Typography, Button, Chip, Stack, IconButton } from "@mui/material";
 import FitnessCenterIcon from "@mui/icons-material/FitnessCenter";
 import EventAvailableIcon from "@mui/icons-material/EventAvailable";
 import AccessTimeIcon from '@mui/icons-material/AccessTime';
 import NotificationsActiveIcon from '@mui/icons-material/NotificationsActive';
-import { BUCKET_BASE_URL } from "../../../api-config";
+import MapIcon from "@mui/icons-material/Map";
 
 const SECTION_STYLES = {
   usage:   { bg: '#fff8e1', border: '#ffe0b2', textColor: 'warning.dark',   chip: 'warning' },
@@ -11,7 +11,7 @@ const SECTION_STYLES = {
   called:  { bg: '#ffebee', border: '#ffcdd2', textColor: 'error.main',     chip: 'error'   },
 };
 
-function EquipmentSection({ data, titleIcon, titleText, statusLabel, variant, actionLabel, onAction, onStartAction }) {
+function EquipmentSection({ data, titleIcon, titleText, statusLabel, variant, actionLabel, onAction, onStartAction, onMapView }) {
   const s = SECTION_STYLES[variant];
 
   return (
@@ -21,14 +21,26 @@ function EquipmentSection({ data, titleIcon, titleText, statusLabel, variant, ac
           {titleIcon}
           <Typography variant="caption" fontWeight="800" color={s.textColor}>{titleText}</Typography>
         </Box>
-        <Chip label={statusLabel} color={s.chip} size="small" sx={{ fontWeight: 'bold', height: 20, fontSize: '0.7rem' }} />
+        <Box display="flex" alignItems="center" gap={0.5}>
+          <Chip label={statusLabel} color={s.chip} size="small" sx={{ fontWeight: 'bold', height: 20, fontSize: '0.7rem' }} />
+          {onMapView && (
+            <IconButton
+              size="small"
+              onClick={onMapView}
+              sx={{ p: 0.5, color: 'text.disabled', '&:hover': { color: 'primary.main' } }}
+              title="헬스장 맵에서 위치 확인"
+            >
+              <MapIcon sx={{ fontSize: 16 }} />
+            </IconButton>
+          )}
+        </Box>
       </Box>
 
       <Stack direction="row" spacing={2} alignItems="center">
         {data.imageUrl && (
           <Box
             component="img"
-            src={`${BUCKET_BASE_URL}${data.imageUrl}`}
+            src={data.imageUrl}
             alt={data.name}
             sx={{
               width: 56, height: 56, objectFit: 'contain',
@@ -94,6 +106,7 @@ export default function EquipmentCard({
   onEndUsageClick,
   onStartUsageClick,
   onCancelReservationClick,
+  onMapViewClick,
 }) {
   const isEmpty = !usageData && !reservationData;
   const isFullState = usageData && reservationData;
@@ -124,6 +137,7 @@ export default function EquipmentCard({
               variant="usage"
               actionLabel="사용 종료"
               onAction={onEndUsageClick}
+              onMapView={onMapViewClick ? () => onMapViewClick(usageData.eid) : undefined}
             />
           )}
           {reservationData && (
@@ -140,6 +154,7 @@ export default function EquipmentCard({
               actionLabel="대기 취소"
               onAction={onCancelReservationClick}
               onStartAction={onStartUsageClick}
+              onMapView={onMapViewClick ? () => onMapViewClick(reservationData.eid) : undefined}
             />
           )}
           {isEmpty && (

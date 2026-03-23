@@ -30,7 +30,7 @@ const STATUS_META = {
 const STATUS_OPTIONS = ["OK", "MAINTENANCE", "BROKEN", "RETIRED"];
 
 export default function EquipmentListItem({
-  equip, icons, isOnMap, isSelected, submitting, BASE_URL,
+  equip, icons, isOnMap, isSelected, submitting,
   onEditSave, onDelete, onDragStart, onSelect, onStatusChange,
   showDivider,
 }) {
@@ -106,7 +106,7 @@ export default function EquipmentListItem({
               >
                 {editIconObj ? (
                   <Box display="flex" alignItems="center" gap={1} minWidth={0}>
-                    <img src={`${BASE_URL}${editIconObj.url}`} alt={editIconObj.label}
+                    <img src={editIconObj.url} alt={editIconObj.label}
                       style={{ width: 20, height: 20, objectFit: "contain", flexShrink: 0 }} />
                     <Typography variant="body2" noWrap>{editIconObj.label}</Typography>
                   </Box>
@@ -137,7 +137,7 @@ export default function EquipmentListItem({
                           "&:hover": { borderColor: "primary.light", bgcolor: sel ? "#e3f2fd" : "#f5f9ff" },
                         }}
                       >
-                        <img src={`${BASE_URL}${icon.url}`} alt={icon.label}
+                        <img src={icon.url} alt={icon.label}
                           style={{ width: 40, height: 40, objectFit: "contain" }} />
                         <Typography variant="caption" textAlign="center" lineHeight={1.2} mt={0.5}
                           sx={{ wordBreak: "break-word" }}>
@@ -181,6 +181,7 @@ export default function EquipmentListItem({
             onDragStart(equip);
           }}
           sx={{
+            height: "60px",
             cursor: isOnMap ? "pointer" : "grab",
             opacity: isOnMap ? 0.85 : 1,
             bgcolor: isSelected ? "#e3f2fd" : "transparent",
@@ -202,7 +203,7 @@ export default function EquipmentListItem({
           }
         >
           {iconObj ? (
-            <img src={`${BASE_URL}${iconObj.url}`} alt=""
+            <img src={iconObj.url} alt=""
               style={{ width: 32, height: 32, objectFit: "contain", marginRight: 10, flexShrink: 0 }} />
           ) : equip.imageUrl ? (
             <img src={equip.imageUrl} alt=""
@@ -216,7 +217,7 @@ export default function EquipmentListItem({
               <Box display="flex" flexDirection="column" gap={0.5} mt={0.3} pr="72px">
                 {/* 상태 변경 버튼 + 맵 배치됨 */}
                 <Box display="flex" alignItems="center" gap={0.5}>
-                  <Chip
+                  {/* <Chip
                     label={statusMeta.label}
                     size="small"
                     deleteIcon={<KeyboardArrowDownIcon style={{ fontSize: 13 }} />}
@@ -230,7 +231,7 @@ export default function EquipmentListItem({
                       "& .MuiChip-deleteIcon": { color: statusMeta.color, opacity: 0.7 },
                       "&:hover": { filter: "brightness(0.95)" },
                     }}
-                  />
+                  /> */}
                   {isOnMap && (
                     <Chip label="맵 배치됨" size="small"
                       sx={{

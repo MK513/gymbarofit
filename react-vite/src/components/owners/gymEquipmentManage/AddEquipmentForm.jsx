@@ -11,7 +11,7 @@ import {
 import AddIcon from "@mui/icons-material/Add";
 import KeyboardArrowDownIcon from "@mui/icons-material/KeyboardArrowDown";
 
-export default function AddEquipmentForm({ icons, BASE_URL, submitting, onAdd }) {
+export default function AddEquipmentForm({ icons, submitting, onAdd }) {
   const [addForm, setAddForm] = useState({ imageUrl: "", type: "", category: "MACHINE", count: 1 });
   const [addAnchorEl, setAddAnchorEl] = useState(null);
 
@@ -47,7 +47,7 @@ export default function AddEquipmentForm({ icons, BASE_URL, submitting, onAdd })
           >
             {selectedAddIcon ? (
               <Box display="flex" alignItems="center" gap={1} minWidth={0}>
-                <img src={`${BASE_URL}${selectedAddIcon.url}`} alt={selectedAddIcon.label}
+                <img src={selectedAddIcon.url} alt={selectedAddIcon.label}
                   style={{ width: 22, height: 22, objectFit: "contain", flexShrink: 0 }} />
                 <Typography variant="body2" noWrap>{selectedAddIcon.label}</Typography>
               </Box>
@@ -79,7 +79,7 @@ export default function AddEquipmentForm({ icons, BASE_URL, submitting, onAdd })
                       "&:hover": { borderColor: "primary.light", bgcolor: sel ? "#e3f2fd" : "#f5f9ff" },
                     }}
                   >
-                    <img src={`${BASE_URL}${icon.url}`} alt={icon.label}
+                    <img src={icon.url} alt={icon.label}
                       style={{ width: 40, height: 40, objectFit: "contain" }} />
                     <Typography variant="caption" textAlign="center" lineHeight={1.2} mt={0.5}
                       sx={{ wordBreak: "break-word" }}>

@@ -17,21 +17,23 @@ import FitnessCenterIcon from "@mui/icons-material/FitnessCenter";
 import { useNotification } from "../../context/NotificationContext";
 import {
   getOwnerGymEquipments,
-  createOwnerGymEquipments,
-  updateOwnerGymEquipment,
-  deleteOwnerGymEquipment,
   getEquipmentIcons,
   getOwnerGymMap,
   saveOwnerGymMap,
   updateOwnerGymEquipmentStatus,
 } from "../../api/owner";
+import {
+  createOwnerGymEquipments,
+  updateOwnerGymEquipment,
+  deleteOwnerGymEquipment,
+} from "../../api/equipment";
 import { GRID_SIZE } from "../../components/owners/gymMap/constants";
 import AddEquipmentForm from "../../components/owners/gymEquipmentManage/AddEquipmentForm";
 import EquipmentListItem from "../../components/owners/gymEquipmentManage/EquipmentListItem";
 import MapPanel from "../../components/owners/gymEquipmentManage/MapPanel";
 import MapContextMenu from "../../components/owners/gymEquipmentManage/MapContextMenu";
 
-const BASE_URL = import.meta.env.VITE_API_BASE_URL || "http://localhost:8080";
+import { API_BASE_URL } from "../../api-config";
 
 const toMapStatus = (s) =>
   s === "MAINTENANCE" ? "maintenance" : s === "OK" || !s ? "normal" : "unavailable";
@@ -61,31 +63,36 @@ export default function GymEquipmentManage() {
       getOwnerGymMap({ gymId }).catch(() => null),
     ])
       .then(([equips, iconData, mapData]) => {
-        const equipList = equips ?? [];
+        const equipList = (equips ?? []).map((eq) => ({
+          ...eq,
+          imageUrl: eq.imageUrl
+            ? (eq.imageUrl.startsWith("http") ? eq.imageUrl : `${API_BASE_URL}${eq.imageUrl}`)
+            : "",
+        }));
         setEquipments(equipList);
         setIcons(
           (iconData ?? []).map((item) => ({
             filename: item.filename,
-            url: item.url,
+            url: item.url.startsWith("http") ? item.url : `${API_BASE_URL}${item.url}`,
             label: item.type,
             category: item.category ?? "MACHINE",
           }))
         );
 
-        if (mapData?.mapMeta) {
-          setMapCols(mapData.mapMeta.width || 20);
-          setMapRows(mapData.mapMeta.height || 15);
+        if (mapData?.mapWidth) {
+          setMapCols(mapData.mapWidth || 20);
+          setMapRows(mapData.mapHeight || 15);
         }
 
-        if (mapData?.registeredEquipments?.length > 0) {
-          const placed = mapData.registeredEquipments
+        if (mapData?.equipments?.length > 0) {
+          const placed = mapData.equipments
             .filter((re) => re.gridX !== undefined && re.gridY !== undefined)
             .map((re) => {
               const eq = equipList.find((e) => e.id === re.id);
               return {
                 id: `p-${re.id}`,
                 equipmentId: re.id,
-                name: re.name,
+                name: eq?.name ?? "",
                 type: eq?.type ?? "",
                 category: eq?.category ?? "",
                 iconUrl: eq?.imageUrl ?? "",
@@ -151,8 +158,9 @@ export default function GymEquipmentManage() {
   }, []);
 
   const handleContextMenu = useCallback((item, x, y) => {
-    setContextMenu({ item, x, y });
-  }, []);
+    const eq = equipments.find((e) => e.id === item.equipmentId);
+    setContextMenu({ item: { ...item, apiStatus: eq?.status ?? "OK" }, x, y });
+  }, [equipments]);
 
   const handleRemoveFromMap = useCallback((id) => {
     setPlacedItems((prev) => prev.filter((e) => e.id !== id));
@@ -162,14 +170,14 @@ export default function GymEquipmentManage() {
   const handleSaveMap = async () => {
     setSaving(true);
     const mapData = {
-      mapMeta: { width: mapCols, height: mapRows, gridSize: 40 },
-      registeredEquipments: placedItems.map((p) => ({
+      mapWidth: mapCols,
+      mapHeight: mapRows,
+      equipments: placedItems.map((p) => ({
         id: p.equipmentId,
-        name: p.name,
         gridX: p.gridX,
         gridY: p.gridY,
-        spanW: p.spanW ?? 1,
-        spanH: p.spanH ?? 1,
+        spanW: p.spanW ?? 2,
+        spanH: p.spanH ?? 2,
       })),
     };
     try {
@@ -181,6 +189,12 @@ export default function GymEquipmentManage() {
       setSaving(false);
     }
   };
+
+  // TODO: owner쪽 apicontroller 분리, 프론트 경로 단순화
+  // TODO: 운동 기록 AI 요약기능 추가?
+  // TODO: Redis, PostgreSQL으로 DB 변경
+  
+
 
   /* ── Status Update ── */
   const handleStatusUpdate = async (equipId, newStatus) => {
@@ -203,7 +217,7 @@ export default function GymEquipmentManage() {
       const icon = icons.find((i) => i.filename === addForm.imageUrl);
       const name = icon?.label ?? addForm.imageUrl;
       const count = Number(addForm.count);
-      const fullImageUrl = `${BASE_URL}/images/${addForm.imageUrl}`;
+      const fullImageUrl = `/images/${addForm.imageUrl}`;
       const newEquips = [];
       for (let i = 1; i <= count; i++) {
         const ids = await createOwnerGymEquipments(
@@ -211,7 +225,7 @@ export default function GymEquipmentManage() {
           { gymId }
         );
         if (ids?.[0]) {
-          newEquips.push({ id: ids[0], name, type: addForm.type, category: addForm.category, imageUrl: fullImageUrl });
+          newEquips.push({ id: ids[0], name, type: addForm.type, category: addForm.category, imageUrl: `${API_BASE_URL}${fullImageUrl}` });
         }
       }
       setEquipments((p) => [...p, ...newEquips]);
@@ -230,13 +244,18 @@ export default function GymEquipmentManage() {
     setSubmitting(true);
     try {
       const fullImageUrl = editForm.imageUrl
-        ? `${BASE_URL}/images/${editForm.imageUrl}`
+        ? `/images/${editForm.imageUrl}`
         : (equipments.find((e) => e.id === equipId)?.imageUrl ?? "");
       const updated = await updateOwnerGymEquipment(
         { name: editForm.name, type: editForm.type, imageUrl: fullImageUrl },
         { gymId, equipmentId: equipId }
       );
-      setEquipments((p) => p.map((e) => (e.id === equipId ? { ...e, ...updated } : e)));
+      setEquipments((p) => p.map((e) => (e.id === equipId ? {
+        ...e, ...updated,
+        imageUrl: updated.imageUrl
+          ? (updated.imageUrl.startsWith("http") ? updated.imageUrl : `${API_BASE_URL}${updated.imageUrl}`)
+          : e.imageUrl,
+      } : e)));
       showNotification("기구가 수정되었습니다.", "success");
       return true;
     } catch {
@@ -285,7 +304,6 @@ export default function GymEquipmentManage() {
           </Box>
           <AddEquipmentForm
             icons={icons}
-            BASE_URL={BASE_URL}
             submitting={submitting}
             onAdd={handleAdd}
           />
@@ -324,7 +342,6 @@ export default function GymEquipmentManage() {
                           isOnMap={isPlacedOnMap(equip.id)}
                           isSelected={selectedEquipId === equip.id}
                           submitting={submitting}
-                          BASE_URL={BASE_URL}
                           showDivider={idx > 0}
                           onEditSave={handleEditSave}
                           onDelete={setDeleteTargetId}
@@ -371,6 +388,7 @@ export default function GymEquipmentManage() {
       <MapContextMenu
         contextMenu={contextMenu}
         onRemove={handleRemoveFromMap}
+        onStatusChange={handleStatusUpdate}
         onClose={() => setContextMenu(null)}
       />
 

@@ -19,3 +19,15 @@ export async function endUsage(pathVariable) {
 export async function leaveQueue(pathVariable) {
   return call("/equipments/usages/{usageId}/cancel", "POST", null, pathVariable);
 }
+
+export async function createOwnerGymEquipments(dto, pathVariable) {
+  return call("/equipments/{gymId}", "POST", dto, pathVariable);
+}
+
+export async function updateOwnerGymEquipment(dto, pathVariable) {
+  return call("/equipments/{equipmentId}", "PATCH", dto, pathVariable);
+}
+
+export async function deleteOwnerGymEquipment(pathVariable) {
+  return call("/equipments/{equipmentId}", "DELETE", null, pathVariable);
+}
