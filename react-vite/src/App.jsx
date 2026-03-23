@@ -1,6 +1,10 @@
 import { BrowserRouter, Routes, Route } from "react-router-dom";
 import { AuthProvider } from './context/AuthContext';
 import { NotificationProvider } from "./context/NotificationContext";
+import { isAdminDomain, redirectIfLocalhost } from "./utils/domainUtils";
+
+// localhost 접속 시 즉시 lvh.me로 리다이렉트
+redirectIfLocalhost();
 
 import ProtectedRoute from "./route/ProtectedRoute";
 
@@ -20,6 +24,8 @@ import GymDetail from "./pages/owners/GymDetail"
 import GymLockerManage from "./pages/owners/GymLockerManage"
 import GymEquipmentManage from "./pages/owners/GymEquipmentManage"
 
+const adminDomain = isAdminDomain();
+
 export default function App() {
   return (
     <BrowserRouter>
@@ -31,30 +37,28 @@ export default function App() {
           <Route path="/login" element={<Login />} />
           <Route path="/signup" element={<Signup />} />
 
-          {/* Member 전용 */}
-          <Route element={<ProtectedRoute requiredRole="member" />}>
-            <Route path="/members" element={<MemberDashboard />} />
-            <Route path="/members/history" element={<WorkoutHistory />} />
-
-            <Route path="/gyms/register" element={<MembershipRegister />} />
-            <Route path="/gyms/:gymId/equipments" element={<EquipmentReservation />} />
-
-            <Route path="/lockers/rent" element={<LockerRent />} />
-            <Route path="/lockers/extend/:usageId" element={<LockerExtend />} />
-          </Route>
-
-          {/* Owner 전용 */}
-          <Route element={<ProtectedRoute requiredRole="owner" />}>
-            {/* 공유 레이아웃 (AppBar + 사이드바) */}
-            <Route element={<OwnerLayout />}>
-              <Route path="/owners" element={<OwnerDashboard />} />
-              <Route path="/owners/gyms/:gymId" element={<GymDetail />} />
-              <Route path="/owners/gyms/:gymId/lockers" element={<GymLockerManage />} />
-              <Route path="/owners/gyms/:gymId/equipments" element={<GymEquipmentManage />} />
+          {adminDomain ? (
+            /* ── 운영자 영역 (admin.lvh.me) ── */
+            <Route element={<ProtectedRoute requiredRole="owner" />}>
+              <Route element={<OwnerLayout />}>
+                <Route path="/dashboard" element={<OwnerDashboard />} />
+                <Route path="/gyms/:gymId" element={<GymDetail />} />
+                <Route path="/gyms/:gymId/lockers" element={<GymLockerManage />} />
+                <Route path="/gyms/:gymId/equipments" element={<GymEquipmentManage />} />
+              </Route>
+              <Route path="/gyms/register" element={<GymRegister />} />
             </Route>
-            {/* 풀스크린 독립 페이지 */}
-            <Route path="/owners/gyms/register" element={<GymRegister />} />
-          </Route>
+          ) : (
+            /* ── 회원 영역 (lvh.me / localhost) ── */
+            <Route element={<ProtectedRoute requiredRole="member" />}>
+              <Route path="/dashboard" element={<MemberDashboard />} />
+              <Route path="/history" element={<WorkoutHistory />} />
+              <Route path="/gyms/register" element={<MembershipRegister />} />
+              <Route path="/gyms/:gymId/equipments" element={<EquipmentReservation />} />
+              <Route path="/lockers/rent" element={<LockerRent />} />
+              <Route path="/lockers/extend/:usageId" element={<LockerExtend />} />
+            </Route>
+          )}
         </Routes>
 
       </NotificationProvider>

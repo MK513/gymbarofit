@@ -1,0 +1,29 @@
+logging:
+  level:
+    org.springframework.web.context.request.async: WARN
+    org.apache.catalina.core.AsyncContextImpl: WARN
+
+spring:
+  profiles:
+    active: dev
+  jpa:
+    properties:
+      hibernate:
+        #        show_sql: true
+        format_sql: true
+  jackson:
+    serialization:
+      write-dates-as-timestamps: false
+  output.ansi.enabled: ALWAYS
+
+app:
+  jwt:
+    secretKey: ${JWT_SECRET}
+    header:
+      name: Authorization
+      prefix: Bearer
+    token:
+      expireTime: 86400000 # 24시간 (ms)
+    refresh-token:
+      expireTime: 1209600000 # 14일 (ms)
+      secure-cookie: true

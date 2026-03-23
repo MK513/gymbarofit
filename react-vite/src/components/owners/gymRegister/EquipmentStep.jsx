@@ -21,7 +21,6 @@ import FitnessCenterIcon from "@mui/icons-material/FitnessCenter";
 import KeyboardArrowDownIcon from "@mui/icons-material/KeyboardArrowDown";
 import { EQUIP_TYPES } from "./constants";
 
-const BASE_URL = import.meta.env.VITE_API_BASE_URL || "http://localhost:8080";
 
 export default function EquipmentStep({ list, form, onFormChange, onAdd, onRemove, icons = [], iconsLoading = false }) {
   const [anchorEl, setAnchorEl] = useState(null);
@@ -73,7 +72,7 @@ export default function EquipmentStep({ list, form, onFormChange, onAdd, onRemov
               {selectedIcon ? (
                 <Box display="flex" alignItems="center" gap={1} minWidth={0}>
                   <img
-                    src={`${BASE_URL}${selectedIcon.url}`}
+                    src={selectedIcon.url}
                     alt={selectedIcon.label}
                     style={{ width: 22, height: 22, objectFit: "contain", flexShrink: 0 }}
                   />
@@ -156,7 +155,7 @@ export default function EquipmentStep({ list, form, onFormChange, onAdd, onRemov
                         }}
                       >
                         <img
-                          src={`${BASE_URL}${icon.url}`}
+                          src={icon.url}
                           alt={icon.label}
                           style={{ width: 40, height: 40, objectFit: "contain" }}
                         />
@@ -218,7 +217,7 @@ export default function EquipmentStep({ list, form, onFormChange, onAdd, onRemov
                   >
                     {itemIcon && (
                       <img
-                        src={`${BASE_URL}${itemIcon.url}`}
+                        src={itemIcon.url}
                         alt=""
                         style={{ width: 32, height: 32, objectFit: "contain", marginRight: 10, flexShrink: 0 }}
                       />

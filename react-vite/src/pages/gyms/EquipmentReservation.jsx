@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from "react";
-import { 
-  Box, Typography, IconButton, Grid, Card, CardContent, 
-  Chip, Stack, Button, Drawer, Divider, Avatar, LinearProgress 
+import {
+  Box, Typography, IconButton, Grid, Card, CardContent,
+  Chip, Stack, Button, Drawer, Divider, Avatar, LinearProgress, Alert
 } from "@mui/material";
 import { 
   ArrowBackIosNew, CheckCircleOutline, CancelOutlined, 
@@ -17,12 +17,13 @@ import { createUsage, createQueue } from "../../api/equipment";
 import { useAuth } from "../../context/AuthContext";
 import { BUCKET_BASE_URL } from "../../api-config";
 import { useSseNotifications } from "../../context/SseNotification";
+import GymMapViewer from "../../components/common/GymMapViewer";
 
 export default function EquipmentReservation() {
   const navigate = useNavigate();
   const { showNotification } = useNotification();
   const { user } = useAuth();
-  const { equipmentUpdate } = useSseNotifications(user?.id);
+  const { equipmentUpdate, connectionFailed, reconnect } = useSseNotifications(user?.id);
 
   // --- 상태 관리 ---
   const allType = "전체 기구";
@@ -42,12 +43,14 @@ export default function EquipmentReservation() {
     return {
       id: item.id,
       name: item.name,
-      type: item.type, 
+      type: item.type,
       gridX: item.gridX,
       gridY: item.gridY,
-      imageUrl: item.imageUrl || null, 
-      itemStatus: item.itemStatus, 
-      usageStatus: item.usageStatus, 
+      spanW: item.spanW,
+      spanH: item.spanH,
+      imageUrl: item.imageUrl || null,
+      itemStatus: item.itemStatus,
+      usageStatus: item.usageStatus,
       queue: item.waitingCount,
       fallbackIcon: getFallbackIcon(item.name, item.type)
     };
@@ -136,13 +139,13 @@ export default function EquipmentReservation() {
     try {
       showNotification(`${selectedMachine.name} 사용을 시작합니다.`, "success");
       await createUsage({equipmentId: selectedMachine.id});
-      navigate("/members");
+      navigate("/dashboard");
     } catch (e) { showNotification(`${selectedMachine.name} 사용에 실패했습니다.`, "error"); }
   };
   const handleJoinQueue = async () => {
     //setMachines(prev => prev.map(m => m.id === selectedMachine.id ? { ...m, queue: m.queue + 1 } : m));
     await createQueue({equipmentId: selectedMachine.id});
-    navigate("/members");
+    navigate("/dashboard");
     showNotification(`${selectedMachine.name} 대기열에 등록되었습니다.`, "success");
   };
   const getStatusColor = (machine) => {
@@ -164,6 +167,16 @@ export default function EquipmentReservation() {
     // [수정 1] Flex Column 레이아웃 적용
     <Box sx={{ bgcolor: "#f5f7fa", minHeight: "100vh", display: "flex", flexDirection: "column" }}>
       
+      {connectionFailed && (
+        <Alert
+          severity="error"
+          sx={{ borderRadius: 0 }}
+          action={<Button size="small" color="inherit" onClick={reconnect}>재연결</Button>}
+        >
+          실시간 연결이 끊겼습니다. 재연결 버튼을 눌러주세요.
+        </Alert>
+      )}
+
       {/* Header */}
       <Box sx={{ bgcolor: "white", px: 2, py: 2, position: "sticky", top: 0, zIndex: 10, borderBottom: "1px solid #eee", boxShadow: "0 2px 4px rgba(0,0,0,0.03)" }}>
         <Stack direction="row" alignItems="center" spacing={1} sx={{ mb: 2 }}>
@@ -222,7 +235,7 @@ export default function EquipmentReservation() {
                           {!isOk ? ( <Stack direction="row" spacing={0.5} alignItems="center"><Build sx={{ fontSize: 10, color: "text.secondary" }} /><Typography variant="caption" sx={{ fontSize: "0.65rem" }} color="text.secondary">점검</Typography></Stack> ) : machine.usageStatus !== "AVAILABLE" ? ( <Stack direction="row" spacing={0.5} alignItems="center"><AccessTime sx={{ fontSize: 10, color: "text.secondary" }} /><Typography variant="caption" sx={{ fontSize: "0.65rem" }} color="text.secondary">대기 {machine.queue}</Typography></Stack> ) : ( <Typography variant="caption" sx={{ fontSize: "0.65rem" }} color="text.secondary" noWrap>{machine.type}</Typography> )}
                       </Box>
                     </CardContent>
-                    {isOk && machine.usageStatus !== "AVAILABLE" && ( <LinearProgress variant="determinate" value={machine.progressPercent} sx={{ position: "absolute", bottom: 0, left: 0, right: 0, height: 4, bgcolor: "#e3f2fd", "& .MuiLinearProgress-bar": { bgcolor: "#2196f3" } }} /> )}
+                    {isOk && machine.usageStatus !== "AVAILABLE" && ( <LinearProgress variant="determinate" value={machine.progressPercent ?? 0} sx={{ position: "absolute", bottom: 0, left: 0, right: 0, height: 4, bgcolor: "#e3f2fd", "& .MuiLinearProgress-bar": { bgcolor: "#2196f3" } }} /> )}
                   </Card>
                 </Grid>
               );
@@ -246,7 +259,7 @@ export default function EquipmentReservation() {
       {/* Drawer */}
       <Drawer
         anchor="bottom" open={isDrawerOpen} onClose={() => setIsDrawerOpen(false)}
-        PaperProps={{ sx: { borderTopLeftRadius: 20, borderTopRightRadius: 20, maxWidth: "600px", mx: "auto" } }}
+        PaperProps={{ sx: { borderTopLeftRadius: 20, borderTopRightRadius: 20, maxWidth: "600px", mx: "auto", maxHeight: "85vh", overflowY: "auto" } }}
       >
         <Box sx={{ p: 3, pb: 5 }}>
           <Box sx={{ width: 40, height: 4, bgcolor: "#e0e0e0", borderRadius: 2, mx: "auto", mb: 3 }} />
@@ -284,6 +297,14 @@ export default function EquipmentReservation() {
                   <Button variant="contained" fullWidth size="large" onClick={handleStartWorkout} startIcon={<PlayArrow />} sx={{ bgcolor: "#2e7d32", color: "white", py: 1.8, borderRadius: 3, fontWeight: "bold" }}>바로 사용 시작하기</Button>
                 )
               )}
+              <Divider sx={{ mt: 3, mb: 2 }} />
+              <Typography variant="subtitle2" fontWeight="bold" sx={{ mb: 1.5 }}>
+                기구 위치
+              </Typography>
+              <GymMapViewer
+                equipments={machines}
+                highlightEquipmentId={selectedMachine?.id}
+              />
             </>
           )}
         </Box>

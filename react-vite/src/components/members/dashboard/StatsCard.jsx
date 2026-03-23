@@ -122,11 +122,11 @@ function MainStatBox({ icon, value, unit, label, bgColor }) {
 function SimpleActivityItem({ title, subText }) {
   return (
     <ListItem sx={{ px: 1, py: 1 }}>
-      <ListItemIcon sx={{ minWidth: 40 }}>
+      {/* <ListItemIcon sx={{ minWidth: 40 }}>
         <Avatar sx={{ width: 32, height: 32, bgcolor: '#f5f5f5' }}>
           <FitnessCenterIcon sx={{ fontSize: 18, color: '#757575' }} />
         </Avatar>
-      </ListItemIcon>
+      </ListItemIcon> */}
       <ListItemText 
         primary={<Typography variant="body2" fontWeight="bold">{title}</Typography>} 
         secondary={<Typography variant="caption" color="text.secondary">{subText}</Typography>} 

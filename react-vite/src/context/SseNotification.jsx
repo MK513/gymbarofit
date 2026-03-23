@@ -1,13 +1,18 @@
 import { useEffect, useRef, useState } from "react";
 import { API_BASE_URL } from "../api-config";
 
+const MAX_RETRIES = 10;
+
 export function useSseNotifications(userId) {
   const [notifications, setNotifications] = useState([]);
   const [equipmentUpdate, setEquipmentUpdate] = useState(null);
+  const [connectionFailed, setConnectionFailed] = useState(false);
 
   const retryDelayRef = useRef(3000);
+  const retryCountRef = useRef(0);
   const retryTimerRef = useRef(null);
   const esRef = useRef(null);
+  const connectRef = useRef(null);
 
   useEffect(() => {
     if (!userId) return;
@@ -18,7 +23,9 @@ export function useSseNotifications(userId) {
       esRef.current = es;
 
       es.onopen = () => {
-        retryDelayRef.current = 3000; // 연결 성공 시 대기 시간 초기화
+        retryDelayRef.current = 3000;
+        retryCountRef.current = 0;
+        setConnectionFailed(false);
         console.log("SSE connection opened");
       };
 
@@ -47,8 +54,18 @@ export function useSseNotifications(userId) {
       });
 
       es.onerror = () => {
-        console.warn("SSE error — reconnecting in", retryDelayRef.current, "ms");
         es.close();
+        retryCountRef.current += 1;
+
+        if (retryCountRef.current >= MAX_RETRIES) {
+          console.warn("SSE: 최대 재시도 횟수 초과, 연결 실패");
+          setConnectionFailed(true);
+          return;
+        }
+
+        console.warn(
+          `SSE error — reconnecting in ${retryDelayRef.current}ms (${retryCountRef.current}/${MAX_RETRIES})`
+        );
         retryTimerRef.current = setTimeout(() => {
           retryDelayRef.current = Math.min(retryDelayRef.current * 2, 30000);
           connect();
@@ -56,6 +73,7 @@ export function useSseNotifications(userId) {
       };
     }
 
+    connectRef.current = connect;
     connect();
 
     return () => {
@@ -64,5 +82,14 @@ export function useSseNotifications(userId) {
     };
   }, [userId]);
 
-  return { notifications, setNotifications, equipmentUpdate };
+  function reconnect() {
+    clearTimeout(retryTimerRef.current);
+    esRef.current?.close();
+    retryCountRef.current = 0;
+    retryDelayRef.current = 3000;
+    setConnectionFailed(false);
+    connectRef.current?.();
+  }
+
+  return { notifications, setNotifications, equipmentUpdate, connectionFailed, reconnect };
 }
