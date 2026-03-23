@@ -8,6 +8,8 @@ COPY gradle/ gradle/
 COPY gradlew .
 COPY settings.gradle .
 COPY build.gradle .
+COPY core/build.gradle core/build.gradle
+COPY api/build.gradle api/build.gradle
 
 # Fix Windows CRLF line endings and set executable bit
 RUN sed -i 's/\r$//' gradlew && chmod +x gradlew
@@ -16,10 +18,11 @@ RUN sed -i 's/\r$//' gradlew && chmod +x gradlew
 RUN ./gradlew dependencies --no-daemon -q || true
 
 # Copy source code
-COPY src/ src/
+COPY core/ core/
+COPY api/ api/
 
 # Build the fat JAR; skip tests (tests need a running H2 server)
-RUN ./gradlew bootJar --no-daemon -x test
+RUN ./gradlew :api:bootJar --no-daemon -x test
 
 # ── Stage 2: Runtime ───────────────────────────────────────────────────────────
 FROM eclipse-temurin:21-jre-jammy AS runtime
@@ -33,7 +36,7 @@ RUN mkdir -p /app/images
 COPY images/ /app/images/
 
 # Copy the built JAR from builder stage
-COPY --from=builder /workspace/build/libs/*.jar app.jar
+COPY --from=builder /workspace/api/build/libs/*.jar app.jar
 
 EXPOSE 8080
 

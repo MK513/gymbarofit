@@ -4,6 +4,7 @@ import { Box, Paper, TextField, Typography, Stack, Chip } from "@mui/material";
 import { GRID_SIZE, EQUIP_COLORS, EQUIP_ICONS } from "../gymMap/constants";
 import EquipmentLayer from "../gymMap/EquipmentLayer";
 
+
 export default function MapStep({ equipment, initialPlaced = [], onPlacedChange, onMapMetaChange, initialCols = 20, initialRows = 15 }) {
   const containerRef = useRef(null);
   const stageRef = useRef(null);

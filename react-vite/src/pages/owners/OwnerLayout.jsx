@@ -73,7 +73,7 @@ export default function OwnerLayout() {
   const [draftDialogOpen, setDraftDialogOpen] = useState(false);
 
   /* URL에서 gymId 추출 */
-  const urlMatch = location.pathname.match(/\/owners\/gyms\/(\d+)/);
+  const urlMatch = location.pathname.match(/\/gyms\/(\d+)/);
   const urlGymId = urlMatch ? Number(urlMatch[1]) : null;
 
   useEffect(() => {
@@ -106,9 +106,9 @@ export default function OwnerLayout() {
   const handleGymChange = (newId) => {
     setSelectedGymId(newId);
     const p = location.pathname;
-    if (p.includes("/equipments") || p.includes("/map")) navigate(`/owners/gyms/${newId}/equipments`);
-    else if (p.includes("/lockers")) navigate(`/owners/gyms/${newId}/lockers`);
-    else if (p.match(/\/owners\/gyms\/\d+$/)) navigate(`/owners/gyms/${newId}`);
+    if (p.includes("/equipments") || p.includes("/map")) navigate(`/gyms/${newId}/equipments`);
+    else if (p.includes("/lockers")) navigate(`/gyms/${newId}/lockers`);
+    else if (p.match(/\/gyms\/\d+$/)) navigate(`/gyms/${newId}`);
     /* 대시보드(/)면 selectedGymId만 업데이트하면 됨 */
   };
 
@@ -118,9 +118,9 @@ export default function OwnerLayout() {
     try {
       const draft = await getDraftOwnerGym();
       if (draft?.id) { setDraftGym(draft); setDraftDialogOpen(true); }
-      else navigate("/owners/gyms/register");
+      else navigate("/gyms/register");
     } catch {
-      navigate("/owners/gyms/register");
+      navigate("/gyms/register");
     } finally {
       setDraftCheckLoading(false);
     }
@@ -128,19 +128,19 @@ export default function OwnerLayout() {
 
   const handleLoadDraft = () => {
     setDraftDialogOpen(false);
-    navigate("/owners/gyms/register", { state: { draftGym } });
+    navigate("/gyms/register", { state: { draftGym } });
   };
 
   const handleDiscardDraft = async () => {
     setDraftDialogOpen(false);
     try { await cancelOwnerGymDraft({ gymId: draftGym.id }); } catch {}
-    navigate("/owners/gyms/register");
+    navigate("/gyms/register");
   };
 
   /* 활성 메뉴 판별 */
   const p = location.pathname;
-  const isDashboard  = p === "/owners";
-  const isGymDetail  = /\/owners\/gyms\/\d+$/.test(p);
+  const isDashboard  = p === "/dashboard";
+  const isGymDetail  = /\/gyms\/\d+$/.test(p);
   const isEquipments = p.includes("/equipments") || p.includes("/map");
   const isLockers    = p.includes("/lockers");
 
@@ -238,28 +238,28 @@ export default function OwnerLayout() {
             icon={<DashboardOutlinedIcon fontSize="small" />}
             label="대시보드"
             active={isDashboard}
-            onClick={() => navigate("/owners")}
+            onClick={() => navigate("/dashboard")}
           />
           <NavItem
             icon={<EditNoteIcon fontSize="small" />}
             label="정보 수정"
             active={isGymDetail}
             disabled={!effectiveGymId}
-            onClick={() => navigate(`/owners/gyms/${effectiveGymId}`)}
+            onClick={() => navigate(`/gyms/${effectiveGymId}`)}
           />
           <NavItem
             icon={<FitnessCenterOutlinedIcon fontSize="small" />}
             label="기구·맵 관리"
             active={isEquipments}
             disabled={!effectiveGymId}
-            onClick={() => navigate(`/owners/gyms/${effectiveGymId}/equipments`)}
+            onClick={() => navigate(`/gyms/${effectiveGymId}/equipments`)}
           />
           <NavItem
             icon={<LockOutlinedIcon fontSize="small" />}
             label="락커 관리"
             active={isLockers}
             disabled={!effectiveGymId}
-            onClick={() => navigate(`/owners/gyms/${effectiveGymId}/lockers`)}
+            onClick={() => navigate(`/gyms/${effectiveGymId}/lockers`)}
           />
 
           <Box flex={1} />

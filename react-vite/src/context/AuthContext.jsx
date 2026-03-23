@@ -8,9 +8,23 @@ export function AuthProvider({ children }) {
   const [user, setUser] = useState(null);
   const [accessToken, setAccessToken] = useState(null);
 
-  // 앱 시작 시 localStorage에서 복원
+  // 앱 시작 시 localStorage에서 복원 (cross-domain handshake 포함)
   useEffect(() => {
     try {
+      // Cross-domain handshake: URL에 token/user 파라미터가 있으면 먼저 소비
+      const params = new URLSearchParams(window.location.search);
+      const urlToken = params.get('token');
+      const urlUser  = params.get('user');
+      if (urlToken && urlUser) {
+        try {
+          const parsedUser = JSON.parse(decodeURIComponent(urlUser));
+          tokenService.setToken(urlToken);
+          tokenService.setUser(parsedUser);
+        } catch (_) { /* malformed → 무시 */ }
+        // 주소창에서 민감 파라미터 즉시 제거 (첫 렌더 전)
+        window.history.replaceState({}, '', window.location.pathname);
+      }
+
       const storedUser = tokenService.getUser();
       const storedToken = tokenService.getToken();
 
