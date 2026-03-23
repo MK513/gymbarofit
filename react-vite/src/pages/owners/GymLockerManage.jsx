@@ -174,15 +174,13 @@ export default function GymLockerManage() {
     setAddLoading(true);
     try {
       for (const z of valid) {
-        await createOwnerGymLockerZones(
-          {
+        await createOwnerGymLockerZones({
+            gymId,
             name: z.name,
             size: z.size,
             rowCount: Number(z.rowCount),
             columnCount: Number(z.columnCount),
-          },
-          { gymId }
-        );
+          });
       }
       setNewZones([]);
       setShowAddForm(false);

@@ -68,7 +68,7 @@ export default function Register() {
       const res = await registerGym({ gymId: selectedGym.id });
       updateGym(res);
       showNotification("등록이 완료되었습니다!", "success");
-      navigate("/members");
+      navigate("/dashboard");
     } catch (error) {
       console.error("헬스장 등록 실패", error);
       showNotification(error.message, "error");

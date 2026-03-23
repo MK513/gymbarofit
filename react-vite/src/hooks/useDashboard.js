@@ -1,6 +1,7 @@
 import { useState, useEffect } from "react";
 import { useNotification } from "../context/NotificationContext";
 import { getMembershipInfo } from "../api/gym";
+import { BUCKET_BASE_URL } from "../api-config";
 
 function getCrowdLevelInfo(level) {
   switch (level) {
@@ -53,9 +54,7 @@ export function useDashboard(initialGym) {
         setLockerStatus({
           use: true,
           number: lu.lockerNumber,
-          expiry: lu.endDate
-            ? `${lu.endDate[0]}-${String(lu.endDate[1]).padStart(2, "0")}-${String(lu.endDate[2]).padStart(2, "0")}`
-            : "",
+          expiry: lu.endDate || "",
           id: lu.usageId,
           zoneName: lu.zoneName,
         });
@@ -70,7 +69,7 @@ export function useDashboard(initialGym) {
           uid: eq.inUseDto.usageId,
           eid: eq.inUseDto.equipmentId,
           name: eq.inUseDto.name,
-          imageUrl: eq.inUseDto.imageUrl,
+          imageUrl: eq.inUseDto.imageUrl ? `${BUCKET_BASE_URL}${eq.inUseDto.imageUrl}` : "",
           time: "현재 이용 중",
         };
       }
@@ -79,7 +78,7 @@ export function useDashboard(initialGym) {
           uid: eq.waitingDto.usageId,
           eid: eq.waitingDto.equipmentId,
           name: eq.waitingDto.name,
-          imageUrl: eq.waitingDto.imageUrl,
+          imageUrl: eq.waitingDto.imageUrl ? `${BUCKET_BASE_URL}${eq.waitingDto.imageUrl}` : "",
           time: `내 앞 대기 인원 ${eq.waitingDto.waitingCount}명`,
         };
       }

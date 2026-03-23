@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { useNavigate, Link } from "react-router-dom";
 import {
   TextField,
@@ -18,12 +18,18 @@ import FitnessCenterIcon from "@mui/icons-material/FitnessCenter";
 
 import { loginMember, loginOwner } from "../api/auth";
 import { useAuth } from "../context/AuthContext";
+import { isAdminDomain, isOnCorrectDomain, getCorrectDomainForRole } from "../utils/domainUtils";
 
 export default function Login() {
   const navigate = useNavigate();
   const { login } = useAuth();
   const [role, setRole] = useState("member");
   const [showPw, setShowPw] = useState(false);
+
+  // 도메인 기반 역할 사전 선택
+  useEffect(() => {
+    setRole(isAdminDomain() ? 'owner' : 'member');
+  }, []);
 
   const handleLogin = async (e) => {
     e.preventDefault();
@@ -32,14 +38,25 @@ export default function Login() {
     const pw = data.get("pw");
     try {
       const dto = { email, password: pw };
+      let userInfo, token;
       if (role === "member") {
         const res = await loginMember(dto);
-        login({ ...res.userInfo, role }, res.token.accessToken);
-        navigate("/members");
+        userInfo = { ...res.userInfo, role: "member" };
+        token = res.token.accessToken;
       } else {
         const res = await loginOwner(dto);
-        login({ ...res.userInfo, role }, res.token.accessToken);
-        navigate("/owners");
+        userInfo = { ...res.userInfo, role: "owner" };
+        token = res.token.accessToken;
+      }
+
+      if (isOnCorrectDomain(role)) {
+        login(userInfo, token);
+        navigate("/dashboard");
+      } else {
+        // 현재 도메인 localStorage에는 저장하지 않고 대상 도메인으로 전달
+        const userEncoded = encodeURIComponent(JSON.stringify(userInfo));
+        const correctBase = getCorrectDomainForRole(role);
+        window.location.href = `${correctBase}/dashboard?token=${token}&user=${userEncoded}`;
       }
     } catch (e) {
       console.log("error", e);
