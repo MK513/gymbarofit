@@ -1,0 +1,95 @@
+name: K6 Load Test
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+  workflow_dispatch:
+
+jobs:
+  k6-test:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up Java 21
+        uses: actions/setup-java@v4
+        with:
+          java-version: '21'
+          distribution: 'temurin'
+          cache: gradle
+
+      - name: Build Spring Boot (skip tests)
+        working-directory: springboot
+        run: ./gradlew :api:bootJar -x test
+
+      - name: Start backend
+        working-directory: springboot
+        env:
+          JWT_SECRET: ${{ secrets.JWT_SECRET_TEST }}
+        run: |
+          java -jar api/build/libs/api-*.jar \
+            --spring.profiles.active=dev \
+            --server.port=8080 &
+          echo $! > /tmp/backend.pid
+
+      - name: Wait for backend health
+        run: |
+          for i in $(seq 1 30); do
+            if curl -sf http://localhost:8080/actuator/health > /dev/null 2>&1; then
+              echo "Backend is up"
+              exit 0
+            fi
+            echo "Waiting... ($i/30)"
+            sleep 2
+          done
+          echo "Backend failed to start"
+          exit 1
+
+      - name: Install k6
+        run: |
+          sudo gpg -k
+          sudo gpg --no-default-keyring \
+            --keyring /usr/share/keyrings/k6-archive-keyring.gpg \
+            --keyserver hkp://keyserver.ubuntu.com:80 \
+            --recv-keys C5AD17C747E3415A3642D57D77C6C491D6AC1D69
+          echo "deb [signed-by=/usr/share/keyrings/k6-archive-keyring.gpg] \
+            https://dl.k6.io/deb stable main" | sudo tee /etc/apt/sources.list.d/k6.list
+          sudo apt-get update && sudo apt-get install -y k6
+
+      - name: Seed test data
+        run: |
+          curl -sf "http://localhost:8090/h2-console/login.do" \
+            -d "language=en&setting=Generic+H2+(Embedded)&name=Generic+H2+(Embedded)&driver=org.h2.Driver&url=jdbc:h2:mem:gymbarofit&user=sa&password=" \
+            -c /tmp/h2-session.txt -b /tmp/h2-session.txt || true
+          echo "Seed data load attempted (H2 console may require manual setup for complex SQL)"
+
+      - name: Run smoke test
+        env:
+          BASE_URL: http://localhost:8080
+        run: |
+          mkdir -p k6/results
+          k6 run --out json=k6/results/smoke.json k6/scenarios/smoke.js
+
+      - name: Run concurrency test
+        if: github.ref == 'refs/heads/main' || github.event_name == 'workflow_dispatch'
+        env:
+          BASE_URL: http://localhost:8080
+        run: |
+          mkdir -p k6/results
+          k6 run --out json=k6/results/concurrency.json k6/scenarios/concurrency.js
+
+      - name: Upload k6 results
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: k6-results-${{ github.run_number }}
+          path: k6/results/
+          retention-days: 30
+
+      - name: Stop backend
+        if: always()
+        run: kill $(cat /tmp/backend.pid) 2>/dev/null || true

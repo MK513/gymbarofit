@@ -9,15 +9,20 @@ spring:
       data-locations:
         - classpath:data-dev.sql
         - classpath:data-dev-sample.sql
+        - classpath:data-k6-seed.sql
   datasource:
     url: ${H2_DB_URL}
     username: ${H2_DB_USERNAME}
     password: ${H2_DB_PASSWORD}
     driver-class-name: org.h2.Driver
 
-#logging.level:
-#  org.hibernate.SQL: debug
-#  org.springframework.security: DEBUG
+#logging:
+#  level:
+#    org.hibernate.SQL: DEBUG
+#    org.hibernate.orm.jdbc.bind: TRACE
+#    org.hibernate.engine.transaction.internal: DEBUG
+#    org.springframework.transaction: DEBUG
+#    org.hibernate.engine.jdbc.spi.SqlExceptionHelper: WARN
 
 app:
   upload:

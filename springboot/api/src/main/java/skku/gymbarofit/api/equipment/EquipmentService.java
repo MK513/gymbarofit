@@ -69,7 +69,7 @@ public class EquipmentService {
     }
 
     @NotifyEquipmentChange
-    public void joinQueue(Long memberId, @EquipmentId Long equipmentId) {
+    public Long joinQueue(Long memberId, @EquipmentId Long equipmentId) {
 
         Member member = memberInternalService.findById(memberId);
         Equipment equipment = equipmentInternalService.findById(equipmentId);
@@ -82,6 +82,8 @@ public class EquipmentService {
         equipmentLogInternalService.save(
                 EquipmentLog.from(usage, EquipmentEventType.WAIT_JOINED, clock)
         );
+
+        return usage.getId();
     }
 
     @NotifyEquipmentChange
@@ -95,7 +97,7 @@ public class EquipmentService {
     }
 
     @NotifyEquipmentChange
-    public void createUsage(Long memberId, @EquipmentId Long equipmentId) {
+    public Long createUsage(Long memberId, @EquipmentId Long equipmentId) {
 
         Member member = memberInternalService.findById(memberId);
         Equipment equipment = equipmentInternalService.findById(equipmentId);
@@ -108,6 +110,8 @@ public class EquipmentService {
         equipmentLogInternalService.save(
                 EquipmentLog.from(usage, EquipmentEventType.USAGE_STARTED, clock)
         );
+
+        return usage.getId();
     }
 
     @NotifyEquipmentChange

@@ -11,6 +11,7 @@ import skku.gymbarofit.api.user.owner.dto.OwnerGymEquipmentDto;
 import skku.gymbarofit.api.global.annotation.CurrentUserId;
 
 import java.util.List;
+import java.util.Map;
 
 @RestController
 @RequestMapping("/equipments")
@@ -22,12 +23,12 @@ public class EquipmentApiController {
     // 대기 줄서기
     @PreAuthorize("hasRole('MEMBER')")
     @PostMapping("/{equipmentId}/usages/wait")
-    public ResponseEntity<Void> joinQueue(
+    public ResponseEntity<Map<String, Long>> joinQueue(
             @CurrentUserId Long memberId,
             @PathVariable Long equipmentId
     ) {
-        equipmentService.joinQueue(memberId, equipmentId);
-        return ResponseEntity.status(HttpStatus.CREATED).build();
+        Long usageId = equipmentService.joinQueue(memberId, equipmentId);
+        return ResponseEntity.status(HttpStatus.CREATED).body(Map.of("usageId", usageId));
     }
 
     // 대기 취소
@@ -53,12 +54,12 @@ public class EquipmentApiController {
     // 기구 사용 시작
     @PreAuthorize("hasRole('MEMBER')")
     @PostMapping("/{equipmentId}/usages")
-    public ResponseEntity<Void> createUsage(
+    public ResponseEntity<Map<String, Long>> createUsage(
             @CurrentUserId Long memberId,
             @PathVariable Long equipmentId
     ) {
-        equipmentService.createUsage(memberId, equipmentId);
-        return ResponseEntity.status(HttpStatus.CREATED).build();
+        Long usageId = equipmentService.createUsage(memberId, equipmentId);
+        return ResponseEntity.status(HttpStatus.CREATED).body(Map.of("usageId", usageId));
     }
 
     // 기구 사용 종료
