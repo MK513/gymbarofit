@@ -8,7 +8,7 @@ import { MEMBER_USERS, TEST_GYM_IDS, TEST_ZONE_ID } from '../data/users.js';
  * login → getZones → getLockers → rentLocker → getLockerInfo → refundLocker
  */
 export function lockerRentFlow() {
-  const user = MEMBER_USERS[Math.floor(Math.random() * MEMBER_USERS.length)];
+  const user = MEMBER_USERS[(__VU - 1) % MEMBER_USERS.length];
   const session = memberLogin(user.email, user.password);
   if (!session) return;
 

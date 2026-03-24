@@ -3,18 +3,30 @@
 // 실행 예: TEST_PASSWORD=mypassword k6 run ...
 export const TEST_PASSWORD = __ENV.TEST_PASSWORD || 'loadtest';
 
-// 100명 멤버 풀: loadtest_member_{1~100}@gymbarofit.test
-// USER_ID: 5001~5100 (seed.sql과 일치)
-export const MEMBER_USERS = Array.from({ length: 100 }, (_, i) => ({
-  email: `loadtest_member_${i + 1}@gymbarofit.test`,
-  password: TEST_PASSWORD,
-}));
+// 200명 멤버 풀: loadtest_member_{1~100, 102~201}@gymbarofit.test
+// USER_ID: 5001~5100 (1~100), 5201~5300 (102~201) — 5101은 race test 전용(USER_ID 9999)
+export const MEMBER_USERS = [
+  ...Array.from({ length: 100 }, (_, i) => ({
+    email: `loadtest_member_${i + 1}@gymbarofit.test`,
+    password: TEST_PASSWORD,
+  })),
+  ...Array.from({ length: 100 }, (_, i) => ({
+    email: `loadtest_member_${i + 102}@gymbarofit.test`,
+    password: TEST_PASSWORD,
+  })),
+];
 
 // 부하 테스트용 고정 데이터 (seed.sql과 일치해야 함)
 export const TEST_GYM_IDS       = [5001];
-export const TEST_EQUIPMENT_IDS = [5001, 5002, 5003, 5004, 5005];
+export const TEST_EQUIPMENT_IDS = Array.from({ length: 50 }, (_, i) => 5001 + i);
 export const TEST_ZONE_ID       = 5001;
 export const SEARCH_KEYWORDS    = ['헬스', '스쿼트', '서울', '강남', '피트니스'];
+
+// 멤버십 중복 등록 동시성 테스트 전용 (멤버십 없는 계정)
+export const RACE_MEMBERSHIP_USER = {
+  email: 'loadtest_member_101@gymbarofit.test',
+  password: TEST_PASSWORD,
+};
 
 // 동시성 테스트용 단일 타겟 ID (경쟁 유발)
 export const RACE_GYM_ID       = 5001;

@@ -8,7 +8,7 @@ import { MEMBER_USERS, TEST_GYM_IDS, SEARCH_KEYWORDS } from '../data/users.js';
  * GET /gyms/search → GET /gyms/{id}/equipments
  */
 export function gymSearchFlow() {
-  const user = MEMBER_USERS[Math.floor(Math.random() * MEMBER_USERS.length)];
+  const user = MEMBER_USERS[(__VU - 1) % MEMBER_USERS.length];
   const session = memberLogin(user.email, user.password);
   if (!session) return;
 

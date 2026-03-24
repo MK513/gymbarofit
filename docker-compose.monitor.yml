@@ -18,6 +18,16 @@ x-k6-base: &k6-base
 
 services:
 
+  # ── Backend 오버라이드 — k6/seed/seed.sql 마운트 ───────────────────────────────
+  backend:
+    volumes:
+      - ./k6/seed/seed.sql:/app/k6-seed.sql:ro
+    environment:
+      SPRING_SQL_INIT_DATA_LOCATIONS: >-
+        classpath:data-dev.sql,
+        classpath:data-dev-sample.sql,
+        file:/app/k6-seed.sql
+
   # ── InfluxDB 1.8 — K6 메트릭 수신 ────────────────────────────────────────────
   influxdb:
     image: influxdb:1.8

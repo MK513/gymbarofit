@@ -26,6 +26,7 @@ import skku.gymbarofit.core.log.EquipmentLog;
 import skku.gymbarofit.core.log.enums.EquipmentEventType;
 import skku.gymbarofit.core.log.service.EquipmentLogInternalService;
 import skku.gymbarofit.core.usage.equipment.EquipmentUsage;
+import skku.gymbarofit.core.usage.equipment.enums.EquipmentUsageStatus;
 import skku.gymbarofit.core.usage.equipment.service.EquipmentUsageInternalService;
 import skku.gymbarofit.core.user.member.Member;
 import skku.gymbarofit.core.user.member.service.MemberInternalService;
@@ -136,6 +137,9 @@ public class EquipmentService {
     @NotifyEquipmentChange
     public void startUsage(@UsageId Long usageId) {
         EquipmentUsage usage = equipmentUsageInternalService.findForUpdate(usageId);
+        if (usage.getStatus() != EquipmentUsageStatus.CALLED) {
+            throw new EquipmentException(EquipmentErrorCode.INVALID_USAGE_STATUS);
+        }
         usage.startUse(clock);
 
         equipmentLogInternalService.save(

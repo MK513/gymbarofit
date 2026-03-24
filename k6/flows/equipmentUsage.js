@@ -8,12 +8,12 @@ import { MEMBER_USERS, TEST_GYM_IDS, TEST_EQUIPMENT_IDS } from '../data/users.js
  * login → checkin → createUsage → (workout) → endUsage → checkout
  */
 export function equipmentUsageFlow() {
-  const user = MEMBER_USERS[Math.floor(Math.random() * MEMBER_USERS.length)];
+  const user = MEMBER_USERS[(__VU - 1) % MEMBER_USERS.length];
   const session = memberLogin(user.email, user.password);
   if (!session) return;
 
   const gymId       = TEST_GYM_IDS[0];
-  const equipmentId = TEST_EQUIPMENT_IDS[Math.floor(Math.random() * TEST_EQUIPMENT_IDS.length)];
+  const equipmentId = TEST_EQUIPMENT_IDS[(__VU - 1) % TEST_EQUIPMENT_IDS.length];
 
   sleep(1);
 

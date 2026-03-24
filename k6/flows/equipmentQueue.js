@@ -10,7 +10,7 @@ import { MEMBER_USERS, TEST_GYM_IDS, TEST_EQUIPMENT_IDS } from '../data/users.js
  * NOTE: k6는 SSE를 지원하지 않아 '알림 수신 대기'는 sleep으로 시뮬레이션.
  */
 export function equipmentQueueFlow() {
-  const user = MEMBER_USERS[Math.floor(Math.random() * MEMBER_USERS.length)];
+  const user = MEMBER_USERS[(__VU - 1) % MEMBER_USERS.length];
   const session = memberLogin(user.email, user.password);
   if (!session) return;
 

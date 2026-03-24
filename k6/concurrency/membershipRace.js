@@ -1,7 +1,7 @@
 import { check } from 'k6';
 import { memberLogin } from '../utils/auth.js';
 import { authedPost } from '../utils/http.js';
-import { MEMBER_USERS, RACE_GYM_ID } from '../data/users.js';
+import { RACE_MEMBERSHIP_USER, RACE_GYM_ID } from '../data/users.js';
 import { raceSuccesses, serverErrors } from './metrics.js';
 
 /**
@@ -16,9 +16,9 @@ import { raceSuccesses, serverErrors } from './metrics.js';
  * NOTE: setup()에서 토큰을 1개 발급해 모든 VU가 공유.
  */
 export function membershipRaceSetup() {
-  // 새 멤버십 등록을 위해 멤버십이 없는 계정 사용 (MEMBER_USERS[99])
-  // seed.sql에서 이 계정에는 gym 1 멤버십을 미리 부여하지 않아야 함.
-  const user = MEMBER_USERS[99];
+  // 새 멤버십 등록을 위해 멤버십이 없는 계정 사용 (loadtest_member_101, USER_ID 5101)
+  // seed.sql에서 이 계정에는 gym 멤버십을 미리 부여하지 않아야 함.
+  const user = RACE_MEMBERSHIP_USER;
   const session = memberLogin(user.email, user.password);
   return session;
 }
