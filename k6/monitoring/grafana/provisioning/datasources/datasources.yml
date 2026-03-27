@@ -11,7 +11,8 @@ datasources:
     editable: true
     jsonData:
       version: InfluxQL
-      httpMode: GET
+      httpMode: POST
+      dbName: k6
 
   - name: Prometheus
     uid: PBFA97CFB590B2093

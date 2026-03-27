@@ -30,7 +30,7 @@ public class AccessLogInternalService {
                 .findForUpdate(member.getId(), gym.getId())
                 .isPresent();
         if (alreadyCheckedIn) {
-            throw new AccessException(AccessErrorCode.ALREADY_CHECKED_IN);
+            throw new AccessException(AccessErrorCode.ALREADY_CHECKED_IN, member.getId());
         }
         gym.checkIn();
         AccessLog accessLog = AccessLog.create(member, gym);
@@ -40,7 +40,7 @@ public class AccessLogInternalService {
     public AccessLog checkOut(Long memberId, Long gymId, Gym gym) {
         AccessLog accessLog = accessLogRepository
                 .findForUpdate(memberId, gymId)
-                .orElseThrow(() -> new AccessException(AccessErrorCode.NOT_CHECKED_IN));
+                .orElseThrow(() -> new AccessException(AccessErrorCode.NOT_CHECKED_IN, memberId));
         accessLog.checkOut();
         gym.checkOut();
         return accessLog;

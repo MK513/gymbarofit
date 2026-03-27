@@ -17,6 +17,8 @@ import skku.gymbarofit.core.global.exception.BusinessException;
 import skku.gymbarofit.core.global.exception.ErrorResponse;
 import skku.gymbarofit.core.global.exception.GlobalErrorCode;
 import skku.gymbarofit.core.global.exception.GlobalException;
+import skku.gymbarofit.core.item.equipment.exception.EquipmentException;
+import skku.gymbarofit.core.log.exception.AccessException;
 
 import java.util.Map;
 
@@ -28,6 +30,28 @@ public class GlobalExceptionHandler {
     @ExceptionHandler(NoResourceFoundException.class)
     public ResponseEntity<Void> handleNoResource(NoResourceFoundException e) {
         return ResponseEntity.notFound().build();
+    }
+
+    @ExceptionHandler(EquipmentException.class)
+    public ResponseEntity<ErrorResponse> handleEquipmentException(EquipmentException e) {
+        if (e.getEquipmentId() != null) {
+            log.warn("EquipmentException Occurred: {} (equipmentId={})", e.getErrorCode().getMessage(), e.getEquipmentId());
+        } else if (e.getEquipmentUsageId() != null) {
+            log.warn("EquipmentException Occurred: {} (equipmentUsageId={})", e.getErrorCode().getMessage(), e.getEquipmentUsageId());
+        } else {
+            log.warn("EquipmentException Occurred: {}", e.getErrorCode().getMessage());
+        }
+        return ErrorResponse.toResponseEntity(e.getErrorCode());
+    }
+
+    @ExceptionHandler(AccessException.class)
+    public ResponseEntity<ErrorResponse> handleAccessException(AccessException e) {
+        if (e.getMemberId() != null) {
+            log.warn("AccessException Occurred: {} (memberId={})", e.getErrorCode().getMessage(), e.getMemberId());
+        } else {
+            log.warn("AccessException Occurred: {}", e.getErrorCode().getMessage());
+        }
+        return ErrorResponse.toResponseEntity(e.getErrorCode());
     }
 
     @ExceptionHandler(BusinessException.class)

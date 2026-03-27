@@ -26,14 +26,19 @@ public class AccessService {
     public AccessStatusDto checkIn(Long memberId, Long gymId) {
         validateMembership(memberId, gymId);
         Member member = memberInternalService.findById(memberId);
-        Gym gym = gymInternalService.findById(gymId);
+        Gym gym = gymInternalService.findByIdForUpdate(gymId);
         accessLogInternalService.checkIn(member, gym);
         return accessLogInternalService.getAccessStatus(memberId, gymId);
     }
 
     public AccessStatusDto checkOut(Long memberId, Long gymId) {
-        Gym gym = gymInternalService.findById(gymId);
+        Gym gym = gymInternalService.findByIdForUpdate(gymId);
         accessLogInternalService.checkOut(memberId, gymId, gym);
+        return accessLogInternalService.getAccessStatus(memberId, gymId);
+    }
+
+    @Transactional(readOnly = true)
+    public AccessStatusDto getStatus(Long memberId, Long gymId) {
         return accessLogInternalService.getAccessStatus(memberId, gymId);
     }
 

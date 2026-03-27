@@ -20,6 +20,17 @@ public class EquipmentApiController {
 
     private final EquipmentService equipmentService;
 
+    // 활성 기구 사용 조회
+    @PreAuthorize("hasRole('MEMBER')")
+    @GetMapping("/usages/active")
+    public ResponseEntity<Map<String, Long>> getActiveUsage(
+            @CurrentUserId Long memberId
+    ) {
+        return equipmentService.getActiveUsage(memberId)
+                .map(id -> ResponseEntity.ok(Map.of("usageId", id)))
+                .orElse(ResponseEntity.noContent().build());
+    }
+
     // 대기 줄서기
     @PreAuthorize("hasRole('MEMBER')")
     @PostMapping("/{equipmentId}/usages/wait")

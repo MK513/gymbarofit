@@ -23,10 +23,7 @@ services:
     volumes:
       - ./k6/seed/seed.sql:/app/k6-seed.sql:ro
     environment:
-      SPRING_SQL_INIT_DATA_LOCATIONS: >-
-        classpath:data-dev.sql,
-        classpath:data-dev-sample.sql,
-        file:/app/k6-seed.sql
+      SPRING_SQL_INIT_DATA_LOCATIONS: file:/app/k6-seed.sql
 
   # ── InfluxDB 1.8 — K6 메트릭 수신 ────────────────────────────────────────────
   influxdb:
@@ -67,7 +64,6 @@ services:
       GF_AUTH_ANONYMOUS_ENABLED: "true"
       GF_AUTH_ANONYMOUS_ORG_ROLE: Admin
       GF_AUTH_DISABLE_LOGIN_FORM: "false"
-      GF_FEATURE_TOGGLES_INFLUXDBBACKENDMIGRATION: "false"
     volumes:
       - ./k6/monitoring/grafana/provisioning:/etc/grafana/provisioning:ro
       - grafana-data:/var/lib/grafana

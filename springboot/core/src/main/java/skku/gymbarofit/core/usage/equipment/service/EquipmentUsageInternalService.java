@@ -61,7 +61,7 @@ public class EquipmentUsageInternalService {
 
     public EquipmentUsage findForUpdate(Long usageId) {
         return equipmentUsageRepository.findForUpdate(usageId)
-                .orElseThrow(() -> new EquipmentException(EquipmentErrorCode.EQUIPMENT_USAGE_NOT_FOUND));
+                .orElseThrow(() -> new EquipmentException(EquipmentErrorCode.EQUIPMENT_USAGE_NOT_FOUND, null, usageId));
     }
 
     public EquipmentUsage findFirstWaitingForUpdate(Long equipmentId) {
@@ -71,7 +71,7 @@ public class EquipmentUsageInternalService {
 
     public EquipmentUsage findById(Long usageId) {
         return equipmentUsageRepository.findById(usageId)
-                .orElseThrow(() -> new EquipmentException(EquipmentErrorCode.EQUIPMENT_USAGE_NOT_FOUND));
+                .orElseThrow(() -> new EquipmentException(EquipmentErrorCode.EQUIPMENT_USAGE_NOT_FOUND, null, usageId));
     }
 
     @Transactional(readOnly = true)

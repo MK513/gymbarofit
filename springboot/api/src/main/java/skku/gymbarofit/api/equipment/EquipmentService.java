@@ -34,6 +34,7 @@ import skku.gymbarofit.core.user.member.service.MemberInternalService;
 import java.time.Clock;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
 
@@ -67,6 +68,12 @@ public class EquipmentService {
         List<String> equipmentTypes = equipments.stream().map(Equipment::getType).distinct().toList();
 
         return EquipmentListResponseDto.of(equipments.size(), equipmentTypes, listDto);
+    }
+
+    @Transactional(readOnly = true)
+    public Optional<Long> getActiveUsage(Long memberId) {
+        return equipmentUsageInternalService.findInUseByMemberId(memberId)
+                .map(EquipmentUsage::getId);
     }
 
     @NotifyEquipmentChange
@@ -138,7 +145,7 @@ public class EquipmentService {
     public void startUsage(@UsageId Long usageId) {
         EquipmentUsage usage = equipmentUsageInternalService.findForUpdate(usageId);
         if (usage.getStatus() != EquipmentUsageStatus.CALLED) {
-            throw new EquipmentException(EquipmentErrorCode.INVALID_USAGE_STATUS);
+            throw new EquipmentException(EquipmentErrorCode.INVALID_USAGE_STATUS, null, usageId);
         }
         usage.startUse(clock);
 
@@ -173,14 +180,14 @@ public class EquipmentService {
 
     public OwnerGymEquipmentDto updateEquipment(Long ownerId, Long equipmentId, EquipmentUpdateRequestDto dto) {
         Equipment equipment = equipmentRepository.findById(equipmentId)
-                .orElseThrow(() -> new EquipmentException(EquipmentErrorCode.EQUIPMENT_NOT_FOUND));
+                .orElseThrow(() -> new EquipmentException(EquipmentErrorCode.EQUIPMENT_NOT_FOUND, equipmentId, null));
         equipment.update(dto.name(), dto.type(), dto.imageUrl());
         return OwnerGymEquipmentDto.from(equipment);
     }
 
     public void deleteEquipment(Long ownerId, Long equipmentId) {
         Equipment equipment = equipmentRepository.findById(equipmentId)
-                .orElseThrow(() -> new EquipmentException(EquipmentErrorCode.EQUIPMENT_NOT_FOUND));
+                .orElseThrow(() -> new EquipmentException(EquipmentErrorCode.EQUIPMENT_NOT_FOUND, equipmentId, null));
         equipmentRepository.delete(equipment);
     }
 }

@@ -7,8 +7,8 @@ import { MEMBER_USERS, TEST_GYM_IDS, TEST_ZONE_ID } from '../data/users.js';
  * 라커 대여 전체 라이프사이클 플로우
  * login → getZones → getLockers → rentLocker → getLockerInfo → refundLocker
  */
-export function lockerRentFlow() {
-  const user = MEMBER_USERS[(__VU - 1) % MEMBER_USERS.length];
+export function lockerRentFlow(userPool = MEMBER_USERS) {
+  const user = userPool[(__VU - 1) % userPool.length];
   const session = memberLogin(user.email, user.password);
   if (!session) return;
 
