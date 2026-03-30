@@ -32,6 +32,9 @@ WORKDIR /app
 # Create upload directory for images
 RUN mkdir -p /app/images
 
+# Create log directory
+RUN mkdir -p /app/logs
+
 # Copy seed images into the container (for named volume initialization)
 COPY images/ /app/images/
 

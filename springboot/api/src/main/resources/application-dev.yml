@@ -12,6 +12,10 @@ spring:
     username: ${H2_DB_USERNAME}
     password: ${H2_DB_PASSWORD}
     driver-class-name: org.h2.Driver
+  data:
+    redis:
+      host: ${REDIS_HOST:localhost}
+      port: ${REDIS_PORT:6379}
 
 # 디버그 모드 활성화
 logging.level:

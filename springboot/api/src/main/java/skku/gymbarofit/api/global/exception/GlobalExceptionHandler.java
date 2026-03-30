@@ -13,6 +13,8 @@ import org.springframework.web.context.request.async.AsyncRequestTimeoutExceptio
 import org.springframework.web.servlet.resource.NoResourceFoundException;
 import skku.gymbarofit.api.global.exception.mapper.EquipmentExceptionMapper;
 import skku.gymbarofit.api.global.exception.mapper.LockerExceptionMapper;
+import skku.gymbarofit.api.global.exception.mapper.MembershipExceptionMapper;
+import skku.gymbarofit.api.global.lock.LockAcquisitionException;
 import skku.gymbarofit.core.global.exception.BusinessException;
 import skku.gymbarofit.core.global.exception.ErrorResponse;
 import skku.gymbarofit.core.global.exception.GlobalErrorCode;
@@ -54,6 +56,18 @@ public class GlobalExceptionHandler {
         return ErrorResponse.toResponseEntity(e.getErrorCode());
     }
 
+    @ExceptionHandler(LockAcquisitionException.class)
+    public ResponseEntity<?> handleLockAcquisition(LockAcquisitionException e) {
+        log.warn("분산락 획득 실패: {}", e.getMessage());
+        return ResponseEntity
+                .status(HttpStatus.CONFLICT)
+                .body(Map.of(
+                        "status", 409,
+                        "error", "CONFLICT",
+                        "message", "현재 처리 중인 요청이 있습니다. 잠시 후 다시 시도해주세요."
+                ));
+    }
+
     @ExceptionHandler(BusinessException.class)
     public ResponseEntity<ErrorResponse> handleBusinessException(BusinessException e) {
         log.warn("BusinessException Occurred: {}", e.getErrorCode().getMessage());
@@ -65,7 +79,7 @@ public class GlobalExceptionHandler {
             DataIntegrityViolationException e
     ) {
         BusinessException mappedException = map(e);
-        log.warn("BusinessException Occurred [DATA_INTEGRITY}: {}", mappedException.getErrorCode().getMessage());
+        log.warn("DataIntegrityViolationException Occurred [DATA_INTEGRITY}: {}", mappedException.getErrorCode().getMessage());
         return ErrorResponse.toResponseEntity(mappedException.getErrorCode());
     }
 
@@ -131,6 +145,9 @@ public class GlobalExceptionHandler {
         }
         if (constraint.contains("uk_locker_usage_")) {
             return LockerExceptionMapper.map(constraint);
+        }
+        if (constraint.contains("uk_membership_")) {
+            return MembershipExceptionMapper.map(constraint);
         }
 
         return new GlobalException(GlobalErrorCode.UNKNOWN_ERROR);

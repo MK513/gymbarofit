@@ -5,6 +5,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
+import skku.gymbarofit.api.global.lock.DistributedLock;
 import skku.gymbarofit.core.usage.locker.enums.LockerPayProcess;
 import skku.gymbarofit.api.payment.MockPaymentService;
 import skku.gymbarofit.core.item.locker.dto.LockerExtendRequestDto;
@@ -24,6 +25,7 @@ public class LockerFacade {
     private final LockerService lockerService;
     private final MockPaymentService paymentService;
 
+    @DistributedLock(key = "'locker:' + #request.lockerId")
     public LockerRentResponseDto rent(Long memberId, LockerRentRequestDto request) {
         Long paymentId = lockerService.reserve(memberId, request);
 
@@ -53,7 +55,7 @@ public class LockerFacade {
                 .mapToLong(paymentService::refund) // 각 payment 환불 금액
                 .sum();
 
-        log.info("총 {}원 환불되었습니다", totalRefundAmount);
+        //log.info("총 {}원 환불되었습니다", totalRefundAmount);
 
         lockerService.afterRefundTx(memberId, usageId);
     }

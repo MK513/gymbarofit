@@ -1,14 +1,14 @@
 import { check, sleep } from 'k6';
 import { memberLogin } from '../utils/auth.js';
 import { authedGet, authedPost, authedDelete } from '../utils/http.js';
-import { MEMBER_USERS, TEST_GYM_IDS, TEST_ZONE_ID } from '../data/users.js';
+import { LOAD_LOCKER_USERS, TEST_GYM_IDS, TEST_ZONE_ID } from '../data/users.js';
 
 /**
  * 라커 대여 전체 라이프사이클 플로우
  * login → getZones → getLockers → rentLocker → getLockerInfo → refundLocker
  */
-export function lockerRentFlow(userPool = MEMBER_USERS) {
-  const user = userPool[(__VU - 1) % userPool.length];
+export function lockerRentFlow() {
+  const user = LOAD_LOCKER_USERS[(__VU - 1) % LOAD_LOCKER_USERS.length];
   const session = memberLogin(user.email, user.password);
   if (!session) return;
 

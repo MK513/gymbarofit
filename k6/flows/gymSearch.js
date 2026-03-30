@@ -1,7 +1,7 @@
 import { check, sleep } from 'k6';
 import { memberLogin } from '../utils/auth.js';
 import { authedGet } from '../utils/http.js';
-import { MEMBER_USERS, TEST_GYM_IDS, SEARCH_KEYWORDS } from '../data/users.js';
+import { STRESS_SEARCH_USERS, LOAD_SEARCH_USERS, TEST_GYM_IDS, SEARCH_KEYWORDS } from '../data/users.js';
 
 // VU당 세션 캐시 — 매 이터레이션 로그인 방지
 let _session = null;
@@ -10,7 +10,7 @@ let _session = null;
  * 헬스장 검색 + 기구 목록 조회 플로우 (가장 빈번한 읽기 플로우)
  * GET /gyms/search → GET /gyms/{id}/equipments
  */
-export function gymSearchFlow(userPool = MEMBER_USERS) {
+function gymSearchInternal(userPool) {
   if (!_session) {
     const user = userPool[(__VU - 1) % userPool.length];
     _session = memberLogin(user.email, user.password);
@@ -40,3 +40,6 @@ export function gymSearchFlow(userPool = MEMBER_USERS) {
 
   sleep(Math.random() * 3 + 1);
 }
+
+export function gymSearchFlowStress() { gymSearchInternal(STRESS_SEARCH_USERS); }
+export function gymSearchFlowLoad()   { gymSearchInternal(LOAD_SEARCH_USERS); }

@@ -9,6 +9,7 @@ import skku.gymbarofit.api.global.annotation.EquipmentId;
 import skku.gymbarofit.api.global.annotation.UsageId;
 import skku.gymbarofit.api.notification.NotificationFacade;
 import skku.gymbarofit.api.global.annotation.NotifyEquipmentChange;
+import skku.gymbarofit.api.global.lock.DistributedLock;
 import skku.gymbarofit.api.user.owner.dto.EquipmentCreateRequestDto;
 import skku.gymbarofit.api.user.owner.dto.EquipmentUpdateRequestDto;
 import skku.gymbarofit.api.user.owner.dto.OwnerGymEquipmentDto;
@@ -76,12 +77,13 @@ public class EquipmentService {
                 .map(EquipmentUsage::getId);
     }
 
+    @DistributedLock(key = "'equipment:' + #equipmentId")
     @NotifyEquipmentChange
     public Long joinQueue(Long memberId, @EquipmentId Long equipmentId) {
 
         Member member = memberInternalService.findById(memberId);
         Equipment equipment = equipmentInternalService.findById(equipmentId);
-        skku.gymbarofit.core.gym.Gym gym = equipment.getGym();
+        Gym gym = equipment.getGym();
 
         EquipmentUsage equipmentUsage = EquipmentUsage.createQueue(member, gym, equipment);
 
@@ -94,9 +96,10 @@ public class EquipmentService {
         return usage.getId();
     }
 
+    @DistributedLock(key = "'usage:' + #usageId")
     @NotifyEquipmentChange
     public void leaveQueue(Long usageId) {
-        EquipmentUsage usage = equipmentUsageInternalService.findForUpdate(usageId);
+        EquipmentUsage usage = equipmentUsageInternalService.findByIdForUpdate(usageId);
         usage.leaveQueue();
 
         equipmentLogInternalService.save(
@@ -104,12 +107,17 @@ public class EquipmentService {
         );
     }
 
+    @DistributedLock(key = "'equipment:' + #equipmentId")
     @NotifyEquipmentChange
     public Long createUsage(Long memberId, @EquipmentId Long equipmentId) {
 
+        if (equipmentUsageInternalService.existUsing(equipmentId)) {
+            throw new EquipmentException(EquipmentErrorCode.STATUS_ALREADY_EXISTS, equipmentId, null);
+        }
+
         Member member = memberInternalService.findById(memberId);
         Equipment equipment = equipmentInternalService.findById(equipmentId);
-        skku.gymbarofit.core.gym.Gym gym = equipment.getGym();
+        Gym gym = equipment.getGym();
 
         EquipmentUsage equipmentUsage = EquipmentUsage.createUse(member, gym, equipment, clock);
 
@@ -122,10 +130,11 @@ public class EquipmentService {
         return usage.getId();
     }
 
+    @DistributedLock(key = "'usage:' + #usageId")
     @NotifyEquipmentChange
     public void endUsage(@UsageId Long usageId) {
 
-        EquipmentUsage currentUsage = equipmentUsageInternalService.findForUpdate(usageId);
+        EquipmentUsage currentUsage = equipmentUsageInternalService.findByIdForUpdate(usageId);
         currentUsage.endUse(currentUsage.getMember().getWeight(), clock);
 
         Long equipmentId = currentUsage.getEquipment().getId();
@@ -141,9 +150,10 @@ public class EquipmentService {
         );
     }
 
+    @DistributedLock(key = "'usage:' + #usageId")
     @NotifyEquipmentChange
     public void startUsage(@UsageId Long usageId) {
-        EquipmentUsage usage = equipmentUsageInternalService.findForUpdate(usageId);
+        EquipmentUsage usage = equipmentUsageInternalService.findByIdForUpdate(usageId);
         if (usage.getStatus() != EquipmentUsageStatus.CALLED) {
             throw new EquipmentException(EquipmentErrorCode.INVALID_USAGE_STATUS, null, usageId);
         }

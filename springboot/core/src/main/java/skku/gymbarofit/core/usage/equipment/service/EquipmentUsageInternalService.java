@@ -59,8 +59,8 @@ public class EquipmentUsageInternalService {
         return equipmentUsageRepository.countWaitingForMember(equipmentId, memberId);
     }
 
-    public EquipmentUsage findForUpdate(Long usageId) {
-        return equipmentUsageRepository.findForUpdate(usageId)
+    public EquipmentUsage findByIdForUpdate(Long usageId) {
+        return equipmentUsageRepository.findByIdForUpdate(usageId)
                 .orElseThrow(() -> new EquipmentException(EquipmentErrorCode.EQUIPMENT_USAGE_NOT_FOUND, null, usageId));
     }
 

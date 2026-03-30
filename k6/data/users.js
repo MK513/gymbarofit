@@ -17,18 +17,18 @@ export const TEST_ZONE_ID       = 5001;
 export const SEARCH_KEYWORDS    = ['헬스', '스쿼트', '서울', '강남', '피트니스'];
 
 // ── 시나리오별 유저 파티션 (크로스 시나리오 충돌 방지) ──────────────────────────
-//  (399명 보유, 여유 159명)
-// stress.js: 100 + 60 + 140 = 300명
-export const STRESS_SEARCH_USERS = MEMBER_USERS.slice(0, 100);   // VU 최대 100
-export const STRESS_USAGE_USERS  = MEMBER_USERS.slice(100, 160); // VU 최대 60
-export const STRESS_QUEUE_USERS  = MEMBER_USERS.slice(160, 300); 
-export const STRESS_USAGE_EQUIPMENTS = TEST_EQUIPMENT_IDS.slice(0, 90);
-export const STRESS_QUEUE_EQUIPMENTS = TEST_EQUIPMENT_IDS.slice(90, 150);
+// stress
+export const STRESS_SEARCH_USERS = MEMBER_USERS.slice(0, 150);  
+export const STRESS_USAGE_USERS  = MEMBER_USERS.slice(150, 300); 
+export const STRESS_QUEUE_USERS  = MEMBER_USERS.slice(300, 399);  
+export const STRESS_USAGE_EQUIPMENTS = TEST_EQUIPMENT_IDS.slice(0, 70); 
+export const STRESS_QUEUE_EQUIPMENTS = TEST_EQUIPMENT_IDS.slice(70, 150); 
 
-// load.js: 30 + 12 + 8 = 50명
+// load
 export const LOAD_SEARCH_USERS    = MEMBER_USERS.slice(0, 30);  // VU 30
 export const LOAD_EQUIPMENT_USERS = MEMBER_USERS.slice(30, 42); // VU 12
 export const LOAD_LOCKER_USERS    = MEMBER_USERS.slice(42, 50); // VU 8
+export const LOAD_EQUIPMENT_IDS   = TEST_EQUIPMENT_IDS.slice(0, 12); // VU 12
 
 // 멤버십 중복 등록 동시성 테스트 전용 (USER_ID 5400, 멤버십 없음)
 export const RACE_MEMBERSHIP_USER = {
@@ -41,3 +41,7 @@ export const RACE_GYM_ID       = 5001;
 export const RACE_EQUIPMENT_ID = 5001;
 export const RACE_LOCKER_ID    = 5001;
 export const RACE_ZONE_ID      = 5001;
+
+// 다중 타겟 경쟁: 기구/라커 각 2개를 동시 경쟁 (비간섭성 검증)
+export const RACE_EQUIPMENT_IDS = [5001, 5002];
+export const RACE_LOCKER_IDS    = [5001, 5002];

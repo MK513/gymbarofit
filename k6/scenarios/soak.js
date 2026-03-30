@@ -1,16 +1,33 @@
-import { THRESHOLDS }           from '../config/thresholds.js';
-import { memberLoginFlow }      from '../flows/memberLogin.js';
-import { gymSearchFlow }        from '../flows/gymSearch.js';
-import { equipmentUsageFlow }   from '../flows/equipmentUsage.js';
-import { lockerRentFlow }       from '../flows/lockerRent.js';
+import { THRESHOLDS }               from '../config/thresholds.js';
+import { gymSearchFlowStress }      from '../flows/gymSearch.js';
+import { equipmentUsageFlowStress } from '../flows/equipmentUsage.js';
+import { equipmentQueueFlow }       from '../flows/equipmentQueue.js';
 
 export const options = {
   scenarios: {
-    soak: {
+    // 1. 단순 검색 흐름
+    soak_search: {
       executor: 'constant-vus',
-      vus: 30,
+      vus: 15,
       duration: '30m',
-      exec: 'runSoak',
+      exec: 'runSearch',
+      gracefulStop: '30s',
+    },
+    // 2. 기구 사용 흐름
+    soak_usage: {
+      executor: 'constant-vus',
+      vus: 10,
+      duration: '30m',
+      exec: 'runUsageFlow',
+      gracefulStop: '30s',
+    },
+    // 3. 대기열 흐름
+    soak_queue: {
+      executor: 'constant-vus',
+      vus: 5,
+      duration: '30m',
+      exec: 'runQueueFlow',
+      gracefulStop: '60s',
     },
   },
   thresholds: {
@@ -20,10 +37,6 @@ export const options = {
   },
 };
 
-export function runSoak() {
-  const r = Math.random();
-  if      (r < 0.3)  memberLoginFlow();
-  else if (r < 0.6)  gymSearchFlow();
-  else if (r < 0.85) equipmentUsageFlow();
-  else               lockerRentFlow();
-}
+export function runSearch()    { gymSearchFlowStress(); }
+export function runUsageFlow() { equipmentUsageFlowStress(); }
+export function runQueueFlow() { equipmentQueueFlow(); }

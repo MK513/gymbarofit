@@ -8,7 +8,7 @@ import { MEMBER_USERS } from '../data/users.js';
  * POST /members/login → GET /members/history
  */
 export function memberLoginFlow() {
-  const user = MEMBER_USERS[Math.floor(Math.random() * MEMBER_USERS.length)];
+  const user = userPool[(__VU - 1) % userPool.length]; MEMBER_USERS[Math.floor(Math.random() * MEMBER_USERS.length)];
   const session = memberLogin(user.email, user.password);
   if (!session) return;
 
