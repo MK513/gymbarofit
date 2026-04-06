@@ -31,6 +31,19 @@ export function memberLogin(email, password) {
 }
 
 /**
+ * 로그아웃. refreshToken으로 서버 측 토큰 무효화.
+ * k6는 HttpOnly 쿠키를 사용하지 않으므로 body로 전송.
+ */
+export function memberLogout(refreshToken) {
+  if (!refreshToken) return;
+  http.post(
+    `${BASE_URL}/auth/logout`,
+    JSON.stringify({ refreshToken }),
+    { headers: { 'Content-Type': 'application/json' }, tags: { endpoint: 'logout' } }
+  );
+}
+
+/**
  * 리프레시 토큰으로 액세스 토큰 재발급.
  * k6는 HttpOnly 쿠키를 사용하지 않으므로 body로 전송.
  */

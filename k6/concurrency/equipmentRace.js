@@ -26,7 +26,7 @@ import {
  *  - cleanup: end + checkout 응답 코드 검증
  */
 export function equipmentRaceFlow(sessions) {
-  const vuIndex  = __VU - 1;  // 0-based, 범위: 0..39
+  const vuIndex  = (__VU - 1) % sessions.length;  // 0-based, 범위: 0..39
   const targetId = RACE_EQUIPMENT_IDS[vuIndex < 20 ? 0 : 1];
   const session  = sessions[vuIndex];
   if (!session) return;

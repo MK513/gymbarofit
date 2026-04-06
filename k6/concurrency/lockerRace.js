@@ -25,7 +25,7 @@ import {
  *  - cleanup: DELETE 응답 코드 검증
  */
 export function lockerRaceFlow(sessions) {
-  const vuIndex  = __VU - 1;  // 0-based, 범위: 0..19
+  const vuIndex  = (__VU - 1) % sessions.length;  // 0-based, 범위: 0..19
   const lockerId = RACE_LOCKER_IDS[vuIndex < 10 ? 0 : 1];
   const session  = sessions[vuIndex];
   if (!session) return;
@@ -58,6 +58,8 @@ export function lockerRaceFlow(sessions) {
 
     const usageId = res.json('usageId');
 
+    console.info(`[WINNER-LOCKER] VU:${__VU} -> Target:${lockerId} (UsageID:${usageId})`);
+
     // 이중 진입 차단 검증: 이미 대여 중인 라커 재대여 시도 → 409여야 함
     const doubleRes = authedPost(
       '/lockers/usages',
@@ -75,6 +77,7 @@ export function lockerRaceFlow(sessions) {
     });
 
     // cleanup: 라커 반납 (환불)
+    // waitTime=0 덕분에 다른 VU들은 이미 즉시 실패 → cleanup 타이밍 경합 없음
     const deleteRes = authedDelete(`/lockers/usages/${usageId}`, session.accessToken);
     check(deleteRes, { 'locker cleanup ok': (r) => r.status === 200 || r.status === 204 });
 

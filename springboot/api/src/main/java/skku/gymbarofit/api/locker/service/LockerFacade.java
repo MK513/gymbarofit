@@ -25,7 +25,7 @@ public class LockerFacade {
     private final LockerService lockerService;
     private final MockPaymentService paymentService;
 
-    @DistributedLock(key = "'locker:' + #request.lockerId")
+    @DistributedLock(key = "'locker:' + #request.lockerId", waitTime = 0)
     public LockerRentResponseDto rent(Long memberId, LockerRentRequestDto request) {
         Long paymentId = lockerService.reserve(memberId, request);
 
