@@ -1,5 +1,6 @@
 .claude/
 .env
+docs/
 
 # K6
 k6/.env
