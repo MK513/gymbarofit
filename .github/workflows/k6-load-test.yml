@@ -68,7 +68,7 @@ jobs:
               exit 0
             fi
             echo "Waiting... ($i/40)"
-            sleep 2
+            sleep 1
           done
           echo "Backend failed to start"
           exit 1
@@ -160,7 +160,7 @@ jobs:
               exit 0
             fi
             echo "Waiting... ($i/40)"
-            sleep 2
+            sleep 1
           done
           echo "Backend failed to start"
           exit 1

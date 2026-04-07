@@ -25,4 +25,9 @@ public class EquipmentInternalService {
         return equipmentRepository.findById(equipmentId)
                 .orElseThrow(() -> new EquipmentException(EquipmentErrorCode.EQUIPMENT_NOT_FOUND, equipmentId, null));
     }
+
+    public Equipment findByIdForUpdate(Long equipmentId) {
+        return equipmentRepository.findByIdForUpdate(equipmentId)
+                .orElseThrow(() -> new EquipmentException(EquipmentErrorCode.EQUIPMENT_NOT_FOUND, equipmentId, null));
+    }
 }

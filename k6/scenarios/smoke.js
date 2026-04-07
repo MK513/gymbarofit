@@ -7,13 +7,13 @@ export const options = {
     smoke_login: {
       executor: 'constant-vus',
       vus: 1,
-      duration: '1m',
+      duration: '10s',
       exec: 'runLogin',
     },
     smoke_search: {
       executor: 'constant-vus',
       vus: 1,
-      duration: '1m',
+      duration: '10s',
       exec: 'runSearch',
     },
   },

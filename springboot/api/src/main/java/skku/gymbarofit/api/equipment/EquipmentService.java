@@ -111,12 +111,15 @@ public class EquipmentService {
     @NotifyEquipmentChange
     public Long createUsage(Long memberId, @EquipmentId Long equipmentId) {
 
+        // Equipment 행에 exclusive lock 먼저 획득 (SELECT FOR UPDATE)
+        // → Redis 락이 CI 환경에서 실패해도 DB 레벨에서 직렬화 보장
+        Equipment equipment = equipmentInternalService.findByIdForUpdate(equipmentId);
+
         if (equipmentUsageInternalService.existUsing(equipmentId)) {
             throw new EquipmentException(EquipmentErrorCode.STATUS_ALREADY_EXISTS, equipmentId, null);
         }
 
         Member member = memberInternalService.findById(memberId);
-        Equipment equipment = equipmentInternalService.findById(equipmentId);
         Gym gym = equipment.getGym();
 
         EquipmentUsage equipmentUsage = EquipmentUsage.createUse(member, gym, equipment, clock);
