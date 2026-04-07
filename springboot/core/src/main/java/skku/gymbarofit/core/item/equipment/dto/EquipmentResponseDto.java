@@ -1,0 +1,84 @@
+package skku.gymbarofit.core.item.equipment.dto;
+
+import lombok.Builder;
+import skku.gymbarofit.core.item.enums.ItemStatus;
+import skku.gymbarofit.core.item.equipment.Equipment;
+import skku.gymbarofit.core.usage.equipment.EquipmentUsage;
+import skku.gymbarofit.core.usage.equipment.enums.EquipmentUsageStatus;
+
+import java.util.List;
+import java.util.Map;
+import java.util.stream.Collectors;
+
+@Builder
+public record EquipmentResponseDto (
+        Long id,
+        String name,
+        Integer gridX,
+        Integer gridY,
+        Integer spanW,
+        Integer spanH,
+        String type,
+        String category,
+        String imageUrl,
+        Integer waitingCount,
+        ItemStatus itemStatus,
+        EquipmentUsageStatus usageStatus
+) {
+
+    public static EquipmentResponseDto from(Equipment equipment, List<EquipmentUsage> usages) {
+
+        Map<EquipmentUsageStatus, List<EquipmentUsage>> usageMap =
+                usages.stream().collect(Collectors.groupingBy(EquipmentUsage::getStatus));
+
+        int waitingCount = usageMap.getOrDefault(EquipmentUsageStatus.WAITING, List.of()).size();
+
+        EquipmentUsage inUse = usageMap.getOrDefault(EquipmentUsageStatus.IN_USE, List.of())
+                .stream().findFirst().orElse(null);
+
+        EquipmentUsage called = usageMap.getOrDefault(EquipmentUsageStatus.CALLED, List.of())
+                .stream().findFirst().orElse(null);
+
+        EquipmentUsageStatus usageStatus;
+        if (inUse != null) {
+            usageStatus = EquipmentUsageStatus.IN_USE;
+        } else if (called != null) {
+            usageStatus = EquipmentUsageStatus.CALLED;
+        } else if (waitingCount > 0) {
+            usageStatus = EquipmentUsageStatus.WAITING;
+        } else {
+            usageStatus = EquipmentUsageStatus.AVAILABLE;
+        }
+
+        return EquipmentResponseDto.builder()
+                .id(equipment.getId())
+                .name(equipment.getItemInfo().getName())
+                .gridX(equipment.getGridX())
+                .gridY(equipment.getGridY())
+                .spanW(equipment.getSpanW())
+                .spanH(equipment.getSpanH())
+                .type(equipment.getType())
+                .category(equipment.getCategory())
+                .imageUrl(equipment.getImageUrl())
+                .waitingCount(waitingCount)
+                .itemStatus(equipment.getItemInfo().getStatus())
+                .usageStatus(usageStatus)
+                .build();
+    }
+
+    // SSE 알림용 — spanW/spanH는 null (위치 정보 변경 없음)
+    public static EquipmentResponseDto from(Equipment equipment, int waitingCount, EquipmentUsageStatus status) {
+        return EquipmentResponseDto.builder()
+                .id(equipment.getId())
+                .name(equipment.getItemInfo().getName())
+                .gridX(equipment.getGridX())
+                .gridY(equipment.getGridY())
+                .type(equipment.getType())
+                .category(equipment.getCategory())
+                .imageUrl(equipment.getImageUrl())
+                .waitingCount(waitingCount)
+                .itemStatus(equipment.getItemInfo().getStatus())
+                .usageStatus(status)
+                .build();
+    }
+}

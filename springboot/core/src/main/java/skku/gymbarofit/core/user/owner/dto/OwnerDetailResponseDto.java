@@ -1,0 +1,20 @@
+package skku.gymbarofit.core.user.owner.dto;
+
+import lombok.AllArgsConstructor;
+import lombok.Getter;
+import lombok.ToString;
+import skku.gymbarofit.core.user.owner.Owner;
+
+@AllArgsConstructor
+@Getter
+@ToString
+public class OwnerDetailResponseDto {
+
+    private Long id;
+    private String email;
+    private String username;
+
+    public static OwnerDetailResponseDto of(Owner owner) {
+        return new OwnerDetailResponseDto(owner.getId(), owner.getEmail(), owner.getUsername());
+    }
+}

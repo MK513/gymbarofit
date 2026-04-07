@@ -179,5 +179,9 @@ hs_err_pid*
 replay_pid*
 
 .env
+data-dev.sql
+
+# Log files
+logs/
 
 # End of https://www.toptal.com/developers/gitignore/api/intellij,java

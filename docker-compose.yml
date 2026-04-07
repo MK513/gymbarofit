@@ -1,0 +1,77 @@
+services:
+
+  # ── PostgreSQL ────────────────────────────────────────────────────────────────
+  postgres:
+    image: postgres:16-alpine
+    container_name: gymbarofit-postgres
+    ports:
+      - "5432:5432"
+    environment:
+      POSTGRES_DB: gymbarofit
+      POSTGRES_USER: ${POSTGRES_USERNAME}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+    volumes:
+      - postgres-data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USERNAME} -d gymbarofit"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    restart: unless-stopped
+
+  # ── Redis ─────────────────────────────────────────────────────────────────────
+  redis:
+    image: redis:7-alpine
+    container_name: gymbarofit-redis
+    ports:
+      - "6379:6379"
+    volumes:
+      - redis-data:/data
+    restart: unless-stopped
+
+  # ── Spring Boot Backend ───────────────────────────────────────────────────────
+  backend:
+    build:
+      context: ./springboot
+      dockerfile: Dockerfile
+    container_name: gymbarofit-backend
+    ports:
+      - "8080:8080"
+    env_file:
+      - ./springboot/.env
+    environment:
+      SPRING_PROFILES_ACTIVE: docker
+      POSTGRES_URL: jdbc:postgresql://postgres:5432/gymbarofit
+      REDIS_HOST: redis
+      REDIS_PORT: 6379
+      LOG_PATH: /app/logs
+    volumes:
+      - ./springboot/images:/app/images
+      - ./springboot/logs:/app/logs
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_started
+    restart: unless-stopped
+
+  # ── React + Vite Frontend ─────────────────────────────────────────────────────
+  frontend:
+    build:
+      context: ./react-vite
+      dockerfile: Dockerfile
+    container_name: gymbarofit-frontend
+    ports:
+      - "5173:5173"
+    env_file:
+      - ./react-vite/.env
+    volumes:
+      - ./react-vite/src:/app/src
+      - ./react-vite/public:/app/public
+    depends_on:
+      - backend
+    restart: unless-stopped
+
+volumes:
+  postgres-data:
+  redis-data:
