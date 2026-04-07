@@ -1,4 +1,4 @@
-import { THRESHOLDS }               from '../config/thresholds.js';
+import { ACTIVE_SOAK_THRESHOLDS }   from '../config/thresholds.js';
 import { gymSearchFlowStress }      from '../flows/gymSearch.js';
 import { equipmentUsageFlowStress } from '../flows/equipmentUsage.js';
 import { equipmentQueueFlow }       from '../flows/equipmentQueue.js';
@@ -30,11 +30,7 @@ export const options = {
       gracefulStop: '60s',
     },
   },
-  thresholds: {
-    ...THRESHOLDS,
-    // 장시간 테스트: p99도 모니터링
-    http_req_duration: ['p(99)<2000', 'p(95)<500'],
-  },
+  thresholds: ACTIVE_SOAK_THRESHOLDS,
 };
 
 export function runSearch()    { gymSearchFlowStress(); }

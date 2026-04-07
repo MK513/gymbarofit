@@ -1,4 +1,4 @@
-import { THRESHOLDS }             from '../config/thresholds.js';
+import { ACTIVE_THRESHOLDS }      from '../config/thresholds.js';
 import { gymSearchFlowLoad }      from '../flows/gymSearch.js';
 import { equipmentUsageFlowLoad } from '../flows/equipmentUsage.js';
 import { lockerRentFlow }         from '../flows/lockerRent.js';
@@ -27,7 +27,7 @@ export const options = {
       exec: 'runLocker',
     },
   },
-  thresholds: THRESHOLDS,
+  thresholds: ACTIVE_THRESHOLDS,
 };
 
 export function runSearch()    { gymSearchFlowLoad(); }

@@ -1,4 +1,4 @@
-import { STRESS_THRESHOLDS }        from '../config/thresholds.js';
+import { ACTIVE_STRESS_THRESHOLDS } from '../config/thresholds.js';
 import { gymSearchFlowStress }      from '../flows/gymSearch.js';
 import { equipmentUsageFlowStress } from '../flows/equipmentUsage.js';
 import { equipmentQueueFlow }       from '../flows/equipmentQueue.js';
@@ -44,7 +44,7 @@ export const options = {
       gracefulStop: '60s',
     },
   },
-  thresholds: STRESS_THRESHOLDS,
+  thresholds: ACTIVE_STRESS_THRESHOLDS,
 };
 
 export function runSearch()    { gymSearchFlowStress(); }

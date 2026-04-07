@@ -1,11 +1,6 @@
-import {
-  prepareEquipmentRaceSessions,
-  equipmentRaceFlow,
-} from '../concurrency/equipmentRace.js';
-import {
-  prepareLockerRaceSessions,
-  lockerRaceFlow,
-} from '../concurrency/lockerRace.js';
+import { ACTIVE_CONCURRENCY_THRESHOLDS } from '../config/thresholds.js';
+import { prepareEquipmentRaceSessions, equipmentRaceFlow } from '../concurrency/equipmentRace.js';
+import { prepareLockerRaceSessions, lockerRaceFlow }       from '../concurrency/lockerRace.js';
 import { memberLogout } from '../utils/auth.js';
 
 // TODO: Phase2 수정 필요
@@ -32,14 +27,7 @@ export const options = {
       startTime:   '10s',
     },
   },
-  thresholds: {
-    http_req_failed:      ['rate<0.40'],   // 5xx 비율 5% 미만
-    equip_race_successes:  ['count<=2'],   // 타겟 2개 × 최대 1회 = 2
-    locker_race_successes: ['count<=2'],   // 타겟 2개 × 최대 1회 = 2
-    server_errors:        ['count<1'],     // 5xx 횟수 0
-    'http_req_duration{scenario:equipment_race}': ['p(95)<500'],
-    'http_req_duration{scenario:locker_race}':    ['p(95)<500'],
-  },
+  thresholds: ACTIVE_CONCURRENCY_THRESHOLDS,
 };
 
 // ── setup: 각 Phase에 필요한 세션 미리 준비 ─────────────────────────────────

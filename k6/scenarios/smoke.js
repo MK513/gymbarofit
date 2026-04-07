@@ -1,4 +1,4 @@
-import { THRESHOLDS } from '../config/thresholds.js';
+import { ACTIVE_THRESHOLDS } from '../config/thresholds.js';
 import { memberLoginFlow } from '../flows/memberLogin.js';
 import { gymSearchFlow }   from '../flows/gymSearch.js';
 
@@ -17,7 +17,7 @@ export const options = {
       exec: 'runSearch',
     },
   },
-  thresholds: THRESHOLDS,
+  thresholds: ACTIVE_THRESHOLDS,
 };
 
 export function runLogin()  { memberLoginFlow(); }
