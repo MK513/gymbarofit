@@ -37,6 +37,10 @@ jobs:
           distribution: 'temurin'
           cache: gradle
 
+      - name: Grant gradlew permission
+        working-directory: springboot
+        run: chmod +x gradlew
+
       - name: Build Spring Boot (skip tests)
         working-directory: springboot
         run: ./gradlew :api:bootJar -x test
@@ -66,23 +70,18 @@ jobs:
           exit 1
 
       - name: Install k6
-        run: |
-          sudo gpg -k
-          sudo gpg --no-default-keyring \
-            --keyring /usr/share/keyrings/k6-archive-keyring.gpg \
-            --keyserver hkp://keyserver.ubuntu.com:80 \
-            --recv-keys C5AD17C747E3415A3642D57D77C6C491D6AC1D69
-          echo "deb [signed-by=/usr/share/keyrings/k6-archive-keyring.gpg] \
-            https://dl.k6.io/deb stable main" | sudo tee /etc/apt/sources.list.d/k6.list
-          sudo apt-get update && sudo apt-get install -y k6
+        uses: grafana/setup-k6-action@v1
 
       - name: Run smoke test
+        env:
+          BASE_URL: http://localhost:8080
+          TEST_PASSWORD: ${{ secrets.K6_TEST_PASSWORD }}
         run: |
           mkdir -p k6/results
           k6 run \
             --env CI=true \
-            --env BASE_URL=http://localhost:8080 \
-            --env TEST_PASSWORD=${{ secrets.K6_TEST_PASSWORD }} \
+            --env BASE_URL=$BASE_URL \
+            --env TEST_PASSWORD=$TEST_PASSWORD \
             --out json=k6/results/smoke.json \
             k6/scenarios/smoke.js
 
@@ -130,6 +129,10 @@ jobs:
           distribution: 'temurin'
           cache: gradle
 
+      - name: Grant gradlew permission
+        working-directory: springboot
+        run: chmod +x gradlew
+
       - name: Build Spring Boot (skip tests)
         working-directory: springboot
         run: ./gradlew :api:bootJar -x test
@@ -159,23 +162,18 @@ jobs:
           exit 1
 
       - name: Install k6
-        run: |
-          sudo gpg -k
-          sudo gpg --no-default-keyring \
-            --keyring /usr/share/keyrings/k6-archive-keyring.gpg \
-            --keyserver hkp://keyserver.ubuntu.com:80 \
-            --recv-keys C5AD17C747E3415A3642D57D77C6C491D6AC1D69
-          echo "deb [signed-by=/usr/share/keyrings/k6-archive-keyring.gpg] \
-            https://dl.k6.io/deb stable main" | sudo tee /etc/apt/sources.list.d/k6.list
-          sudo apt-get update && sudo apt-get install -y k6
+        uses: grafana/setup-k6-action@v1
 
       - name: Run concurrency test
+        env:
+          BASE_URL: http://localhost:8080
+          TEST_PASSWORD: ${{ secrets.K6_TEST_PASSWORD }}
         run: |
           mkdir -p k6/results
           k6 run \
             --env CI=true \
-            --env BASE_URL=http://localhost:8080 \
-            --env TEST_PASSWORD=${{ secrets.K6_TEST_PASSWORD }} \
+            --env BASE_URL=$BASE_URL \
+            --env TEST_PASSWORD=$TEST_PASSWORD \
             --out json=k6/results/concurrency.json \
             k6/scenarios/concurrency.js
 
@@ -184,7 +182,6 @@ jobs:
         run: |
           echo "=== Concurrency Test Summary ==="
           if [ -f k6/results/concurrency.json ]; then
-            # server_errors 카운터 추출 (0이어야 함)
             SERVER_ERRORS=$(grep -o '"server_errors":{[^}]*"value":[0-9]*' k6/results/concurrency.json \
               | grep -o '"value":[0-9]*' | grep -o '[0-9]*' | tail -1 || echo "N/A")
             echo "Server errors (5xx): ${SERVER_ERRORS}"
