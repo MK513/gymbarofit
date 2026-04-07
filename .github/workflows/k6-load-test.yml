@@ -2,9 +2,9 @@ name: K6 Performance Tests
 
 on:
   push:
-    branches: [main]
+    branches: [main, dev]
   pull_request:
-    branches: [main]
+    branches: [main, dev]
   workflow_dispatch:
 
 jobs:
@@ -58,7 +58,7 @@ jobs:
 
       - name: Wait for backend health
         run: |
-          for i in $(seq 1 40); do
+          for i in $(seq 1 90); do
             if curl -sf http://localhost:8080/actuator/health > /dev/null 2>&1; then
               echo "Backend is up (${i}x2s elapsed)"
               exit 0
@@ -105,7 +105,7 @@ jobs:
   concurrency:
     name: Concurrency Test
     runs-on: ubuntu-latest
-    if: github.ref == 'refs/heads/main' || github.event_name == 'workflow_dispatch'
+    if: github.ref == 'refs/heads/main' || github.ref == 'refs/heads/dev' || github.event_name == 'workflow_dispatch'
 
     services:
       redis:
@@ -150,7 +150,7 @@ jobs:
 
       - name: Wait for backend health
         run: |
-          for i in $(seq 1 40); do
+          for i in $(seq 1 90); do
             if curl -sf http://localhost:8080/actuator/health > /dev/null 2>&1; then
               echo "Backend is up (${i}x2s elapsed)"
               exit 0

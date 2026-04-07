@@ -43,3 +43,4 @@ function gymSearchInternal(userPool) {
 
 export function gymSearchFlowStress() { gymSearchInternal(STRESS_SEARCH_USERS); }
 export function gymSearchFlowLoad()   { gymSearchInternal(LOAD_SEARCH_USERS); }
+export function gymSearchFlow()       { gymSearchInternal(LOAD_SEARCH_USERS); }
