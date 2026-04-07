@@ -21,6 +21,8 @@ public interface LockerUsageRepository extends JpaRepository<LockerUsage, Long> 
 
     Boolean existsByLocker_Id(Long lockerId);
 
+    boolean existsByLocker_IdAndStatusIn(Long lockerId, Collection<LockerUsageStatus> statuses);
+
     @Query("""
         select u
         from LockerUsage u

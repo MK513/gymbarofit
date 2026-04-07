@@ -27,11 +27,10 @@ public class AccessLogInternalService {
 
     public AccessLog checkIn(Member member, Gym gym) {
         boolean alreadyCheckedIn = accessLogRepository
-                .findTopByMemberIdAndGymIdAndCheckedOutAtIsNullOrderByOccurredAtDesc(
-                        member.getId(), gym.getId())
+                .findForUpdate(member.getId(), gym.getId())
                 .isPresent();
         if (alreadyCheckedIn) {
-            throw new AccessException(AccessErrorCode.ALREADY_CHECKED_IN);
+            throw new AccessException(AccessErrorCode.ALREADY_CHECKED_IN, member.getId());
         }
         gym.checkIn();
         AccessLog accessLog = AccessLog.create(member, gym);
@@ -40,8 +39,8 @@ public class AccessLogInternalService {
 
     public AccessLog checkOut(Long memberId, Long gymId, Gym gym) {
         AccessLog accessLog = accessLogRepository
-                .findTopByMemberIdAndGymIdAndCheckedOutAtIsNullOrderByOccurredAtDesc(memberId, gymId)
-                .orElseThrow(() -> new AccessException(AccessErrorCode.NOT_CHECKED_IN));
+                .findForUpdate(memberId, gymId)
+                .orElseThrow(() -> new AccessException(AccessErrorCode.NOT_CHECKED_IN, memberId));
         accessLog.checkOut();
         gym.checkOut();
         return accessLog;
@@ -49,8 +48,7 @@ public class AccessLogInternalService {
 
     @Transactional(readOnly = true)
     public AccessStatusDto getAccessStatus(Long memberId, Long gymId) {
-        Optional<AccessLog> openLog = accessLogRepository
-                .findTopByMemberIdAndGymIdAndCheckedOutAtIsNullOrderByOccurredAtDesc(memberId, gymId);
+        Optional<AccessLog> accessLog = accessLogRepository.find(memberId, gymId);
 
         LocalDateTime todayStart = LocalDate.now().atStartOfDay();
         LocalDateTime todayEnd = LocalDate.now().atTime(LocalTime.MAX);
@@ -59,8 +57,8 @@ public class AccessLogInternalService {
 
         int streak = calculateStreak(memberId, gymId);
 
-        if (openLog.isPresent()) {
-            return AccessStatusDto.checkedIn(openLog.get().getOccurredAt(), streak);
+        if (accessLog.isPresent()) {
+            return AccessStatusDto.checkedIn(accessLog.get().getOccurredAt(), streak);
         }
         return AccessStatusDto.notCheckedIn(checkedToday, streak);
     }

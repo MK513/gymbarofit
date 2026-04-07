@@ -97,6 +97,14 @@ public class LockerService {
         Locker locker = lockerInternalService.findById(request.lockerId());
         Gym gym = gymInternalService.findById(request.gymId());
 
+        if (locker.getItemInfo().getStatus() != ItemStatus.OK) {
+            throw new LockerException(LockerErrorCode.LOCKER_NOT_FOUND);
+        }
+
+        if (lockerUsageInternalService.existsActiveOrPendingByLockerId(request.lockerId())) {
+            throw new LockerException(LockerErrorCode.LOCKER_ALREADY_USED);
+        }
+
         LockerUsage usage = lockerUsageInternalService.save(LockerUsage.from(member, locker, gym, request));
         Payment payment = paymentService.pend(Payment.from(member, request, usage));
 

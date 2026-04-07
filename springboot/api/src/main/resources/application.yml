@@ -3,6 +3,28 @@ logging:
     org.springframework.web.context.request.async: WARN
     org.apache.catalina.core.AsyncContextImpl: WARN
 
+    org.hibernate.SQL: INFO
+    org.hibernate.orm.jdbc.bind: INFO
+
+    org.hibernate.engine.transaction.internal: INFO
+    org.springframework.transaction: INFO
+
+    org.hibernate.engine.jdbc.spi.SqlExceptionHelper: WARN
+
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health, info, metrics, prometheus
+  endpoint:
+    health:
+      show-details: always
+    prometheus:
+      enabled: true
+  metrics:
+    tags:
+      application: gymbarofit
+
 spring:
   profiles:
     active: dev

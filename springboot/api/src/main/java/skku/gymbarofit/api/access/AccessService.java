@@ -3,6 +3,7 @@ package skku.gymbarofit.api.access;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import skku.gymbarofit.api.global.lock.DistributedLock;
 import skku.gymbarofit.core.gym.Gym;
 import skku.gymbarofit.core.gym.service.GymInternalService;
 import skku.gymbarofit.core.log.dto.AccessStatusDto;
@@ -23,6 +24,7 @@ public class AccessService {
     private final MemberInternalService memberInternalService;
     private final GymInternalService gymInternalService;
 
+    @DistributedLock(key = "'gym:' + #gymId")
     public AccessStatusDto checkIn(Long memberId, Long gymId) {
         validateMembership(memberId, gymId);
         Member member = memberInternalService.findById(memberId);
@@ -31,9 +33,15 @@ public class AccessService {
         return accessLogInternalService.getAccessStatus(memberId, gymId);
     }
 
+    @DistributedLock(key = "'gym:' + #gymId")
     public AccessStatusDto checkOut(Long memberId, Long gymId) {
         Gym gym = gymInternalService.findById(gymId);
         accessLogInternalService.checkOut(memberId, gymId, gym);
+        return accessLogInternalService.getAccessStatus(memberId, gymId);
+    }
+
+    @Transactional(readOnly = true)
+    public AccessStatusDto getStatus(Long memberId, Long gymId) {
         return accessLogInternalService.getAccessStatus(memberId, gymId);
     }
 

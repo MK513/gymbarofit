@@ -1,8 +1,10 @@
 package skku.gymbarofit.core.gym.repository;
 
+import jakarta.persistence.LockModeType;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.Lock;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 import skku.gymbarofit.core.gym.Gym;
@@ -12,6 +14,10 @@ import java.util.List;
 import java.util.Optional;
 
 public interface GymRepository extends JpaRepository<Gym, Long> {
+
+    @Lock(LockModeType.PESSIMISTIC_WRITE)
+    @Query("SELECT g FROM Gym g WHERE g.id = :id")
+    Optional<Gym> findByIdForUpdate(@Param("id") Long id);
 
     @Query("""
         select g
