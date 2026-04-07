@@ -53,6 +53,8 @@ import java.util.stream.Collectors;
 @RequiredArgsConstructor
 public class GymService {
 
+    //TODO 코드 수정 필요
+
     private final GymInternalService gymInternalService;
     private final MembershipInternalService membershipInternalService;
     private final MemberInternalService memberInternalService;

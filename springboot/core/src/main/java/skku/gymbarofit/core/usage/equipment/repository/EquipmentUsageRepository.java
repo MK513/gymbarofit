@@ -60,7 +60,7 @@ public interface EquipmentUsageRepository extends JpaRepository<EquipmentUsage, 
         from EquipmentUsage u
         where u.id = :usageId
     """)
-    Optional<EquipmentUsage> findForUpdate(@Param("usageId") Long usageId);
+    Optional<EquipmentUsage> findByIdForUpdate(@Param("usageId") Long usageId);
 
     @Lock(LockModeType.PESSIMISTIC_WRITE)
     @Query("""

@@ -1,16 +1,32 @@
 services:
 
-  # ── H2 TCP Server ────────────────────────────────────────────────────────────
-  h2-server:
-    image: oscarfonts/h2:latest
-    container_name: gymbarofit-h2
+  # ── PostgreSQL ────────────────────────────────────────────────────────────────
+  postgres:
+    image: postgres:16-alpine
+    container_name: gymbarofit-postgres
     ports:
-      - "9092:9092"   # H2 TCP server
-      - "8090:8090"   # H2 web console
+      - "5432:5432"
     environment:
-      H2_OPTIONS: -tcp -tcpAllowOthers -tcpPort 9092 -web -webAllowOthers -webPort 8090 -ifNotExists
+      POSTGRES_DB: gymbarofit
+      POSTGRES_USER: ${POSTGRES_USERNAME}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
     volumes:
-      - h2-data:/opt/h2-data
+      - postgres-data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USERNAME} -d gymbarofit"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    restart: unless-stopped
+
+  # ── Redis ─────────────────────────────────────────────────────────────────────
+  redis:
+    image: redis:7-alpine
+    container_name: gymbarofit-redis
+    ports:
+      - "6379:6379"
+    volumes:
+      - redis-data:/data
     restart: unless-stopped
 
   # ── Spring Boot Backend ───────────────────────────────────────────────────────
@@ -25,11 +41,17 @@ services:
       - ./springboot/.env
     environment:
       SPRING_PROFILES_ACTIVE: docker
-      H2_DB_URL: jdbc:h2:tcp://h2-server:9092//opt/h2-data/gymbarofit
+      POSTGRES_URL: jdbc:postgresql://postgres:5432/gymbarofit
+      REDIS_HOST: redis
+      REDIS_PORT: 6379
+      LOG_PATH: /app/logs
     volumes:
       - ./springboot/images:/app/images
+      - ./springboot/logs:/app/logs
     depends_on:
-      h2-server:
+      postgres:
+        condition: service_healthy
+      redis:
         condition: service_started
     restart: unless-stopped
 
@@ -51,4 +73,5 @@ services:
     restart: unless-stopped
 
 volumes:
-  h2-data:
+  postgres-data:
+  redis-data:

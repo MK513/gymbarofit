@@ -1,6 +1,8 @@
 package skku.gymbarofit.core.log.repository;
 
+import jakarta.persistence.LockModeType;
 import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.Lock;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 import skku.gymbarofit.core.log.AccessLog;
@@ -25,9 +27,14 @@ public interface AccessLogRepository extends JpaRepository<AccessLog, Long> {
             """, nativeQuery = true)
     List<Object[]> countByGymGroupByHour(@Param("gymId") Long gymId);
 
-    /** 현재 체크아웃하지 않은 가장 최근 체크인 로그 조회 */
-    Optional<AccessLog> findTopByMemberIdAndGymIdAndCheckedOutAtIsNullOrderByOccurredAtDesc(
-            Long memberId, Long gymId);
+    /** 현재 체크아웃하지 않은 가장 최근 체크인 로그 조회 (write path — SELECT FOR UPDATE) */
+    @Lock(LockModeType.PESSIMISTIC_WRITE)
+    @Query("SELECT a FROM AccessLog a WHERE a.member.id = :memberId AND a.gym.id = :gymId AND a.checkedOutAt IS NULL ORDER BY a.occurredAt DESC LIMIT 1")
+    Optional<AccessLog> findForUpdate(@Param("memberId") Long memberId, @Param("gymId") Long gymId);
+
+    /** 현재 체크아웃하지 않은 가장 최근 체크인 로그 조회 (read path) */
+    @Query("SELECT a FROM AccessLog a WHERE a.member.id = :memberId AND a.gym.id = :gymId AND a.checkedOutAt IS NULL ORDER BY a.occurredAt DESC LIMIT 1")
+    Optional<AccessLog> find(@Param("memberId") Long memberId, @Param("gymId") Long gymId);
 
     /** 특정 시간 범위 내 체크인 여부 */
     boolean existsByMemberIdAndGymIdAndOccurredAtBetween(

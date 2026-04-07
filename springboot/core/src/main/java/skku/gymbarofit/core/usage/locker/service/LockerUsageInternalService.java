@@ -34,6 +34,13 @@ public class LockerUsageInternalService {
         return lockerUsageRepository.existsByLocker_Id(lockerId);
     }
 
+    @Transactional(readOnly = true)
+    public boolean existsActiveOrPendingByLockerId(Long lockerId) {
+        return lockerUsageRepository.existsByLocker_IdAndStatusIn(
+                lockerId, List.of(LockerUsageStatus.PENDING, LockerUsageStatus.ACTIVE)
+        );
+    }
+
     public LockerUsage save(LockerUsage lockerUsage) {
         return lockerUsageRepository.saveAndFlush(lockerUsage);
     }

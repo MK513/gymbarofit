@@ -32,7 +32,7 @@ public class NotificationAspect {
 
         if (equipmentId == null) return;
 
-        log.info("sendNotification updated equipmentId: {}", equipmentId);
+        //log.info("sendNotification updated equipmentId: {}", equipmentId);
         applicationEventPublisher.publishEvent(new EquipmentChangedEvent(equipmentId));
     }
 
