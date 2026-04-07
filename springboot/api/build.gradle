@@ -62,3 +62,8 @@ dependencies {
 tasks.named('test') {
     useJUnitPlatform()
 }
+
+// plain JAR 비활성화: bootJar만 생성하여 CI glob 모호성 방지
+jar {
+    enabled = false
+}
