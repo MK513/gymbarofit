@@ -45,6 +45,14 @@ dependencies {
 
     // Database
     runtimeOnly 'com.h2database:h2'
+    runtimeOnly 'org.postgresql:postgresql'
+
+    // Redis (Redisson)
+    implementation 'org.redisson:redisson-spring-boot-starter:3.27.2'
+
+    // Actuator + Prometheus
+    implementation 'org.springframework.boot:spring-boot-starter-actuator'
+    runtimeOnly 'io.micrometer:micrometer-registry-prometheus'
 
     // Test
     testImplementation 'org.springframework.boot:spring-boot-starter-test'

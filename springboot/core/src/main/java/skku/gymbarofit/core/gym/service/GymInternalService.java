@@ -29,4 +29,9 @@ public class GymInternalService {
         return gymRepository.findById(id)
                 .orElseThrow(() -> new GymException(GymErrorCode.GYM_NOT_FOUND));
     }
+
+    public Gym findByIdForUpdate(Long id) {
+        return gymRepository.findByIdForUpdate(id)
+                .orElseThrow(() -> new GymException(GymErrorCode.GYM_NOT_FOUND));
+    }
 }

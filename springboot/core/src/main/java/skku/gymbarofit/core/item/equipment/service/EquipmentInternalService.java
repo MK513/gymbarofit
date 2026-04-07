@@ -23,6 +23,6 @@ public class EquipmentInternalService {
 
     public Equipment findById(Long equipmentId) {
         return equipmentRepository.findById(equipmentId)
-                .orElseThrow(() -> new EquipmentException(EquipmentErrorCode.EQUIPMENT_NOT_FOUND));
+                .orElseThrow(() -> new EquipmentException(EquipmentErrorCode.EQUIPMENT_NOT_FOUND, equipmentId, null));
     }
 }

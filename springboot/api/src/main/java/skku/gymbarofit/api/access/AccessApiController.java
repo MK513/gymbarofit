@@ -14,6 +14,14 @@ public class AccessApiController {
 
     private final AccessService accessService;
 
+    @GetMapping("/{gymId}/checkin/status")
+    public ResponseEntity<AccessStatusDto> getStatus(
+            @CurrentUserId Long memberId,
+            @PathVariable Long gymId
+    ) {
+        return ResponseEntity.ok(accessService.getStatus(memberId, gymId));
+    }
+
     @PostMapping("/{gymId}/checkin")
     public ResponseEntity<AccessStatusDto> checkIn(
             @CurrentUserId Long memberId,

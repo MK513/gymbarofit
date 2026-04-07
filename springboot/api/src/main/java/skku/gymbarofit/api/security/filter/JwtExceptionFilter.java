@@ -35,7 +35,6 @@ public class JwtExceptionFilter extends OncePerRequestFilter {
         response.setStatus(status.value());
         response.setContentType("application/json;charset=UTF-8");
 
-        // GlobalExceptionHandler의 응답 포맷과 맞춰주는 것이 좋음
         Map<String, Object> body = new HashMap<>();
         body.put("status", status.value());
         body.put("error", status.name());
