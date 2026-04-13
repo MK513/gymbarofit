@@ -1,0 +1,29 @@
+[project]
+name = "gymbarofit-gemma2"
+version = "0.1.0"
+description = "Gemma 2 9B fitness personal trainer — SFT on exercise tracking data"
+requires-python = ">=3.10"
+dependencies = [
+    "unsloth[colab-new]",
+    "trl>=0.11.0",
+    "peft>=0.13.0",
+    "transformers>=4.45.0",
+    "datasets>=3.0.0",
+    "bitsandbytes>=0.44.0",
+    "pyyaml>=6.0",
+    "wandb>=0.18.0",
+]
+
+[tool.uv.sources]
+unsloth = { git = "https://github.com/unslothai/unsloth.git" }
+
+[tool.uv]
+# Colab T4 기준 CUDA 12.x 환경
+index-url = "https://pypi.org/simple"
+extra-index-url = [
+    "https://download.pytorch.org/whl/cu121",
+]
+
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"

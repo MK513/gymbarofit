@@ -1,0 +1,50 @@
+model:
+  name: "unsloth/gemma-2-9b-it-bnb-4bit"
+  max_seq_length: 2048
+  load_in_4bit: true
+
+lora:
+  r: 16
+  alpha: 16
+  dropout: 0.05
+  target_modules:
+    - "q_proj"
+    - "k_proj"
+    - "v_proj"
+    - "o_proj"
+    - "gate_proj"
+    - "up_proj"
+    - "down_proj"
+  use_rslora: false
+
+data:
+  train_path: "data/train.jsonl"
+  val_path: "data/val.jsonl"
+  dataset_config_path: "data/dataset_config.json"
+
+training:
+  output_dir: "models/gemma2-fitness-lora"
+  batch_size: 2
+  gradient_accumulation_steps: 4
+  num_epochs: 3
+  learning_rate: 2.0e-4
+  lr_scheduler_type: "cosine"
+  warmup_ratio: 0.03
+  optimizer: "adamw_8bit"
+  weight_decay: 0.01
+  fp16: true
+  bf16: false
+  gradient_checkpointing: true
+  log_interval: 10
+  eval_interval: 50
+  save_interval: 50
+  save_total_limit: 2
+
+wandb:
+  team: "finemini2001-sungkyunkwan-university"
+  project: "gymbarofit-gemma2"
+  run_name: "gemma2-fitness-lora"
+  report_to: "wandb"
+
+device: "cuda"
+seed: 42
