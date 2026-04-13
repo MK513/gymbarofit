@@ -4,6 +4,9 @@
 # 모델 가중치
 *.safetensors
 tokenizer.json
+models/
+checkpoint-*/
+*.bin
 
 # 환경 변수 (API 키)
 .env
@@ -18,3 +21,5 @@ __pycache__/
 
 # WandB 런 로그
 wandb/
+
+
