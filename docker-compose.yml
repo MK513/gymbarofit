@@ -40,7 +40,7 @@ services:
     env_file:
       - ./springboot/.env
     environment:
-      SPRING_PROFILES_ACTIVE: docker
+      SPRING_PROFILES_ACTIVE: docker,init
       POSTGRES_URL: jdbc:postgresql://postgres:5432/gymbarofit
       REDIS_HOST: redis
       REDIS_PORT: 6379
