@@ -1,4 +1,12 @@
 package skku.gymbarofit.api.equipment.notification.events;
 
-public record EquipmentChangedEvent (Long equipmentId) {
+import lombok.AllArgsConstructor;
+import lombok.Getter;
+import lombok.NoArgsConstructor;
+
+@Getter
+@NoArgsConstructor
+@AllArgsConstructor
+public class EquipmentChangedEvent {
+    private Long equipmentId;
 }

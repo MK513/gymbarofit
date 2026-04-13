@@ -1,0 +1,116 @@
+# ── 분산 환경: 백엔드 3 replica + Nginx 로드밸런서 ──────────────────────────────
+#
+# 사용법:
+#   docker compose -f docker-compose.lb.yml up --build
+#
+# replica 수 조정:
+#   docker compose -f docker-compose.lb.yml up --scale backend=5
+#
+# 로드밸런싱 확인:
+#   docker compose -f docker-compose.lb.yml logs nginx | grep upstream=
+
+services:
+
+  # ── PostgreSQL ──────────────────────────────────────────────────────────────
+  postgres:
+    image: postgres:16-alpine
+    container_name: gymbarofit-lb-postgres
+    ports:
+      - "5432:5432"
+    environment:
+      POSTGRES_DB: gymbarofit
+      POSTGRES_USER: ${POSTGRES_USERNAME}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+    volumes:
+      - postgres-data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USERNAME} -d gymbarofit"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    restart: unless-stopped
+
+  # ── Redis ───────────────────────────────────────────────────────────────────
+  redis:
+    image: redis:7-alpine
+    container_name: gymbarofit-lb-redis
+    ports:
+      - "6379:6379"
+    volumes:
+      - redis-data:/data
+    restart: unless-stopped
+
+  # ── Spring Boot Backend (3 replicas) ────────────────────────────────────────
+  # - container_name 없음: scale 시 Compose가 자동 명명 (gymbarofit-backend-1/2/3)
+  # - 호스트 포트 매핑 없음: nginx가 유일한 외부 진입점
+  # - SSE는 Redis Pub/Sub(RedisNotificationSubscriber)으로 분산 처리 → sticky 불필요
+  backend:
+    build:
+      context: ./springboot
+      dockerfile: Dockerfile
+    env_file:
+      - ./springboot/.env
+    environment:
+      SPRING_PROFILES_ACTIVE: docker
+      POSTGRES_URL: jdbc:postgresql://postgres:5432/gymbarofit
+      REDIS_HOST: redis
+      REDIS_PORT: 6379
+      LOG_PATH: /app/logs
+    volumes:
+      - ./springboot/images:/app/images
+      - backend-logs:/app/logs
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_started
+    healthcheck:
+      test: ["CMD-SHELL", "curl -sf http://localhost:8080/actuator/health || exit 1"]
+      interval: 15s
+      timeout: 5s
+      retries: 5
+      start_period: 60s  # JVM 기동 + Hibernate DDL 대기
+    deploy:
+      replicas: 3
+      restart_policy:
+        condition: on-failure
+        delay: 5s
+        max_attempts: 3
+
+  # ── Nginx 로드밸런서 ─────────────────────────────────────────────────────────
+  # 외부 8080 → 내부 80 → backend_pool (least_conn)
+  # /sse 경로: proxy_buffering off, timeout 1800s (SseEmitter 30분과 동일)
+  nginx:
+    build:
+      context: ./nginx
+      dockerfile: Dockerfile
+    container_name: gymbarofit-lb-nginx
+    ports:
+      - "8080:80"
+    depends_on:
+      backend:
+        condition: service_healthy
+    restart: unless-stopped
+
+  # ── React + Vite Frontend ───────────────────────────────────────────────────
+  # VITE_API_BASE_URL=http://localhost:8080 → nginx 포트와 일치, 변경 불필요
+  frontend:
+    build:
+      context: ./react-vite
+      dockerfile: Dockerfile
+    container_name: gymbarofit-lb-frontend
+    ports:
+      - "5173:5173"
+    env_file:
+      - ./react-vite/.env
+    volumes:
+      - ./react-vite/src:/app/src
+      - ./react-vite/public:/app/public
+    depends_on:
+      - nginx
+    restart: unless-stopped
+
+volumes:
+  postgres-data:
+  redis-data:
+  backend-logs:

@@ -1,16 +1,9 @@
 spring:
   jpa:
     hibernate:
-      ddl-auto: create
+      ddl-auto: validate
     defer-datasource-initialization: true
     database-platform: org.hibernate.dialect.PostgreSQLDialect
-  sql:
-    init:
-      mode: always
-      data-locations:
-        - classpath:data-dev.sql
-        - classpath:data-dev-sample.sql
-        - classpath:data-k6-seed.sql
   datasource:
     url: ${POSTGRES_URL}
     username: ${POSTGRES_USERNAME}

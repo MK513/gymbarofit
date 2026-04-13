@@ -3,6 +3,8 @@ package skku.gymbarofit.api.notification.sse;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Component;
 import skku.gymbarofit.api.notification.NotificationSender;
+import skku.gymbarofit.api.notification.pubsub.NotificationMessage;
+import skku.gymbarofit.api.notification.pubsub.RedisNotificationPublisher;
 import skku.gymbarofit.core.item.equipment.Equipment;
 import skku.gymbarofit.core.item.equipment.dto.EquipmentResponseDto;
 import skku.gymbarofit.core.item.equipment.service.EquipmentInternalService;
@@ -15,7 +17,7 @@ import java.util.Map;
 @RequiredArgsConstructor
 public class SseNotificationSender implements NotificationSender {
 
-    private final SseService sseService;
+    private final RedisNotificationPublisher publisher;
     private final EquipmentUsageInternalService equipmentUsageInternalService;
     private final EquipmentInternalService equipmentInternalService;
 
@@ -28,7 +30,7 @@ public class SseNotificationSender implements NotificationSender {
                 "body", "대기하던 기구에 자리가 났어요. 지금 예약하세요.",
                 "expiresInSec", 60
         );
-        sseService.send(userId, "notification", payload);
+        publisher.publish(NotificationMessage.forUser(userId, "notification", payload));
     }
 
     @Override
@@ -47,7 +49,7 @@ public class SseNotificationSender implements NotificationSender {
                 "body", body,
                 "expiresInSec", 60
         );
-        sseService.broadcast("equipment-update", payload);
+        publisher.publish(NotificationMessage.broadcast("equipment-update", payload));
     }
 
 }
