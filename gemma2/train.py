@@ -1,5 +1,5 @@
 """
-Gemma 2 9B SFT 학습 스크립트 (Unsloth + TRL)
+Gemma 4 E2B SFT 학습 스크립트 (Unsloth + TRL)
 대상: Google Colab T4 GPU
 
 실행 방법:
@@ -10,9 +10,9 @@ Gemma 2 9B SFT 학습 스크립트 (Unsloth + TRL)
 """
 
 import json
+import os
 from pathlib import Path
 
-import wandb
 import yaml
 
 # ── 설정 로드 ──────────────────────────────────────────────────────────────────
@@ -66,8 +66,8 @@ METRIC_FOR_BEST_MODEL         = "eval_loss"
 
 WANDB_REPORT_TO = _wandb["report_to"]
 WANDB_TEAM      = _wandb.get("team", "")
-WANDB_PROJECT   = _wandb.get("project", "gymbarofit-gemma2")
-WANDB_RUN_NAME  = _wandb.get("run_name", "gemma2-fitness-lora")
+WANDB_PROJECT   = _wandb.get("project", "gymbarofit-gemma4-E2B")
+WANDB_RUN_NAME  = _wandb.get("run_name", "gemma4-E2B-fitness-lora")
 
 # ── 외부 라이브러리 ────────────────────────────────────────────────────────────
 try:
@@ -128,7 +128,7 @@ def load_jsonl(path: str) -> list:
 
 
 def build_prompt(instruction: str, input_text: str, output_text: str = "") -> str:
-    """Gemma 2 공식 chat template 형식으로 변환."""
+    """Gemma 4 공식 chat template 형식으로 변환."""
     user_message = f"{instruction}\n\n{input_text}"
     prompt = (
         f"<start_of_turn>user\n{user_message}<end_of_turn>\n"
@@ -231,22 +231,19 @@ def save(model, tokenizer, trainer):
 # ── 메인 ──────────────────────────────────────────────────────────────────────
 
 def main():
+    # WandB: Trainer의 WandbCallback이 init/log/finish를 자동 처리
+    # 수동 wandb.init()을 쓰면 eval 메트릭이 누락되므로 env var로만 전달
+    if WANDB_REPORT_TO == "wandb":
+        os.environ["WANDB_PROJECT"] = WANDB_PROJECT
+        os.environ["WANDB_NAME"]    = WANDB_RUN_NAME
+        if WANDB_TEAM:
+            os.environ["WANDB_ENTITY"] = WANDB_TEAM
+
     instruction = load_instruction(DATASET_CONFIG_PATH)
     model, tokenizer = load_model()
     train_ds, val_ds = load_datasets(instruction)
-
-    if WANDB_REPORT_TO == "wandb":
-        wandb.init(
-            entity=WANDB_TEAM,
-            project=WANDB_PROJECT,
-            name=WANDB_RUN_NAME,
-        )
-
     trainer = train(model, tokenizer, train_ds, val_ds)
     save(model, tokenizer, trainer)
-
-    if WANDB_REPORT_TO == "wandb":
-        wandb.finish()
 
 
 if __name__ == "__main__":

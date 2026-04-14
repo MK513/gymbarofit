@@ -1,24 +1,24 @@
 """
-Gemma 2 9B SFT 학습 하이퍼파라미터 설정
+Gemma 4 E2B SFT 학습 하이퍼파라미터 설정
 대상 GPU: Google Colab T4 (16GB VRAM)
 """
 
 # ── 모델 ──────────────────────────────────────────────────────────────────────
-MODEL_NAME = "unsloth/gemma-2-9b-it-bnb-4bit"
+MODEL_NAME = "unsloth/gemma-4-E2B-it-unsloth-bnb-4bit"
 MAX_SEQ_LENGTH = 2048          # T4에서 안정적인 최대 시퀀스 길이
 
 # ── LoRA ──────────────────────────────────────────────────────────────────────
 LORA_R = 16                    # rank: 표현력과 메모리의 균형점
 LORA_ALPHA = 16                # scaling = alpha / r → 1.0 (변경 없음)
 LORA_DROPOUT = 0.05
-TARGET_MODULES = [             # Gemma 2 attention + MLP 전체 적용
+TARGET_MODULES = [             # Gemma 4 attention + MLP 전체 적용
     "q_proj", "k_proj", "v_proj", "o_proj",
     "gate_proj", "up_proj", "down_proj",
 ]
 USE_RSLORA = False             # True 시 rank-stabilized LoRA (실험적)
 
 # ── 학습 ──────────────────────────────────────────────────────────────────────
-OUTPUT_DIR = "models/gemma2-fitness-lora"
+OUTPUT_DIR = "models/gemma4-E2B-fitness-lora"
 
 PER_DEVICE_TRAIN_BATCH_SIZE = 2
 GRADIENT_ACCUMULATION_STEPS = 4   # 유효 배치 크기 = 2 × 4 = 8

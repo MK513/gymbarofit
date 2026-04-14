@@ -15,6 +15,7 @@ checkpoint-*/
 __pycache__/
 *.pyc
 *.pyo
+.venv/
 
 # Jupyter
 .ipynb_checkpoints/

@@ -1,10 +1,11 @@
 [project]
-name = "gymbarofit-gemma2"
+name = "gymbarofit-gemma4"
 version = "0.1.0"
-description = "Gemma 2 9B fitness personal trainer — SFT on exercise tracking data"
+description = "Gemma 4 E4B fitness personal trainer — SFT on exercise tracking data"
 requires-python = ">=3.10"
 dependencies = [
     "unsloth[colab-new]",
+    "torch>=2.7.0",
     "trl>=0.11.0",
     "peft>=0.13.0",
     "transformers>=4.45.0",
@@ -12,17 +13,34 @@ dependencies = [
     "bitsandbytes>=0.44.0",
     "pyyaml>=6.0",
     "wandb>=0.18.0",
+    "fastapi>=0.115.0",
+    "uvicorn[standard]>=0.30.0",
+    "setuptools>=80.9.0",
+    "setuptools-scm==9.2.0",
 ]
 
 [tool.uv.sources]
 unsloth = { git = "https://github.com/unslothai/unsloth.git" }
+torch = { index = "pytorch-cu124" }
+
+[tool.uv.workspace]
+members = [
+    "gymbarofit/gemma4",
+]
 
 [tool.uv]
-# Colab T4 기준 CUDA 12.x 환경
+# PyPI를 기본 인덱스로 사용 (setuptools 등 빌드 패키지 해결)
+# torch 는 아래 explicit 인덱스에서 CUDA 빌드로 강제 설치
 index-url = "https://pypi.org/simple"
-extra-index-url = [
-    "https://download.pytorch.org/whl/cu121",
-]
+index-strategy = "unsafe-best-match"
+
+[[tool.uv.index]]
+name = "pytorch-cu124"
+url = "https://download.pytorch.org/whl/cu124"
+explicit = true
+
+[tool.hatch.build.targets.wheel]
+packages = ["utils", "config"]
 
 [build-system]
 requires = ["hatchling"]
