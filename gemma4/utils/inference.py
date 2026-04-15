@@ -31,7 +31,7 @@ BASE_MODEL_PATH = str(ROOT / "models" / "unsloth-gemma-4-E2B-it-unsloth-bnb-4bit
 ADAPTER_PATH = str(ROOT / "models" / "gemma4-E2B-fitness-lora")
 DATASET_CONFIG_PATH = str(ROOT / "data" / "dataset_config.json")
 MAX_SEQ_LENGTH = 512
-MAX_NEW_TOKENS = 512
+MAX_NEW_TOKENS = 80   # 50자 이내 답변 기준 (한국어 50자 ≈ 70토큰 + 여유분)
 
 
 def _offload_vision_encoder(model, torch) -> None:
@@ -40,27 +40,42 @@ def _offload_vision_encoder(model, torch) -> None:
     Gemma 4 멀티모달 구조:
         vision_tower          — SigLIP 이미지 인코더
         multi_modal_projector — 비전 피처 → 언어 공간 변환 MLP
-    unsloth가 모델을 래핑하므로 model / model.model 두 레벨을 모두 탐색.
+    unsloth + PEFT 래핑으로 인해 실제 컴포넌트 경로가 달라질 수 있으므로
+    깊이 제한 없이 최상위 비전 컴포넌트를 탐색한다.
     """
-    VISION_ATTRS = ("vision_tower", "multi_modal_projector", "vision_model", "image_encoder")
+    VISION_KEYWORDS = ("vision", "image", "visual", "siglip", "multi_modal")
 
-    targets = [model]
-    if hasattr(model, "model"):
-        targets.append(model.model)
+    # 최상위 자식 모듈만 대상으로 탐색 (하위는 상위 오프로드 시 자동 이동)
+    top_level_children = list(model.named_children())
+    # top-level이 base_model 하나뿐인 PEFT 구조를 재귀적으로 펼침
+    expanded: list[tuple[str, object]] = []
+    for name, child in top_level_children:
+        sub = list(child.named_children())
+        if sub:
+            expanded.extend((f"{name}.{n}", m) for n, m in sub)
+        else:
+            expanded.append((name, child))
+    search_targets = top_level_children + expanded
 
-    offloaded = []
-    for target in targets:
-        for attr in VISION_ATTRS:
-            component = getattr(target, attr, None)
-            if component is not None:
-                component.to("cpu")
-                offloaded.append(attr)
+    offloaded: list[str] = []
+    offloaded_prefixes: set[str] = set()
+
+    for name, module in search_targets:
+        if not any(kw in name.lower() for kw in VISION_KEYWORDS):
+            continue
+        if any(name.startswith(prefix + ".") for prefix in offloaded_prefixes):
+            continue
+        module.to("cpu")
+        offloaded.append(name)
+        offloaded_prefixes.add(name)
 
     if offloaded:
         torch.cuda.empty_cache()
         print(f"비전 인코더 CPU 오프로드 완료: {offloaded}")
     else:
-        print("비전 인코더 컴포넌트 없음 (텍스트 전용 모델 또는 이미 비활성화됨)")
+        # 진단: 실제 최상위 모듈 이름 출력해 키워드 불일치 여부 확인
+        top_names = [n for n, _ in model.named_children()]
+        print(f"비전 인코더 컴포넌트 없음. 최상위 모듈: {top_names}")
 
 
 def _load_instruction() -> str:
@@ -68,20 +83,13 @@ def _load_instruction() -> str:
         return json.loads(f.read(), strict=False)["instruction"]
 
 
-def _build_prompt(instruction: str, input_text: str, retrieved_context: str = "") -> str:
-    """Gemma 4 chat template 포맷.
-
-    retrieved_context: RAG로 검색된 유사 사례 (비어 있으면 일반 SFT 추론)
-    """
+def _build_user_content(instruction: str, input_text: str, retrieved_context: str = "") -> str:
+    """user 턴의 텍스트 콘텐츠를 반환한다 (chat template 적용은 analyze에서 처리)."""
     user_content = instruction
     if retrieved_context:
         user_content += f"\n\n[참고 사례]\n{retrieved_context}"
     user_content += f"\n\n{input_text}"
-
-    return (
-        f"<start_of_turn>user\n{user_content}<end_of_turn>\n"
-        f"<start_of_turn>model\n"
-    )
+    return user_content
 
 
 # ── FitnessAdvisor 클래스 ──────────────────────────────────────────────────────
@@ -156,8 +164,8 @@ class FitnessAdvisor:
                 print(f"adapter_config.json 패치 완료: base_model → {BASE_MODEL_PATH}")
 
         # unsloth 고유 방식으로 어댑터 로드 (Gemma4ClippableLinear 호환)
-        # dtype=float16 명시: 양자화 외부 가중치(레이어 노름·임베딩·LoRA)가
-        # float32로 잡히지 않도록 강제 → VRAM ~2GB 절감
+        # bnb_4bit_* 파라미터 명시: 베이스 모델 config.json에 저장된 quantization_config와
+        # 충돌 시 FP16으로 조용히 폴백하는 문제를 방지한다.
         print(f"어댑터 로드 중: {adapter_path}")
         self.model, self.tokenizer = FastLanguageModel.from_pretrained(
             model_name=adapter_path,
@@ -173,22 +181,39 @@ class FitnessAdvisor:
         # 로드 과정에서 생긴 임시 CUDA 할당 해제
         self._torch.cuda.empty_cache()
 
-        # VRAM 사용량으로 4-bit 적용 여부 검증 ───────────────────────────────
+        # 4-bit 적용 여부 진단 ────────────────────────────────────────────────
+        # Linear4bit 레이어 수로 실제 양자화 여부를 직접 확인
+        n_4bit = sum(
+            1 for _, m in self.model.named_modules()
+            if isinstance(m, bnb.nn.Linear4bit)
+        )
         vram_gb = self._torch.cuda.memory_allocated() / 1024 ** 3
         total_gb = self._torch.cuda.get_device_properties(0).total_memory / 1024 ** 3
         free_gb = total_gb - self._torch.cuda.memory_reserved() / 1024 ** 3
         print(
             f"VRAM: 사용 {vram_gb:.1f}GB / 전체 {total_gb:.1f}GB / 여유 {free_gb:.1f}GB"
         )
-        # Gemma 4 E2B 4-bit 정상 로드 기준: ~2~3GB (비전 인코더 CPU 오프로드 후)
-        # 5GB 초과 시 FP16 로드로 판단 → generate 중 OOM → os._exit(0) 원인
-        if vram_gb > 5.0:
+        print(f"Linear4bit 레이어 수: {n_4bit}")
+
+        if n_4bit == 0:
+            # 4-bit 레이어가 하나도 없으면 FP16으로 로드된 것
             print(
-                f"[WARN] VRAM {vram_gb:.1f}GB — 4-bit 양자화가 적용되지 않았습니다!\n"
-                "       bitsandbytes CUDA 지원이 누락되어 FP16으로 로드된 것으로 보입니다.\n"
-                "       → generate 중 OOM으로 인해 서버가 exit 0으로 종료될 수 있습니다.\n"
-                "       해결: pip install bitsandbytes --upgrade --force-reinstall"
+                f"[WARN] 4-bit 레이어 없음 — FP16 모드로 로드됨 (VRAM {vram_gb:.1f}GB)\n"
+                "       원인: bitsandbytes가 pre-quantized 모델을 역직렬화하지 못한 것으로 보임.\n"
+                "       → 재빌드 필요: docker compose build --no-cache"
             )
+        else:
+            print(f"4-bit 양자화 정상 적용 ({n_4bit}개 레이어)")
+
+        # VRAM 상세 진단: 모듈별 디바이스 분포 출력
+        device_map: dict[str, int] = {"cuda": 0, "cpu": 0}
+        for _, param in self.model.named_parameters():
+            key = "cuda" if param.device.type == "cuda" else "cpu"
+            device_map[key] += param.numel()
+        print(
+            f"파라미터 분포 — GPU: {device_map['cuda']/1e6:.1f}M "
+            f"/ CPU: {device_map['cpu']/1e6:.1f}M"
+        )
 
         self.instruction = _load_instruction()
         self.temperature = temperature
@@ -205,21 +230,33 @@ class FitnessAdvisor:
         Returns:
             트레이너 피드백 문자열
         """
-        prompt = _build_prompt(self.instruction, input_text, retrieved_context)
+        user_content = _build_user_content(self.instruction, input_text, retrieved_context)
+        messages = [{"role": "user", "content": user_content}]
+        prompt = self.tokenizer.apply_chat_template(
+            messages,
+            tokenize=False,
+            add_generation_prompt=True,
+        )
         inputs = self.tokenizer(text=prompt, return_tensors="pt").to("cuda")
         # 비전 인코더가 CPU로 오프로드되어 있으므로, vision 관련 키가 있으면 제거
         inputs.pop("pixel_values", None)
         inputs.pop("image_sizes", None)
+
+        # <end_of_turn> 토큰을 EOS 목록에 추가해 무한 생성 방지
+        # Gemma4Processor는 멀티모달 래퍼이므로 내부 text tokenizer를 통해 접근
+        _tok = getattr(self.tokenizer, "tokenizer", self.tokenizer)
+        end_of_turn_id = _tok.convert_tokens_to_ids("<end_of_turn>")
+        eos_ids = [self.tokenizer.eos_token_id]
+        if end_of_turn_id and end_of_turn_id != self.tokenizer.eos_token_id:
+            eos_ids.append(end_of_turn_id)
 
         try:
             with self._torch.no_grad():
                 outputs = self.model.generate(
                     **inputs,
                     max_new_tokens=MAX_NEW_TOKENS,
-                    temperature=self.temperature,
-                    do_sample=True,
-                    repetition_penalty=self.repetition_penalty,
-                    eos_token_id=self.tokenizer.eos_token_id,
+                    do_sample=False,
+                    eos_token_id=eos_ids,
                     pad_token_id=self.tokenizer.eos_token_id,
                     use_cache=True,
                 )
@@ -270,7 +307,7 @@ class InferenceWorker:
     """
 
     _STARTUP_TIMEOUT = 300  # 모델 로드 대기 (초)
-    _INFER_TIMEOUT = 120    # 추론 대기 (초)
+    _INFER_TIMEOUT = 300    # 추론 대기 (초) — FP16 모드에서도 256 토큰 생성 수용
 
     def __init__(
         self,
@@ -317,7 +354,11 @@ class InferenceWorker:
         try:
             resp = self._res_q.get(timeout=self._INFER_TIMEOUT)
         except stdlib_queue.Empty:
-            raise RuntimeError(f"추론 타임아웃 ({self._INFER_TIMEOUT}초)")
+            # 타임아웃: 워커가 아직 생성 중 → 강제 종료하여 다음 요청에서 자동 재시작
+            if self._process.is_alive():
+                self._process.terminate()
+                self._process.join(timeout=5)
+            raise RuntimeError(f"추론 타임아웃 ({self._INFER_TIMEOUT}초) — 워커를 재시작합니다.")
 
         if "error" in resp:
             raise RuntimeError(resp["error"])
