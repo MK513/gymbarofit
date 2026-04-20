@@ -4,6 +4,7 @@ services:
   postgres:
     image: postgres:16-alpine
     container_name: gymbarofit-postgres
+    command: postgres -c max_connections=200
     ports:
       - "5432:5432"
     environment:
@@ -40,11 +41,12 @@ services:
     env_file:
       - ./springboot/.env
     environment:
-      SPRING_PROFILES_ACTIVE: docker,init
+      SPRING_PROFILES_ACTIVE: docker, init
       POSTGRES_URL: jdbc:postgresql://postgres:5432/gymbarofit
       REDIS_HOST: redis
       REDIS_PORT: 6379
       LOG_PATH: /app/logs
+      FASTAPI_BASE_URL: http://gemma4-ai:8000
     volumes:
       - ./springboot/images:/app/images
       - ./springboot/logs:/app/logs
@@ -53,6 +55,8 @@ services:
         condition: service_healthy
       redis:
         condition: service_started
+      gemma4-ai:
+        condition: service_healthy
     restart: unless-stopped
 
   # ── React + Vite Frontend ─────────────────────────────────────────────────────
@@ -71,6 +75,45 @@ services:
     depends_on:
       - backend
     restart: unless-stopped
+
+  # ── Gemma4 AI Server ──────────────────────────────────────────────────────────
+  gemma4-ai:
+    build:
+      context: ./gemma4
+      dockerfile: Dockerfile
+      args:
+        BUILDKIT_INLINE_CACHE: "1"
+    image: gemma4-ai:latest
+    container_name: gemma4-ai
+    ports:
+      - "8000:8000"
+    volumes:
+      - ./gemma4/models/unsloth-gemma-4-E2B-it-unsloth-bnb-4bit:/app/models/unsloth-gemma-4-E2B-it-unsloth-bnb-4bit:ro
+      - ./gemma4/models/gemma4-E2B-fitness-lora:/app/models/gemma4-E2B-fitness-lora
+      - ./gemma4/data:/app/data
+      - ./gemma4/utils:/app/utils
+      - ./gemma4/config:/app/config
+      - ./gemma4/main.py:/app/main.py
+      - ./gemma4/train.py:/app/train.py
+    env_file:
+      - ./gemma4/.env
+    environment:
+      - PYTHONUNBUFFERED=1
+      - HF_HUB_OFFLINE=1
+    deploy:
+      resources:
+        reservations:
+          devices:
+            - driver: nvidia
+              count: all
+              capabilities: [gpu]
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8000/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 120s
 
 volumes:
   postgres-data:

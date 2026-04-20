@@ -7,6 +7,7 @@ import org.springframework.http.HttpHeaders;
 import org.springframework.http.ResponseCookie;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.servlet.mvc.method.annotation.SseEmitter;
 import skku.gymbarofit.api.global.annotation.CurrentUserId;
 import skku.gymbarofit.api.security.service.AuthService;
 import skku.gymbarofit.core.usage.equipment.dto.WorkoutHistoryResponseDto;
@@ -24,6 +25,7 @@ public class MemberApiController {
 
     private final MemberService memberService;
     private final AuthService authService;
+    private final WorkoutAnalysisService workoutAnalysisService;
 
     @Value("${app.jwt.refresh-token.expireTime}")
     private long refreshTokenExpireMillis;
@@ -66,6 +68,15 @@ public class MemberApiController {
             @RequestParam int month
     ) {
         return ResponseEntity.ok(memberService.getWorkoutHistory(memberId, year, month));
+    }
+
+    @GetMapping("/history/analyze")
+    public SseEmitter analyzeWorkoutHistory(
+            @CurrentUserId Long memberId,
+            @RequestParam int year,
+            @RequestParam int month
+    ) {
+        return workoutAnalysisService.streamAnalysis(memberId, year, month);
     }
 
 }

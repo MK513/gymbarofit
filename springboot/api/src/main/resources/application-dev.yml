@@ -23,6 +23,9 @@ logging.level:
   org.springframework.security: DEBUG
 
 app:
+  ai:
+    fastapi:
+      base-url: ${FASTAPI_BASE_URL}
   upload:
     dir: C:/Users/finem/Desktop/gymbarofit/springboot/images
   jwt:

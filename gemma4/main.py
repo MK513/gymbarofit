@@ -11,13 +11,15 @@ GymBaroFit AI 트레이너 추론 서버
     uvicorn main:app --host 0.0.0.0 --port 8000
 """
 
-import os
+# CUDA_LAUNCH_BLOCKING=1 은 디버깅 전용 (GPU 커널 직렬화로 ~10× 느려짐)
+# 필요 시 환경변수로 외부 주입: CUDA_LAUNCH_BLOCKING=1 docker compose up
 
-os.environ.setdefault("CUDA_LAUNCH_BLOCKING", "1")
-
+import json
 from contextlib import asynccontextmanager
 
-from fastapi import FastAPI, HTTPException, status
+from fastapi import FastAPI, HTTPException, Request, status
+from fastapi.exceptions import RequestValidationError
+from fastapi.responses import JSONResponse, StreamingResponse
 from pydantic import BaseModel
 
 from utils.inference import InferenceWorker
@@ -73,6 +75,16 @@ app = FastAPI(
 )
 
 
+# ── 검증 에러 로깅 ────────────────────────────────────────────────────────────
+
+@app.exception_handler(RequestValidationError)
+async def validation_exception_handler(request: Request, exc: RequestValidationError):
+    body = await request.body()
+    print(f"[422] 검증 실패 — body: {body.decode('utf-8', errors='replace')}")
+    print(f"[422] errors: {exc.errors()}")
+    return JSONResponse(status_code=422, content={"detail": exc.errors()})
+
+
 # ── 라우트 ────────────────────────────────────────────────────────────────────
 
 @app.get("/health", response_model=HealthResponse)
@@ -80,21 +92,30 @@ def health():
     return HealthResponse(status="ok", model_loaded=advisor is not None)
 
 
-@app.post("/analyze", response_model=AnalyzeResponse)
+@app.post("/analyze")
 def analyze(req: AnalyzeRequest):
     if advisor is None:
         raise HTTPException(
             status_code=status.HTTP_503_SERVICE_UNAVAILABLE,
             detail="모델 로딩 중입니다. 잠시 후 다시 시도하세요.",
         )
-    try:
-        feedback = advisor.analyze(req.input_text, req.retrieved_context)
-    except RuntimeError as e:
-        raise HTTPException(
-            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-            detail=str(e),
-        )
-    return AnalyzeResponse(feedback=feedback)
+
+    def event_stream():
+        try:
+            for token in advisor.stream_analyze(req.input_text, req.retrieved_context):
+                yield f"data: {json.dumps({'token': token}, ensure_ascii=False)}\n\n"
+        except RuntimeError as e:
+            yield f"data: {json.dumps({'error': str(e)}, ensure_ascii=False)}\n\n"
+        yield "data: [DONE]\n\n"
+
+    return StreamingResponse(
+        event_stream(),
+        media_type="text/event-stream",
+        headers={
+            "Cache-Control": "no-cache",
+            "X-Accel-Buffering": "no",  # nginx 버퍼링 비활성화
+        },
+    )
 
 
 # ── 직접 실행 ─────────────────────────────────────────────────────────────────

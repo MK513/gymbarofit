@@ -18,6 +18,7 @@ import json
 import multiprocessing as mp
 import queue as stdlib_queue
 import sys
+import threading
 import traceback
 from pathlib import Path
 
@@ -31,7 +32,7 @@ BASE_MODEL_PATH = str(ROOT / "models" / "unsloth-gemma-4-E2B-it-unsloth-bnb-4bit
 ADAPTER_PATH = str(ROOT / "models" / "gemma4-E2B-fitness-lora")
 DATASET_CONFIG_PATH = str(ROOT / "data" / "dataset_config.json")
 MAX_SEQ_LENGTH = 512
-MAX_NEW_TOKENS = 80   # 50자 이내 답변 기준 (한국어 50자 ≈ 70토큰 + 여유분)
+MAX_NEW_TOKENS = 100
 
 
 def _offload_vision_encoder(model, torch) -> None:
@@ -175,6 +176,19 @@ class FitnessAdvisor:
         )
         FastLanguageModel.for_inference(self.model)
 
+        # torch.compile: 연산 그래프 커널 퓨전으로 토큰 생성 속도 개선
+        # fullgraph=False → unsloth/bnb 커스텀 op는 eager 폴백, 나머지만 컴파일
+        # 첫 실행(워밍업)에서 컴파일이 일어나므로 서버 시작 시간은 늘어남
+        try:
+            self.model = self._torch.compile(
+                self.model,
+                mode="reduce-overhead",
+                fullgraph=False,
+            )
+            print("torch.compile 적용 완료 (워밍업 시 컴파일 수행)")
+        except Exception as e:
+            print(f"[WARN] torch.compile 실패, eager 모드 유지: {e}")
+
         # 텍스트 전용 추론: 비전 인코더를 CPU로 오프로드하여 VRAM 절감
         _offload_vision_encoder(self.model, self._torch)
 
@@ -218,6 +232,15 @@ class FitnessAdvisor:
         self.instruction = _load_instruction()
         self.temperature = temperature
         self.repetition_penalty = repetition_penalty
+
+        # 워밍업: 첫 실제 요청의 CUDA 커널 JIT 지연 제거
+        print("워밍업 추론 중...")
+        try:
+            self.analyze("나이: 25세 | 성별: 남성 | 체중: 70kg")
+            print("워밍업 완료.")
+        except Exception as e:
+            print(f"[WARN] 워밍업 실패 (무시): {e}")
+
         print("로드 완료.\n")
 
     def analyze(self, input_text: str, retrieved_context: str = "") -> str:
@@ -251,7 +274,7 @@ class FitnessAdvisor:
             eos_ids.append(end_of_turn_id)
 
         try:
-            with self._torch.no_grad():
+            with self._torch.inference_mode():
                 outputs = self.model.generate(
                     **inputs,
                     max_new_tokens=MAX_NEW_TOKENS,
@@ -266,6 +289,68 @@ class FitnessAdvisor:
 
         generated = outputs[0][inputs["input_ids"].shape[1]:]
         return self.tokenizer.decode(generated, skip_special_tokens=True).strip()
+
+    def stream_analyze(self, input_text: str, retrieved_context: str = ""):
+        """토큰을 생성하는 즉시 yield하는 스트리밍 버전.
+
+        TextIteratorStreamer를 통해 백그라운드 스레드에서 model.generate()를
+        실행하고, 메인 스레드에서 생성된 토큰을 순차적으로 yield한다.
+        """
+        from transformers import TextIteratorStreamer
+
+        user_content = _build_user_content(self.instruction, input_text, retrieved_context)
+        messages = [{"role": "user", "content": user_content}]
+        prompt = self.tokenizer.apply_chat_template(
+            messages,
+            tokenize=False,
+            add_generation_prompt=True,
+        )
+        inputs = self.tokenizer(text=prompt, return_tensors="pt").to("cuda")
+        inputs.pop("pixel_values", None)
+        inputs.pop("image_sizes", None)
+
+        _tok = getattr(self.tokenizer, "tokenizer", self.tokenizer)
+        end_of_turn_id = _tok.convert_tokens_to_ids("<end_of_turn>")
+        eos_ids = [self.tokenizer.eos_token_id]
+        if end_of_turn_id and end_of_turn_id != self.tokenizer.eos_token_id:
+            eos_ids.append(end_of_turn_id)
+
+        # skip_prompt=True: 입력 프롬프트 토큰은 건너뛰고 생성 토큰만 yield
+        streamer = TextIteratorStreamer(
+            _tok,
+            skip_prompt=True,
+            skip_special_tokens=True,
+        )
+
+        generate_kwargs = dict(
+            **inputs,
+            max_new_tokens=MAX_NEW_TOKENS,
+            do_sample=False,
+            eos_token_id=eos_ids,
+            pad_token_id=self.tokenizer.eos_token_id,
+            use_cache=True,
+            streamer=streamer,
+        )
+
+        # model.generate()는 블로킹 호출이므로 별도 스레드에서 실행
+        # inference_mode는 스레드 로컬이므로 해당 스레드 내에서 적용
+        def _generate():
+            try:
+                with self._torch.inference_mode():
+                    self.model.generate(**generate_kwargs)
+            except BaseException as e:
+                # 생성 실패 시 streamer를 강제 종료해 메인 스레드의 for 루프를 탈출
+                streamer.on_finalized_text("", stream_end=True)
+                raise RuntimeError(f"모델 생성 실패: {type(e).__name__}: {e}") from e
+
+        gen_thread = threading.Thread(target=_generate, daemon=True)
+        gen_thread.start()
+
+        for token_text in streamer:
+            if token_text:
+                yield token_text
+
+        gen_thread.join()
 
 
 # ── 서브프로세스 워커 ─────────────────────────────────────────────────────────
@@ -293,8 +378,13 @@ def _inference_worker(
         if task is None:  # 종료 신호
             break
         try:
-            result = advisor.analyze(task["input_text"], task.get("retrieved_context", ""))
-            response_queue.put({"result": result})
+            if task.get("stream"):
+                for token in advisor.stream_analyze(task["input_text"], task.get("retrieved_context", "")):
+                    response_queue.put({"token": token})
+                response_queue.put({"done": True})
+            else:
+                result = advisor.analyze(task["input_text"], task.get("retrieved_context", ""))
+                response_queue.put({"result": result})
         except Exception:
             response_queue.put({"error": traceback.format_exc()})
 
@@ -363,6 +453,34 @@ class InferenceWorker:
         if "error" in resp:
             raise RuntimeError(resp["error"])
         return resp["result"]
+
+    def stream_analyze(self, input_text: str, retrieved_context: str = ""):
+        """토큰이 생성될 때마다 즉시 yield하는 스트리밍 버전.
+
+        워커 프로세스에서 토큰이 생성되는 즉시 Queue를 통해 전달받아 yield한다.
+        """
+        if not self._process.is_alive():
+            print(f"[WARN] 워커 프로세스 종료 감지 (exit code {self._process.exitcode}). 재시작 중...")
+            self._start_worker()
+
+        self._req_q.put({"input_text": input_text, "retrieved_context": retrieved_context, "stream": True})
+
+        # 토큰 단위 타임아웃: 생성이 시작된 후 토큰 간격은 짧으므로 30초면 충분
+        _TOKEN_TIMEOUT = 30
+        while True:
+            try:
+                resp = self._res_q.get(timeout=_TOKEN_TIMEOUT)
+            except stdlib_queue.Empty:
+                if self._process.is_alive():
+                    self._process.terminate()
+                    self._process.join(timeout=5)
+                raise RuntimeError(f"스트리밍 타임아웃 ({_TOKEN_TIMEOUT}초) — 워커를 재시작합니다.")
+
+            if "error" in resp:
+                raise RuntimeError(resp["error"])
+            if "done" in resp:
+                return
+            yield resp["token"]
 
     def shutdown(self) -> None:
         if self._process.is_alive():

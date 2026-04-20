@@ -26,6 +26,9 @@ management:
       application: gymbarofit
 
 spring:
+  threads:
+    virtual:
+      enabled: true
   profiles:
     active: dev
   jpa:
@@ -39,6 +42,9 @@ spring:
   output.ansi.enabled: ALWAYS
 
 app:
+  ai:
+    fastapi:
+      base-url: ${FASTAPI_BASE_URL}
   jwt:
     secretKey: ${JWT_SECRET}
     header:
