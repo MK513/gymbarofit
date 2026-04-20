@@ -1,0 +1,26 @@
+# 학습 데이터
+*.jsonl
+
+# 모델 가중치
+*.safetensors
+tokenizer.json
+models/
+checkpoint-*/
+*.bin
+
+# 환경 변수 (API 키)
+.env
+
+# Python 캐시
+__pycache__/
+*.pyc
+*.pyo
+.venv/
+
+# Jupyter
+.ipynb_checkpoints/
+
+# WandB 런 로그
+wandb/
+
+

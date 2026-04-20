@@ -1,0 +1,43 @@
+services:
+  gymbarofit-ai:
+    build:
+      context: .
+      dockerfile: Dockerfile
+      args:
+        BUILDKIT_INLINE_CACHE: "1"
+    image: gymbarofit-ai:latest
+    container_name: gymbarofit-ai
+    ports:
+      - "8000:8000"
+    volumes:
+      # 로컬 베이스 모델 (unsloth/gemma-4-E2B-it-unsloth-bnb-4bit) — HF 다운로드 불필요
+      - ./models/unsloth-gemma-4-E2B-it-unsloth-bnb-4bit:/app/models/unsloth-gemma-4-E2B-it-unsloth-bnb-4bit:ro
+      # 학습된 LoRA 어댑터 (gemma4-E2B-fitness-lora) — adapter_config.json 패치를 위해 쓰기 허용
+      - ./models/gemma4-E2B-fitness-lora:/app/models/gemma4-E2B-fitness-lora
+      # 데이터셋 — 외부에서 교체 가능하도록 마운트
+      - ./data:/app/data
+      # 소스코드 — 변경 시 --build 없이 재시작만으로 반영
+      - ./utils:/app/utils
+      - ./config:/app/config
+      - ./main.py:/app/main.py
+      - ./train.py:/app/train.py
+    env_file:
+      - .env
+    environment:
+      - PYTHONUNBUFFERED=1
+      - HF_HUB_OFFLINE=1
+    # NVIDIA GPU 사용 설정 (nvidia-container-toolkit 필요)
+    deploy:
+      resources:
+        reservations:
+          devices:
+            - driver: nvidia
+              count: all
+              capabilities: [gpu]
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8000/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 120s
