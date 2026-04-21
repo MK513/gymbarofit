@@ -5,7 +5,7 @@ export async function getLockerZone(dto) {
 }
 
 export async function getLockerList(pathVariable) {
-  return call("/lockers/zones/{zoneId}", "GET", null, pathVariable);
+  return call("/lockers/zones/{zoneId}/lockers", "GET", null, pathVariable);
 }
 
 export async function getLockerInfo(pathVariable) {
@@ -25,5 +25,5 @@ export async function extendLocker(dto, pathVariable) {
 }
 
 export async function updateLockerStatus(dto, pathVariable) {
-  return call("/lockers/{lockerId}/status", "PATCH", dto, pathVariable);
+  return call("/owners/lockers/{lockerId}/status", "PATCH", dto, pathVariable);
 }

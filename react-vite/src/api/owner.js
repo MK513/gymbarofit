@@ -10,7 +10,7 @@ export async function createOwnerGym(dto) {
 
 
 export async function createOwnerGymLockerZones(dto) {
-  return call("/lockers/zones", "POST", dto);
+  return call("/owners/lockers/zones", "POST", dto);
 }
 
 export async function getOwnerGymMap(pathVariable) {
@@ -50,15 +50,15 @@ export async function updateOwnerGym(dto, pathVariable) {
 }
 
 export async function getOwnerGymLockerZones(pathVariable) {
-  return call("/lockers/zones/manage", "GET", pathVariable);
+  return call("/owners/lockers/zones", "GET", pathVariable);
 }
 
 export async function updateOwnerGymLockerZone(dto, pathVariable) {
-  return call("/lockers/zones/{zoneId}", "PATCH", dto, pathVariable);
+  return call("/owners/lockers/zones/{zoneId}", "PATCH", dto, pathVariable);
 }
 
 export async function deleteOwnerGymLockerZone(pathVariable) {
-  return call("/lockers/zones/{zoneId}", "DELETE", null, pathVariable);
+  return call("/owners/lockers/zones/{zoneId}", "DELETE", null, pathVariable);
 }
 
 export async function getOwnerGymStats(pathVariable) {

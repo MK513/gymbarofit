@@ -16,8 +16,6 @@ import java.util.List;
 @RequiredArgsConstructor
 public class PaymentInternalService {
 
-    //TODO Internal 이랑 service 쪼개기
-
     private final PaymentRepository paymentRepository;
 
     public Payment saveAndFlush(Payment payment) {
