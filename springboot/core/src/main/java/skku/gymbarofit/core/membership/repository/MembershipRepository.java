@@ -22,7 +22,12 @@ public interface MembershipRepository extends JpaRepository<Membership, Long> {
 
     boolean existsByMemberIdAndGymId(Long memberId, Long gymId);
 
+    void deleteByMember_IdAndGym_Id(Long memberId, Long gymId);
+
     Optional<Membership> findFirstByMember_Id(Long memberId);
+
+    @Query("SELECT m FROM Membership m JOIN FETCH m.member WHERE m.gym.id = :gymId")
+    List<Membership> findAllByGymId(@Param("gymId") Long gymId);
 
     /**
      * 해당 헬스장의 특정 연월 신규 가입 수
