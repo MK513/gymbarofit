@@ -23,6 +23,7 @@ import GymRegister from "./pages/owners/GymRegister"
 import GymDetail from "./pages/owners/GymDetail"
 import GymLockerManage from "./pages/owners/GymLockerManage"
 import GymEquipmentManage from "./pages/owners/GymEquipmentManage"
+import GymMemberManage from "./pages/owners/GymMemberManage"
 
 const adminDomain = isAdminDomain();
 
@@ -45,6 +46,7 @@ export default function App() {
                 <Route path="/gyms/:gymId" element={<GymDetail />} />
                 <Route path="/gyms/:gymId/lockers" element={<GymLockerManage />} />
                 <Route path="/gyms/:gymId/equipments" element={<GymEquipmentManage />} />
+                <Route path="/gyms/:gymId/members" element={<GymMemberManage />} />
               </Route>
               <Route path="/gyms/register" element={<GymRegister />} />
             </Route>

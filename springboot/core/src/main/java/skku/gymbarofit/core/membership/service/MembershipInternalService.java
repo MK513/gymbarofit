@@ -36,4 +36,13 @@ public class MembershipInternalService {
         return membershipRepository.findFirstByMember_Id(memberId)
                 .map(Membership::getGym);
     }
+
+    @Transactional(readOnly = true)
+    public List<Membership> findAllByGymId(Long gymId) {
+        return membershipRepository.findAllByGymId(gymId);
+    }
+
+    public void deleteByMemberIdAndGymId(Long memberId, Long gymId) {
+        membershipRepository.deleteByMember_IdAndGym_Id(memberId, gymId);
+    }
 }

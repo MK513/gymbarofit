@@ -82,7 +82,7 @@ public class SecurityConfig {
                         .requestMatchers("/members/register", "/members/login").permitAll()
                         .requestMatchers("/owners/register", "/owners/login").permitAll()
                         .requestMatchers("/auth/refresh", "/auth/logout").permitAll()
-                        .requestMatchers("/memberships/**").hasRole("MEMBER")
+                        .requestMatchers("/memberships/**").hasAnyRole("MEMBER", "OWNER")
                         .requestMatchers("/members/**").hasRole("MEMBER")
                         .requestMatchers("/owners/**").hasRole("OWNER")
                         .requestMatchers(

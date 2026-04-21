@@ -68,3 +68,11 @@ export async function getOwnerGymStats(pathVariable) {
 export async function updateOwnerGymEquipmentStatus(dto, pathVariable) {
   return call("/equipments/{equipmentId}/status", "PATCH", dto, pathVariable);
 }
+
+export async function getGymMembers(pathVariable) {
+  return call("/memberships/gyms/{gymId}/members", "GET", null, pathVariable);
+}
+
+export async function deleteGymMember(pathVariable) {
+  return call("/memberships/gyms/{gymId}/members/{memberId}", "DELETE", null, pathVariable);
+}

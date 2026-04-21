@@ -41,7 +41,7 @@ services:
     env_file:
       - ./springboot/.env
     environment:
-      SPRING_PROFILES_ACTIVE: docker, init
+      SPRING_PROFILES_ACTIVE: "docker${INIT_PROFILE:-}"
       POSTGRES_URL: jdbc:postgresql://postgres:5432/gymbarofit
       REDIS_HOST: redis
       REDIS_PORT: 6379
@@ -57,6 +57,7 @@ services:
         condition: service_started
       gemma4-ai:
         condition: service_healthy
+        required: false
     restart: unless-stopped
 
   # ── React + Vite Frontend ─────────────────────────────────────────────────────
@@ -77,7 +78,9 @@ services:
     restart: unless-stopped
 
   # ── Gemma4 AI Server ──────────────────────────────────────────────────────────
+  # 기본 실행 시 포함 안 됨 — `--profile ai` 옵션으로만 실행됨
   gemma4-ai:
+    profiles: [ai]
     build:
       context: ./gemma4
       dockerfile: Dockerfile
