@@ -1,3 +1,17 @@
+x-springboot-build: &springboot-build
+  context: ./springboot
+  dockerfile: Dockerfile
+
+x-springboot-common: &springboot-common
+  env_file:
+    - ./springboot/.env
+  depends_on:
+    postgres:
+      condition: service_healthy
+    redis:
+      condition: service_started
+  restart: unless-stopped
+
 services:
 
   # ── PostgreSQL ────────────────────────────────────────────────────────────────
@@ -30,16 +44,16 @@ services:
       - redis-data:/data
     restart: unless-stopped
 
-  # ── Spring Boot Backend ───────────────────────────────────────────────────────
+  # ── Spring Boot API ───────────────────────────────────────────────────────────
   backend:
+    <<: *springboot-common
     build:
-      context: ./springboot
-      dockerfile: Dockerfile
+      <<: *springboot-build
+      args:
+        APP_MODULE: api
     container_name: gymbarofit-backend
     ports:
       - "8080:8080"
-    env_file:
-      - ./springboot/.env
     environment:
       SPRING_PROFILES_ACTIVE: "docker${INIT_PROFILE:-}"
       POSTGRES_URL: jdbc:postgresql://postgres:5432/gymbarofit
@@ -58,7 +72,22 @@ services:
       gemma4-ai:
         condition: service_healthy
         required: false
-    restart: unless-stopped
+
+  # ── Spring Batch ──────────────────────────────────────────────────────────────
+  batch:
+    <<: *springboot-common
+    build:
+      <<: *springboot-build
+      args:
+        APP_MODULE: batch
+    container_name: gymbarofit-batch
+    ports:
+      - "8081:8081"
+    environment:
+      SPRING_PROFILES_ACTIVE: docker
+      POSTGRES_URL: jdbc:postgresql://postgres:5432/gymbarofit
+      REDIS_HOST: redis
+      REDIS_PORT: 6379
 
   # ── React + Vite Frontend ─────────────────────────────────────────────────────
   frontend:

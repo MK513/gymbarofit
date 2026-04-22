@@ -110,6 +110,6 @@ public class MembershipService {
     }
 
     public void deleteGymMember(Long gymId, Long memberId) {
-        membershipInternalService.deleteByMemberIdAndGymId(memberId, gymId);
+        membershipInternalService.expireByMemberIdAndGymId(memberId, gymId);
     }
 }

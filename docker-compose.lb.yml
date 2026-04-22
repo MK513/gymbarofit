@@ -9,6 +9,10 @@
 # 로드밸런싱 확인:
 #   docker compose -f docker-compose.lb.yml logs nginx | grep upstream=
 
+x-springboot-build: &springboot-build
+  context: ./springboot
+  dockerfile: Dockerfile
+
 services:
 
   # ── PostgreSQL ──────────────────────────────────────────────────────────────
@@ -40,14 +44,15 @@ services:
       - redis-data:/data
     restart: unless-stopped
 
-  # ── Spring Boot Backend (3 replicas) ────────────────────────────────────────
+  # ── Spring Boot API (3 replicas) ────────────────────────────────────────────
   # - container_name 없음: scale 시 Compose가 자동 명명 (gymbarofit-backend-1/2/3)
   # - 호스트 포트 매핑 없음: nginx가 유일한 외부 진입점
   # - SSE는 Redis Pub/Sub(RedisNotificationSubscriber)으로 분산 처리 → sticky 불필요
   backend:
     build:
-      context: ./springboot
-      dockerfile: Dockerfile
+      <<: *springboot-build
+      args:
+        APP_MODULE: api
     env_file:
       - ./springboot/.env
     environment:
@@ -69,13 +74,36 @@ services:
       interval: 15s
       timeout: 5s
       retries: 5
-      start_period: 60s  # JVM 기동 + Hibernate DDL 대기
+      start_period: 60s
     deploy:
       replicas: 3
       restart_policy:
         condition: on-failure
         delay: 5s
         max_attempts: 3
+
+  # ── Spring Batch ─────────────────────────────────────────────────────────────
+  batch:
+    build:
+      <<: *springboot-build
+      args:
+        APP_MODULE: batch
+    container_name: gymbarofit-lb-batch
+    ports:
+      - "8081:8081"
+    env_file:
+      - ./springboot/.env
+    environment:
+      SPRING_PROFILES_ACTIVE: docker
+      POSTGRES_URL: jdbc:postgresql://postgres:5432/gymbarofit
+      REDIS_HOST: redis
+      REDIS_PORT: 6379
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_started
+    restart: unless-stopped
 
   # ── Nginx 로드밸런서 ─────────────────────────────────────────────────────────
   # 외부 8080 → 내부 80 → backend_pool (least_conn)

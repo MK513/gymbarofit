@@ -42,7 +42,9 @@ public class MembershipInternalService {
         return membershipRepository.findAllByGymId(gymId);
     }
 
-    public void deleteByMemberIdAndGymId(Long memberId, Long gymId) {
-        membershipRepository.deleteByMember_IdAndGym_Id(memberId, gymId);
+    public void expireByMemberIdAndGymId(Long memberId, Long gymId) {
+        membershipRepository.findByMember_IdAndGym_Id(memberId, gymId)
+                .ifPresent(Membership::expire);
     }
+
 }

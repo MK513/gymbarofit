@@ -43,4 +43,11 @@ public class Membership extends BaseTimeEntity {
 
     private LocalDateTime expiredAt;
 
+    public void updateStatus(MembershipStatus status) {
+        this.status = status;
+    }
+
+    public void expire() {
+        this.status = MembershipStatus.EXPIRED;
+    }
 }
