@@ -3,8 +3,6 @@ import { prepareEquipmentRaceSessions, equipmentRaceFlow } from '../concurrency/
 import { prepareLockerRaceSessions, lockerRaceFlow }       from '../concurrency/lockerRace.js';
 import { memberLogout } from '../utils/auth.js';
 
-// TODO: Phase2 수정 필요
-
 export const options = {
   scenarios: {
     // Phase 1 — 기구 동시 사용 충돌

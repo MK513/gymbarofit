@@ -104,3 +104,6 @@ npm run dev
 |---|---|
 | `JWT_SECRET_TEST` | 테스트용 JWT 서명 키 |
 | `K6_TEST_PASSWORD` | K6 테스트 계정 비밀번호 |
+
+
+TODO: batch로 회원권 및 대여권 만료 상태 처리 구현 필요
