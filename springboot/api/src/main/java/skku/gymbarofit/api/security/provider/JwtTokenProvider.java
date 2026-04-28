@@ -18,19 +18,10 @@ import java.util.Date;
 @Component
 public class JwtTokenProvider {
     
-<<<<<<< HEAD
     public static final String ROLE = "role";
     public static final String EMAIL = "email";
     public static final String ISSUER = "gymbarofit";
 
-=======
-    //TODO: refreshToken 추후 구현
-
-    public static final String ROLE = "role";
-    public static final String EMAIL = "email";
-    public static final String ISSUER = "gymbarofit";
-
->>>>>>> origin/main
     @Value("${app.jwt.secretKey}")
     private String secretKey;
 

@@ -1,6 +1,5 @@
 package skku.gymbarofit.api.config;
 
-<<<<<<< HEAD
 import com.fasterxml.jackson.annotation.JsonTypeInfo;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.SerializationFeature;
@@ -28,15 +27,6 @@ import org.springframework.data.redis.serializer.StringRedisSerializer;
 import java.time.Duration;
 
 @EnableCaching
-=======
-import org.redisson.Redisson;
-import org.redisson.api.RedissonClient;
-import org.redisson.config.Config;
-import org.springframework.beans.factory.annotation.Value;
-import org.springframework.context.annotation.Bean;
-import org.springframework.context.annotation.Configuration;
-
->>>>>>> origin/main
 @Configuration
 public class RedisConfig {
 
@@ -47,7 +37,6 @@ public class RedisConfig {
     private int port;
 
     @Bean(destroyMethod = "shutdown")
-<<<<<<< HEAD
     public RedissonClient redissonClient(
             ObjectMapper redisObjectMapper
     ) {
@@ -129,12 +118,4 @@ public class RedisConfig {
                 .cacheDefaults(config)
                 .build();
     }
-=======
-    public RedissonClient redissonClient() {
-        Config config = new Config();
-        config.useSingleServer()
-                .setAddress("redis://" + host + ":" + port);
-        return Redisson.create(config);
-    }
->>>>>>> origin/main
 }

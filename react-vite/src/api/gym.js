@@ -1,11 +1,7 @@
 import { call } from "./core";
 
 export async function getMembershipInfo(pathVariable) {
-<<<<<<< HEAD
   return call("/memberships/gyms/{gymId}/info", "GET", null, pathVariable);
-=======
-  return call("/memberships/{gymId}/info", "GET", null, pathVariable);
->>>>>>> origin/main
 }
 
 export async function searchGym(dto) {
