@@ -10,11 +10,7 @@ export async function createOwnerGym(dto) {
 
 
 export async function createOwnerGymLockerZones(dto) {
-<<<<<<< HEAD
   return call("/owners/lockers/zones", "POST", dto);
-=======
-  return call("/lockers/zones", "POST", dto);
->>>>>>> origin/main
 }
 
 export async function getOwnerGymMap(pathVariable) {
@@ -54,7 +50,6 @@ export async function updateOwnerGym(dto, pathVariable) {
 }
 
 export async function getOwnerGymLockerZones(pathVariable) {
-<<<<<<< HEAD
   return call("/owners/lockers/zones", "GET", pathVariable);
 }
 
@@ -64,17 +59,6 @@ export async function updateOwnerGymLockerZone(dto, pathVariable) {
 
 export async function deleteOwnerGymLockerZone(pathVariable) {
   return call("/owners/lockers/zones/{zoneId}", "DELETE", null, pathVariable);
-=======
-  return call("/lockers/zones/manage", "GET", pathVariable);
-}
-
-export async function updateOwnerGymLockerZone(dto, pathVariable) {
-  return call("/lockers/zones/{zoneId}", "PATCH", dto, pathVariable);
-}
-
-export async function deleteOwnerGymLockerZone(pathVariable) {
-  return call("/lockers/zones/{zoneId}", "DELETE", null, pathVariable);
->>>>>>> origin/main
 }
 
 export async function getOwnerGymStats(pathVariable) {
@@ -84,7 +68,6 @@ export async function getOwnerGymStats(pathVariable) {
 export async function updateOwnerGymEquipmentStatus(dto, pathVariable) {
   return call("/equipments/{equipmentId}/status", "PATCH", dto, pathVariable);
 }
-<<<<<<< HEAD
 
 export async function getGymMembers(pathVariable) {
   return call("/memberships/gyms/{gymId}/members", "GET", null, pathVariable);
@@ -93,5 +76,3 @@ export async function getGymMembers(pathVariable) {
 export async function deleteGymMember(pathVariable) {
   return call("/memberships/gyms/{gymId}/members/{memberId}", "DELETE", null, pathVariable);
 }
-=======
->>>>>>> origin/main

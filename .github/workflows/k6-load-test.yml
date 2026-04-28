@@ -53,11 +53,7 @@ jobs:
         working-directory: springboot
         env:
           JWT_SECRET: ${{ secrets.JWT_SECRET_TEST }}
-<<<<<<< HEAD
           SPRING_SQL_INIT_DATA_LOCATIONS: file:${{ github.workspace }}/k6/seed/seed.sql
-=======
-          K6_SEED_PATH: ${{ github.workspace }}/k6/seed/seed.sql
->>>>>>> origin/main
         run: |
           java -jar api/build/libs/api-*.jar \
             --spring.profiles.active=ci \
@@ -149,11 +145,7 @@ jobs:
         working-directory: springboot
         env:
           JWT_SECRET: ${{ secrets.JWT_SECRET_TEST }}
-<<<<<<< HEAD
           SPRING_SQL_INIT_DATA_LOCATIONS: file:${{ github.workspace }}/k6/seed/seed.sql
-=======
-          K6_SEED_PATH: ${{ github.workspace }}/k6/seed/seed.sql
->>>>>>> origin/main
         run: |
           java -jar api/build/libs/api-*.jar \
             --spring.profiles.active=ci \

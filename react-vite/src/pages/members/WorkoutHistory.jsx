@@ -1,8 +1,4 @@
-<<<<<<< HEAD
 import { useState, useEffect, useCallback, useRef } from "react";
-=======
-import { useState, useEffect, useCallback } from "react";
->>>>>>> origin/main
 import { useNavigate } from "react-router-dom";
 
 import {
@@ -18,16 +14,11 @@ import ChevronRightIcon from '@mui/icons-material/ChevronRight';
 import FitnessCenterIcon from "@mui/icons-material/FitnessCenter";
 import AutoAwesomeIcon from "@mui/icons-material/AutoAwesome";
 
-<<<<<<< HEAD
 import ReactMarkdown from "react-markdown";
 import { getWorkoutHistory } from "../../api/member";
 import { useNotification } from "../../context/NotificationContext";
 import { API_BASE_URL } from "../../api-config";
 import { tokenService } from "../../utils/tokenService";
-=======
-import { getWorkoutHistory } from "../../api/member";
-import { useNotification } from "../../context/NotificationContext";
->>>>>>> origin/main
 
 // 이번 주 월~일 Date 배열 반환
 function getThisWeekDays() {
@@ -178,11 +169,7 @@ export default function WorkoutHistory() {
           />
 
           {/* AI 운동 분석 */}
-<<<<<<< HEAD
           <AiWorkoutSummary year={year} month={month} />
-=======
-          <AiWorkoutSummary view="monthly" days={history?.totalDays ?? 0} minutes={history?.totalUsageMinutes ?? 0} calories={history?.totalCalories ?? 0} />
->>>>>>> origin/main
 
           {/* 달력 */}
           <Paper sx={{ p: 3, mb: 3, borderRadius: 4, border: '1px solid #eee' }} elevation={0}>
@@ -262,12 +249,6 @@ export default function WorkoutHistory() {
             calories={weeklyCalories}
           />
 
-<<<<<<< HEAD
-=======
-          {/* AI 운동 분석 */}
-          <AiWorkoutSummary view="weekly" days={weeklyActiveDays} minutes={weeklyMinutes} calories={weeklyCalories} />
-
->>>>>>> origin/main
           {/* 이번 주 7일 스트립 */}
           <Paper sx={{ p: 3, mb: 3, borderRadius: 4, border: '1px solid #eee' }} elevation={0}>
             <Typography variant="subtitle1" fontWeight="800" mb={2}>이번 주</Typography>
@@ -410,7 +391,6 @@ function ActivityReportCard({ title, subtitle, loading, days, minutes, calories 
   );
 }
 
-<<<<<<< HEAD
 // ─── AI 운동 분석 카드 (실시간 스트리밍) ─────────────────────
 function AiWorkoutSummary({ year, month }) {
   const [status, setStatus] = useState('idle'); // idle | loading | streaming | done | error
@@ -516,43 +496,11 @@ function AiWorkoutSummary({ year, month }) {
   return (
     <Paper elevation={0} sx={{ p: 3, mb: 3, borderRadius: 4, border: '1px solid #ede7f6', bgcolor: '#faf8ff' }}>
       {/* 헤더 */}
-=======
-// ─── AI 운동 분석 카드 (mock) ────────────────────────────────
-const MOCK_ANALYSIS = {
-  weekly: {
-    grade: "B+",
-    headline: "꾸준한 주간 루틴을 유지하고 있어요!",
-    feedback: [
-      "유산소 운동 비중이 높습니다. 근력 운동을 균형 있게 추가해보세요.",
-      "연속 운동 패턴이 감지됐어요. 근육 회복을 위한 휴식일을 확보하세요.",
-      "이번 주 목표 칼로리의 78%를 달성했습니다. 한 번 더 운동하면 목표를 채울 수 있어요.",
-    ],
-    tag: "주간 분석",
-  },
-  monthly: {
-    grade: "A",
-    headline: "이번 달 운동 습관이 잘 정착되고 있어요!",
-    feedback: [
-      "이번 달 평균 주 3회 이상 운동하고 있습니다. 훌륭한 루틴입니다.",
-      "근력 운동과 유산소 운동의 비율이 이상적으로 유지되고 있어요.",
-      "지난 달 대비 총 운동 시간이 15% 증가했습니다. 이 추세를 유지해보세요.",
-    ],
-    tag: "월간 분석",
-  },
-};
-
-function AiWorkoutSummary({ view }) {
-  const data = MOCK_ANALYSIS[view];
-
-  return (
-    <Paper elevation={0} sx={{ p: 3, mb: 3, borderRadius: 4, border: '1px solid #ede7f6', bgcolor: '#faf8ff' }}>
->>>>>>> origin/main
       <Box display="flex" alignItems="center" justifyContent="space-between" mb={2}>
         <Box display="flex" alignItems="center" gap={1}>
           <AutoAwesomeIcon sx={{ color: '#7c4dff', fontSize: 20 }} />
           <Typography variant="subtitle1" fontWeight="900" sx={{ color: '#4a148c' }}>AI 운동 분석</Typography>
         </Box>
-<<<<<<< HEAD
         <Chip
           label={`${month}월 분석`}
           size="small"
@@ -646,31 +594,6 @@ function AiWorkoutSummary({ view }) {
           <Typography variant="caption" color="text.disabled" fontWeight="bold">중단</Typography>
         </Box>
       )}
-=======
-        <Chip label={data.tag} size="small" sx={{ bgcolor: '#ede7f6', color: '#7c4dff', fontWeight: 'bold', fontSize: '0.7rem' }} />
-      </Box>
-
-      <Box display="flex" alignItems="center" gap={2} mb={2.5} p={2} bgcolor="white" borderRadius={3} sx={{ border: '1px solid #ede7f6' }}>
-        <Typography variant="h3" fontWeight="900" sx={{ color: '#7c4dff', lineHeight: 1 }}>{data.grade}</Typography>
-        <Box>
-          <Typography variant="body2" fontWeight="800">{data.headline}</Typography>
-          <Typography variant="caption" color="text.secondary">AI가 운동 패턴을 분석했어요</Typography>
-        </Box>
-      </Box>
-
-      <Stack spacing={1.5}>
-        {data.feedback.map((text, i) => (
-          <Box key={i} display="flex" alignItems="flex-start" gap={1}>
-            <Box sx={{ width: 6, height: 6, borderRadius: '50%', bgcolor: '#7c4dff', mt: 0.8, flexShrink: 0 }} />
-            <Typography variant="body2" color="text.secondary" fontWeight="600">{text}</Typography>
-          </Box>
-        ))}
-      </Stack>
-
-      <Typography variant="caption" color="text.disabled" sx={{ mt: 2, display: 'block', fontStyle: 'italic' }}>
-        * 실제 AI 연동 전 목업 데이터입니다
-      </Typography>
->>>>>>> origin/main
     </Paper>
   );
 }

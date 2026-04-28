@@ -247,12 +247,9 @@ export default function EquipmentReservation() {
       {/* 맨 아래에 위치하는 안내 문구 (flex flow상 마지막) */}
       <Box sx={{ p: 2, bgcolor: "#f5f7fa", mt: 2 }}>
           <Box sx={{ bgcolor: "#f0f2f5", p: 1.5, borderRadius: 2 }}>
-<<<<<<< HEAD
             <Typography variant="caption" display="block" color="text.secondary" sx={{ fontWeight: 500 }}>
                 • 기구 최대 사용 시간은 20분입니다.
             </Typography>
-=======
->>>>>>> origin/main
             <Typography variant="caption" display="block" color="text.secondary" sx={{ mb: 0.5, fontWeight: 500 }}>
                 • 회원당 하나의 기구만 사용 및 예약 가능합니다.
             </Typography>

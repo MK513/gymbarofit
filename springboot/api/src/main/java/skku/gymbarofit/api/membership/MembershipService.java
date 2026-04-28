@@ -23,10 +23,7 @@ import skku.gymbarofit.core.usage.equipment.dto.EquipmentUsageResponseDto;
 import skku.gymbarofit.core.usage.equipment.service.EquipmentUsageInternalService;
 import skku.gymbarofit.core.usage.locker.LockerUsage;
 import skku.gymbarofit.core.usage.locker.service.LockerUsageInternalService;
-<<<<<<< HEAD
 import skku.gymbarofit.api.membership.dto.GymMemberResponseDto;
-=======
->>>>>>> origin/main
 import skku.gymbarofit.core.membership.service.MembershipInternalService;
 
 import java.util.List;
@@ -104,7 +101,6 @@ public class MembershipService {
         Equipment inUseEquipment = inUseUsage != null ? inUseUsage.getEquipment() : null;
         return EquipmentUsageDetailResponseDto.from(inUseUsage, inUseEquipment, 0);
     }
-<<<<<<< HEAD
 
     @Transactional(readOnly = true)
     public List<GymMemberResponseDto> getGymMembers(Long gymId) {
@@ -116,6 +112,4 @@ public class MembershipService {
     public void deleteGymMember(Long gymId, Long memberId) {
         membershipInternalService.expireByMemberIdAndGymId(memberId, gymId);
     }
-=======
->>>>>>> origin/main
 }

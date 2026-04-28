@@ -29,10 +29,7 @@ import FitnessCenterOutlinedIcon from "@mui/icons-material/FitnessCenterOutlined
 import LockOutlinedIcon from "@mui/icons-material/LockOutlined";
 import StorefrontIcon from "@mui/icons-material/Storefront";
 import EditNoteIcon from "@mui/icons-material/EditNote";
-<<<<<<< HEAD
 import PeopleOutlineIcon from "@mui/icons-material/PeopleOutline";
-=======
->>>>>>> origin/main
 
 const SIDEBAR_W = 220;
 
@@ -147,10 +144,7 @@ export default function OwnerLayout() {
   const isGymDetail  = /\/gyms\/\d+$/.test(p);
   const isEquipments = p.includes("/equipments") || p.includes("/map");
   const isLockers    = p.includes("/lockers");
-<<<<<<< HEAD
   const isMembers    = p.includes("/members");
-=======
->>>>>>> origin/main
 
   return (
     <Box sx={{ position: "fixed", inset: 0, display: "flex", flexDirection: "column", bgcolor: "#f5f7fa" }}>
@@ -269,7 +263,6 @@ export default function OwnerLayout() {
             disabled={!effectiveGymId}
             onClick={() => navigate(`/gyms/${effectiveGymId}/lockers`)}
           />
-<<<<<<< HEAD
           <NavItem
             icon={<PeopleOutlineIcon fontSize="small" />}
             label="회원 관리"
@@ -277,8 +270,6 @@ export default function OwnerLayout() {
             disabled={!effectiveGymId}
             onClick={() => navigate(`/gyms/${effectiveGymId}/members`)}
           />
-=======
->>>>>>> origin/main
 
           <Box flex={1} />
 
