@@ -1,4 +1,8 @@
+<<<<<<< HEAD
+import { useState, useEffect, useCallback, useRef } from "react";
+=======
 import { useState, useEffect, useCallback } from "react";
+>>>>>>> origin/main
 import { useNavigate } from "react-router-dom";
 
 import {
@@ -14,8 +18,16 @@ import ChevronRightIcon from '@mui/icons-material/ChevronRight';
 import FitnessCenterIcon from "@mui/icons-material/FitnessCenter";
 import AutoAwesomeIcon from "@mui/icons-material/AutoAwesome";
 
+<<<<<<< HEAD
+import ReactMarkdown from "react-markdown";
 import { getWorkoutHistory } from "../../api/member";
 import { useNotification } from "../../context/NotificationContext";
+import { API_BASE_URL } from "../../api-config";
+import { tokenService } from "../../utils/tokenService";
+=======
+import { getWorkoutHistory } from "../../api/member";
+import { useNotification } from "../../context/NotificationContext";
+>>>>>>> origin/main
 
 // 이번 주 월~일 Date 배열 반환
 function getThisWeekDays() {
@@ -166,7 +178,11 @@ export default function WorkoutHistory() {
           />
 
           {/* AI 운동 분석 */}
+<<<<<<< HEAD
+          <AiWorkoutSummary year={year} month={month} />
+=======
           <AiWorkoutSummary view="monthly" days={history?.totalDays ?? 0} minutes={history?.totalUsageMinutes ?? 0} calories={history?.totalCalories ?? 0} />
+>>>>>>> origin/main
 
           {/* 달력 */}
           <Paper sx={{ p: 3, mb: 3, borderRadius: 4, border: '1px solid #eee' }} elevation={0}>
@@ -246,9 +262,12 @@ export default function WorkoutHistory() {
             calories={weeklyCalories}
           />
 
+<<<<<<< HEAD
+=======
           {/* AI 운동 분석 */}
           <AiWorkoutSummary view="weekly" days={weeklyActiveDays} minutes={weeklyMinutes} calories={weeklyCalories} />
 
+>>>>>>> origin/main
           {/* 이번 주 7일 스트립 */}
           <Paper sx={{ p: 3, mb: 3, borderRadius: 4, border: '1px solid #eee' }} elevation={0}>
             <Typography variant="subtitle1" fontWeight="800" mb={2}>이번 주</Typography>
@@ -391,6 +410,113 @@ function ActivityReportCard({ title, subtitle, loading, days, minutes, calories 
   );
 }
 
+<<<<<<< HEAD
+// ─── AI 운동 분석 카드 (실시간 스트리밍) ─────────────────────
+function AiWorkoutSummary({ year, month }) {
+  const [status, setStatus] = useState('idle'); // idle | loading | streaming | done | error
+  const [text, setText] = useState('');
+  const [errorMsg, setErrorMsg] = useState('');
+  const abortRef = useRef(null);
+  const textBoxRef = useRef(null);
+
+  // year/month 바뀌면 초기화
+  useEffect(() => {
+    abortRef.current?.abort();
+    setStatus('idle');
+    setText('');
+    setErrorMsg('');
+  }, [year, month]);
+
+  // 컴포넌트 언마운트 시 스트림 중단
+  useEffect(() => () => abortRef.current?.abort(), []);
+
+  // 새 토큰 올 때마다 스크롤 하단
+  useEffect(() => {
+    if (textBoxRef.current) {
+      textBoxRef.current.scrollTop = textBoxRef.current.scrollHeight;
+    }
+  }, [text]);
+
+  const startAnalysis = async () => {
+    abortRef.current?.abort();
+    const controller = new AbortController();
+    abortRef.current = controller;
+
+    setText('');
+    setErrorMsg('');
+    setStatus('loading');
+
+    try {
+      const token = tokenService.getToken();
+      const url = `${API_BASE_URL}/members/history/analyze?year=${year}&month=${month}`;
+      const response = await fetch(url, {
+        headers: { Authorization: `Bearer ${token}` },
+        signal: controller.signal,
+      });
+
+      if (response.status === 401) {
+        window.dispatchEvent(new CustomEvent('auth:unauthorized'));
+        return;
+      }
+      if (!response.ok) {
+        setErrorMsg(`서버 오류가 발생했습니다. (HTTP ${response.status})`);
+        setStatus('error');
+        return;
+      }
+
+      setStatus('streaming');
+      const reader = response.body.getReader();
+      const decoder = new TextDecoder();
+      let buffer = '';
+      let currentEvent = '';
+      let currentDataLines = [];
+
+      const dispatchEvent = () => {
+        if (!currentEvent && currentDataLines.length === 0) return;
+        const payload = currentDataLines.join('\n');
+        if (currentEvent === 'done' || payload.trim() === '[DONE]') { setStatus('done'); return true; }
+        if (currentEvent === 'error') { setErrorMsg(payload.trim()); setStatus('error'); return true; }
+        if (currentEvent === 'token') { setText(prev => prev + payload); }
+        currentEvent = '';
+        currentDataLines = [];
+        return false;
+      };
+
+      while (true) {
+        const { done, value } = await reader.read();
+        if (done) break;
+        buffer += decoder.decode(value, { stream: true });
+
+        const lines = buffer.split('\n');
+        buffer = lines.pop();
+
+        for (const line of lines) {
+          if (line === '') {
+            if (dispatchEvent()) return;
+          } else if (line.startsWith('event:')) {
+            currentEvent = line.slice(6).trim();
+          } else if (line.startsWith('data:')) {
+            currentDataLines.push(line.replace(/^data: ?/, ''));
+          }
+        }
+      }
+      setStatus('done');
+    } catch (e) {
+      if (e.name !== 'AbortError') {
+        setErrorMsg('AI 서비스에 연결할 수 없습니다.');
+        setStatus('error');
+      } else {
+        setStatus('idle');
+      }
+    }
+  };
+
+  const isRunning = status === 'loading' || status === 'streaming';
+
+  return (
+    <Paper elevation={0} sx={{ p: 3, mb: 3, borderRadius: 4, border: '1px solid #ede7f6', bgcolor: '#faf8ff' }}>
+      {/* 헤더 */}
+=======
 // ─── AI 운동 분석 카드 (mock) ────────────────────────────────
 const MOCK_ANALYSIS = {
   weekly: {
@@ -420,11 +546,107 @@ function AiWorkoutSummary({ view }) {
 
   return (
     <Paper elevation={0} sx={{ p: 3, mb: 3, borderRadius: 4, border: '1px solid #ede7f6', bgcolor: '#faf8ff' }}>
+>>>>>>> origin/main
       <Box display="flex" alignItems="center" justifyContent="space-between" mb={2}>
         <Box display="flex" alignItems="center" gap={1}>
           <AutoAwesomeIcon sx={{ color: '#7c4dff', fontSize: 20 }} />
           <Typography variant="subtitle1" fontWeight="900" sx={{ color: '#4a148c' }}>AI 운동 분석</Typography>
         </Box>
+<<<<<<< HEAD
+        <Chip
+          label={`${month}월 분석`}
+          size="small"
+          sx={{ bgcolor: '#ede7f6', color: '#7c4dff', fontWeight: 'bold', fontSize: '0.7rem' }}
+        />
+      </Box>
+
+      {/* idle: 분석 시작 버튼 */}
+      {status === 'idle' && (
+        <Box
+          sx={{
+            display: 'flex', flexDirection: 'column', alignItems: 'center',
+            gap: 1.5, py: 3, px: 2, bgcolor: 'white', borderRadius: 3,
+            border: '1px dashed #d1c4e9', cursor: 'pointer',
+            transition: '0.2s', '&:hover': { bgcolor: '#f3e5f5' }
+          }}
+          onClick={startAnalysis}
+        >
+          <AutoAwesomeIcon sx={{ color: '#7c4dff', fontSize: 32 }} />
+          <Typography variant="body2" fontWeight="800" sx={{ color: '#4a148c' }}>
+            이번 달 운동 AI 분석 받기
+          </Typography>
+          <Typography variant="caption" color="text.disabled">
+            Gemma AI가 운동 패턴을 분석하고 맞춤 피드백을 드려요
+          </Typography>
+        </Box>
+      )}
+
+      {/* loading: 연결 중 */}
+      {status === 'loading' && (
+        <Box display="flex" alignItems="center" gap={2} py={3} px={2} bgcolor="white" borderRadius={3} sx={{ border: '1px solid #ede7f6' }}>
+          <CircularProgress size={20} sx={{ color: '#7c4dff' }} />
+          <Typography variant="body2" fontWeight="700" color="text.secondary">AI 분석 중...</Typography>
+        </Box>
+      )}
+
+      {/* streaming / done: 텍스트 출력 */}
+      {(status === 'streaming' || status === 'done') && (
+        <Box
+          ref={textBoxRef}
+          sx={{
+            bgcolor: 'white', borderRadius: 3, p: 2,
+            border: '1px solid #ede7f6',
+            maxHeight: 320, overflowY: 'auto',
+            '& p': { m: 0, mb: 1, fontSize: '0.875rem', fontWeight: 600, lineHeight: 1.8, color: 'text.primary' },
+            '& strong': { fontWeight: 900 },
+            '& ul, & ol': { pl: 2.5, mb: 1 },
+            '& li': { fontSize: '0.875rem', fontWeight: 600, lineHeight: 1.8 },
+          }}
+        >
+          <ReactMarkdown>{text.replace(/\n(?!\n)/g, '\n\n')}</ReactMarkdown>
+          {status === 'streaming' && (
+            <Box component="span" sx={{
+              display: 'inline-block', width: 2, height: '1em',
+              bgcolor: '#7c4dff', ml: 0.3, verticalAlign: 'text-bottom',
+              animation: 'blink 1s step-end infinite',
+              '@keyframes blink': { '0%,100%': { opacity: 1 }, '50%': { opacity: 0 } },
+            }} />
+          )}
+        </Box>
+      )}
+
+      {/* error */}
+      {status === 'error' && (
+        <Box py={2} px={2} bgcolor="white" borderRadius={3} sx={{ border: '1px solid #ffcdd2' }}>
+          <Typography variant="body2" fontWeight="700" color="error.main">{errorMsg}</Typography>
+        </Box>
+      )}
+
+      {/* done / error: 다시 분석 버튼 */}
+      {(status === 'done' || status === 'error') && (
+        <Box
+          mt={1.5} display="flex" alignItems="center" gap={0.5}
+          sx={{ cursor: 'pointer', width: 'fit-content' }}
+          onClick={startAnalysis}
+        >
+          <AutoAwesomeIcon sx={{ color: '#9e9e9e', fontSize: 14 }} />
+          <Typography variant="caption" color="text.disabled" fontWeight="bold">
+            다시 분석하기
+          </Typography>
+        </Box>
+      )}
+
+      {/* 중단 버튼 */}
+      {isRunning && (
+        <Box
+          mt={1.5} display="flex" alignItems="center" gap={0.5}
+          sx={{ cursor: 'pointer', width: 'fit-content' }}
+          onClick={() => { abortRef.current?.abort(); setStatus('idle'); setText(''); }}
+        >
+          <Typography variant="caption" color="text.disabled" fontWeight="bold">중단</Typography>
+        </Box>
+      )}
+=======
         <Chip label={data.tag} size="small" sx={{ bgcolor: '#ede7f6', color: '#7c4dff', fontWeight: 'bold', fontSize: '0.7rem' }} />
       </Box>
 
@@ -448,6 +670,7 @@ function AiWorkoutSummary({ view }) {
       <Typography variant="caption" color="text.disabled" sx={{ mt: 2, display: 'block', fontStyle: 'italic' }}>
         * 실제 AI 연동 전 목업 데이터입니다
       </Typography>
+>>>>>>> origin/main
     </Paper>
   );
 }

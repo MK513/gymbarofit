@@ -6,8 +6,11 @@ spring:
   sql:
     init:
       mode: always
+<<<<<<< HEAD
+=======
       # k6 시드 데이터만 로드 (절대경로는 워크플로에서 K6_SEED_PATH로 주입)
       data-locations: file:${K6_SEED_PATH}
+>>>>>>> origin/main
   datasource:
     url: jdbc:h2:mem:gymbarofit;DB_CLOSE_DELAY=-1;DB_CLOSE_ON_EXIT=FALSE
     username: sa
@@ -22,6 +25,12 @@ spring:
       enabled: false
 
 app:
+<<<<<<< HEAD
+  ai:
+    fastapi:
+      base-url: http://localhost:8000
+=======
+>>>>>>> origin/main
   upload:
     dir: /tmp/gymbarofit-ci
   jwt:

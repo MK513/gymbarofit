@@ -1,13 +1,20 @@
 package skku.gymbarofit.api.locker;
 
 import lombok.RequiredArgsConstructor;
+<<<<<<< HEAD
+=======
 import org.springframework.http.HttpStatus;
+>>>>>>> origin/main
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 import skku.gymbarofit.api.locker.service.LockerFacade;
 import skku.gymbarofit.api.locker.service.LockerService;
 import skku.gymbarofit.api.global.annotation.CurrentUserId;
+<<<<<<< HEAD
+import skku.gymbarofit.core.item.locker.dto.*;
+
+=======
 import skku.gymbarofit.api.user.owner.dto.LockerZoneCreateRequestDto;
 import skku.gymbarofit.api.user.owner.dto.LockerZoneSummaryDto;
 import skku.gymbarofit.api.user.owner.dto.LockerZoneUpdateRequestDto;
@@ -15,11 +22,17 @@ import skku.gymbarofit.core.item.locker.dto.*;
 
 import java.util.List;
 
+>>>>>>> origin/main
 @RequestMapping("/lockers")
 @RequiredArgsConstructor
 @RestController
 public class LockerApiController {
 
+<<<<<<< HEAD
+    private final LockerService lockerService;
+    private final LockerFacade lockerFacade;
+
+=======
     //TODO API 경로 수정
 
     private final LockerService lockerService;
@@ -27,6 +40,7 @@ public class LockerApiController {
 
     // ─── 회원용 ────────────────────────────────────────────────────────────────
 
+>>>>>>> origin/main
     @PreAuthorize("hasAnyRole('MEMBER', 'OWNER')")
     @GetMapping("/zones")
     public ResponseEntity<ZoneListResponseDto> zones(
@@ -36,7 +50,11 @@ public class LockerApiController {
     }
 
     @PreAuthorize("hasAnyRole('MEMBER', 'OWNER')")
+<<<<<<< HEAD
+    @GetMapping("/zones/{zoneId}/lockers")
+=======
     @GetMapping("/zones/{zoneId}")
+>>>>>>> origin/main
     public ResponseEntity<LockerListResponseDto> lockers(
             @PathVariable Long zoneId
     ) {
@@ -78,6 +96,8 @@ public class LockerApiController {
     ) {
         return ResponseEntity.ok(lockerFacade.extend(usageId, request));
     }
+<<<<<<< HEAD
+=======
 
     @PreAuthorize("hasRole('OWNER')")
     @PatchMapping("/{lockerId}/status")
@@ -128,4 +148,5 @@ public class LockerApiController {
         lockerService.deleteLockerZone(ownerId, zoneId);
         return ResponseEntity.noContent().build();
     }
+>>>>>>> origin/main
 }

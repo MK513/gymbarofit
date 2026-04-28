@@ -18,6 +18,10 @@
     "react": "^19.2.0",
     "react-dom": "^19.2.0",
     "react-konva": "^19.2.2",
+<<<<<<< HEAD
+    "react-markdown": "^10.1.0",
+=======
+>>>>>>> origin/main
     "react-router-dom": "^7.11.0",
     "recharts": "^3.8.0"
   },

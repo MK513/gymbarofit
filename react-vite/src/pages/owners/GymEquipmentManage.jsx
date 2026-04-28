@@ -190,12 +190,15 @@ export default function GymEquipmentManage() {
     }
   };
 
+<<<<<<< HEAD
+=======
   // TODO: owner쪽 apicontroller 분리, 프론트 경로 단순화
   // TODO: 운동 기록 AI 요약기능 추가?
   // TODO: Redis, PostgreSQL으로 DB 변경
   
 
 
+>>>>>>> origin/main
   /* ── Status Update ── */
   const handleStatusUpdate = async (equipId, newStatus) => {
     try {

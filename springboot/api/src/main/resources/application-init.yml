@@ -1,0 +1,10 @@
+spring:
+  jpa:
+    hibernate:
+      ddl-auto: create
+  sql:
+    init:
+      mode: always
+      data-locations:
+        - classpath:data-dev.sql
+        - classpath:data-dev-sample.sql

@@ -1,9 +1,30 @@
+<<<<<<< HEAD
+x-springboot-build: &springboot-build
+  context: ./springboot
+  dockerfile: Dockerfile
+
+x-springboot-common: &springboot-common
+  env_file:
+    - ./springboot/.env
+  depends_on:
+    postgres:
+      condition: service_healthy
+    redis:
+      condition: service_started
+  restart: unless-stopped
+
+=======
+>>>>>>> origin/main
 services:
 
   # ── PostgreSQL ────────────────────────────────────────────────────────────────
   postgres:
     image: postgres:16-alpine
     container_name: gymbarofit-postgres
+<<<<<<< HEAD
+    command: postgres -c max_connections=200
+=======
+>>>>>>> origin/main
     ports:
       - "5432:5432"
     environment:
@@ -23,12 +44,30 @@ services:
   redis:
     image: redis:7-alpine
     container_name: gymbarofit-redis
+<<<<<<< HEAD
+    command: redis-server --notify-keyspace-events Ex
+=======
+>>>>>>> origin/main
     ports:
       - "6379:6379"
     volumes:
       - redis-data:/data
     restart: unless-stopped
 
+<<<<<<< HEAD
+  # ── Spring Boot API ───────────────────────────────────────────────────────────
+  backend:
+    <<: *springboot-common
+    build:
+      <<: *springboot-build
+      args:
+        APP_MODULE: api
+    container_name: gymbarofit-backend
+    ports:
+      - "8080:8080"
+    environment:
+      SPRING_PROFILES_ACTIVE: "docker${INIT_PROFILE:-}"
+=======
   # ── Spring Boot Backend ───────────────────────────────────────────────────────
   backend:
     build:
@@ -41,10 +80,15 @@ services:
       - ./springboot/.env
     environment:
       SPRING_PROFILES_ACTIVE: docker
+>>>>>>> origin/main
       POSTGRES_URL: jdbc:postgresql://postgres:5432/gymbarofit
       REDIS_HOST: redis
       REDIS_PORT: 6379
       LOG_PATH: /app/logs
+<<<<<<< HEAD
+      FASTAPI_BASE_URL: http://gemma4-ai:8000
+=======
+>>>>>>> origin/main
     volumes:
       - ./springboot/images:/app/images
       - ./springboot/logs:/app/logs
@@ -53,7 +97,29 @@ services:
         condition: service_healthy
       redis:
         condition: service_started
+<<<<<<< HEAD
+      gemma4-ai:
+        condition: service_healthy
+        required: false
+
+  # ── Spring Batch ──────────────────────────────────────────────────────────────
+  batch:
+    <<: *springboot-common
+    build:
+      <<: *springboot-build
+      args:
+        APP_MODULE: batch
+    container_name: gymbarofit-batch
+    ports:
+      - "8081:8081"
+    environment:
+      SPRING_PROFILES_ACTIVE: docker
+      POSTGRES_URL: jdbc:postgresql://postgres:5432/gymbarofit
+      REDIS_HOST: redis
+      REDIS_PORT: 6379
+=======
     restart: unless-stopped
+>>>>>>> origin/main
 
   # ── React + Vite Frontend ─────────────────────────────────────────────────────
   frontend:
@@ -72,6 +138,50 @@ services:
       - backend
     restart: unless-stopped
 
+<<<<<<< HEAD
+  # ── Gemma4 AI Server ──────────────────────────────────────────────────────────
+  # 기본 실행 시 포함 안 됨 — `--profile ai` 옵션으로만 실행됨
+  gemma4-ai:
+    profiles: [ai]
+    build:
+      context: ./gemma4
+      dockerfile: Dockerfile
+      args:
+        BUILDKIT_INLINE_CACHE: "1"
+    image: gemma4-ai:latest
+    container_name: gemma4-ai
+    ports:
+      - "8000:8000"
+    volumes:
+      - ./gemma4/models/unsloth-gemma-4-E2B-it-unsloth-bnb-4bit:/app/models/unsloth-gemma-4-E2B-it-unsloth-bnb-4bit:ro
+      - ./gemma4/models/gemma4-E2B-fitness-lora:/app/models/gemma4-E2B-fitness-lora
+      - ./gemma4/data:/app/data
+      - ./gemma4/utils:/app/utils
+      - ./gemma4/config:/app/config
+      - ./gemma4/main.py:/app/main.py
+      - ./gemma4/train.py:/app/train.py
+    env_file:
+      - ./gemma4/.env
+    environment:
+      - PYTHONUNBUFFERED=1
+      - HF_HUB_OFFLINE=1
+    deploy:
+      resources:
+        reservations:
+          devices:
+            - driver: nvidia
+              count: all
+              capabilities: [gpu]
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8000/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 120s
+
+=======
+>>>>>>> origin/main
 volumes:
   postgres-data:
   redis-data:

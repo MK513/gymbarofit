@@ -1,5 +1,9 @@
 package skku.gymbarofit.api.config;
 
+<<<<<<< HEAD
+import jakarta.servlet.DispatcherType;
+=======
+>>>>>>> origin/main
 import jakarta.servlet.http.HttpServletResponse;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Value;
@@ -74,13 +78,21 @@ public class SecurityConfig {
                         "script-src 'self'"
                 )))
                 .authorizeHttpRequests(authorize -> authorize
+<<<<<<< HEAD
+                        .dispatcherTypeMatchers(DispatcherType.ASYNC).permitAll()
+=======
+>>>>>>> origin/main
                         .requestMatchers("/v3/api-docs/**", "/swagger-ui/**", "/swagger-ui.html").permitAll()
                         .requestMatchers("/images/**").permitAll()
                         .requestMatchers(org.springframework.http.HttpMethod.OPTIONS, "/**").permitAll()
                         .requestMatchers("/members/register", "/members/login").permitAll()
                         .requestMatchers("/owners/register", "/owners/login").permitAll()
                         .requestMatchers("/auth/refresh", "/auth/logout").permitAll()
+<<<<<<< HEAD
+                        .requestMatchers("/memberships/**").hasAnyRole("MEMBER", "OWNER")
+=======
                         .requestMatchers("/memberships/**").hasRole("MEMBER")
+>>>>>>> origin/main
                         .requestMatchers("/members/**").hasRole("MEMBER")
                         .requestMatchers("/owners/**").hasRole("OWNER")
                         .requestMatchers(

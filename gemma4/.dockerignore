@@ -1,0 +1,42 @@
+# 가상환경
+.venv/
+__pycache__/
+*.pyc
+*.pyo
+
+# 모델 가중치 (볼륨 마운트로 제공)
+models/
+*.safetensors
+*.bin
+tokenizer.json
+
+# 학습 데이터 (볼륨 마운트로 제공)
+data/*.jsonl
+
+# 환경 변수
+.env
+
+# Git
+.git/
+.gitignore
+
+# Jupyter / 문서
+*.ipynb
+.ipynb_checkpoints/
+docs/
+README.md
+
+# WandB
+wandb/
+
+# uv lock / pyproject (pip으로 직접 설치하므로 불필요)
+uv.lock
+pyproject.toml
+
+# Docker 관련 파일 자체
+Dockerfile
+docker-compose.yml
+.dockerignore
+
+# Windows 특이 파일
+.python-version

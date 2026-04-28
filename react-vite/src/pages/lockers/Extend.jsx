@@ -43,6 +43,16 @@ export default function Extension() {
       const pathVariable = { usageId: usageId };
       const res = await getLockerInfo(pathVariable);
 
+<<<<<<< HEAD
+      // 남은 일수 계산 (endDate는 "YYYY-MM-DD" 문자열로 수신)
+      const formattedEndDate = res.endDate;
+      const today = new Date();
+      today.setHours(0, 0, 0, 0);
+      const [y, m, d] = formattedEndDate.split("-").map(Number);
+      const end = new Date(y, m - 1, d); // 로컬 자정 기준
+      const diffTime = end - today;
+      const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+=======
       // 서버 날짜 배열 변환
       const formattedEndDate = `${res.endDate[0]}-${String(res.endDate[1]).padStart(2, "0")}-${String(res.endDate[2]).padStart(2, "0")}`;
 
@@ -51,6 +61,7 @@ export default function Extension() {
       const end = new Date(formattedEndDate);
       const diffTime = end - today;
       const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24)); 
+>>>>>>> origin/main
 
       setUsageData({
         ...res,

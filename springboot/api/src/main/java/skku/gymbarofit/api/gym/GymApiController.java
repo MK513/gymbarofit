@@ -60,8 +60,11 @@ public class GymApiController {
         return ResponseEntity.ok(equipmentService.getEquipments(gymId));
     }
 
+<<<<<<< HEAD
+=======
     // TODO: redis로 일부 db 이관
 
+>>>>>>> origin/main
     // ─── 오너용 Gym 관리 ────────────────────────────────────────────────────────
 
     @PreAuthorize("hasRole('OWNER')")

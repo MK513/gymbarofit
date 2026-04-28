@@ -1,6 +1,11 @@
 spring:
   jpa:
     hibernate:
+<<<<<<< HEAD
+      ddl-auto: validate
+    defer-datasource-initialization: true
+    database-platform: org.hibernate.dialect.PostgreSQLDialect
+=======
       ddl-auto: create
     defer-datasource-initialization: true
     database-platform: org.hibernate.dialect.PostgreSQLDialect
@@ -11,16 +16,33 @@ spring:
         - classpath:data-dev.sql
         - classpath:data-dev-sample.sql
         - classpath:data-k6-seed.sql
+>>>>>>> origin/main
   datasource:
     url: ${POSTGRES_URL}
     username: ${POSTGRES_USERNAME}
     password: ${POSTGRES_PASSWORD}
     driver-class-name: org.postgresql.Driver
+<<<<<<< HEAD
+    hikari:
+      maximum-pool-size: 10
+      minimum-idle: 2
+      connection-timeout: 30000
+      idle-timeout: 600000
+      max-lifetime: 1800000
+
+=======
+>>>>>>> origin/main
   data:
     redis:
       host: ${REDIS_HOST:redis}
       port: ${REDIS_PORT:6379}
 
 app:
+<<<<<<< HEAD
+  ai:
+    fastapi:
+      base-url: ${FASTAPI_BASE_URL}
+=======
+>>>>>>> origin/main
   upload:
     dir: /app/images

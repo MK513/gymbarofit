@@ -14,7 +14,10 @@ public class ItemInfo {
 
     private String name;
 
+<<<<<<< HEAD
+=======
     // TODO 이후 아이템 고장 상태 등 업데이트 기능
+>>>>>>> origin/main
     @Enumerated(EnumType.STRING)
     private ItemStatus status;
 
