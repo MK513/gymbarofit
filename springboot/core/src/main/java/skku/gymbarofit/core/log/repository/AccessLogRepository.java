@@ -19,11 +19,19 @@ public interface AccessLogRepository extends JpaRepository<AccessLog, Long> {
      * 반환 배열: [0]=hour(int), [1]=count(long)
      */
     @Query(value = """
+<<<<<<< HEAD
             SELECT EXTRACT(HOUR FROM occurred_at) AS hr, COUNT(*) AS cnt
             FROM access_log
             WHERE gym_id = :gymId
             GROUP BY hr
             ORDER BY hr
+=======
+            SELECT HOUR(occurred_at) AS hr, COUNT(*) AS cnt
+            FROM access_log
+            WHERE gym_id = :gymId
+            GROUP BY HOUR(occurred_at)
+            ORDER BY HOUR(occurred_at)
+>>>>>>> origin/main
             """, nativeQuery = true)
     List<Object[]> countByGymGroupByHour(@Param("gymId") Long gymId);
 

@@ -36,6 +36,7 @@ public class MembershipInternalService {
         return membershipRepository.findFirstByMember_Id(memberId)
                 .map(Membership::getGym);
     }
+<<<<<<< HEAD
 
     @Transactional(readOnly = true)
     public List<Membership> findAllByGymId(Long gymId) {
@@ -47,4 +48,6 @@ public class MembershipInternalService {
                 .ifPresent(Membership::expire);
     }
 
+=======
+>>>>>>> origin/main
 }

@@ -1,10 +1,15 @@
+<<<<<<< HEAD
 import { useState, useEffect } from "react";
 import { Paper, Box, Typography, Button, Chip, Stack, IconButton, LinearProgress } from "@mui/material";
+=======
+import { Paper, Box, Typography, Button, Chip, Stack, IconButton } from "@mui/material";
+>>>>>>> origin/main
 import FitnessCenterIcon from "@mui/icons-material/FitnessCenter";
 import EventAvailableIcon from "@mui/icons-material/EventAvailable";
 import AccessTimeIcon from '@mui/icons-material/AccessTime';
 import NotificationsActiveIcon from '@mui/icons-material/NotificationsActive';
 import MapIcon from "@mui/icons-material/Map";
+<<<<<<< HEAD
 import TimerIcon from "@mui/icons-material/Timer";
 
 const USAGE_LIMIT_MS = 20 * 60 * 1000;
@@ -65,6 +70,8 @@ function UsageTimer({ startAtMs }) {
     </Box>
   );
 }
+=======
+>>>>>>> origin/main
 
 const SECTION_STYLES = {
   usage:   { bg: '#fff8e1', border: '#ffe0b2', textColor: 'warning.dark',   chip: 'warning' },
@@ -114,6 +121,7 @@ function EquipmentSection({ data, titleIcon, titleText, statusLabel, variant, ac
           <Typography variant="subtitle2" fontWeight="800" color="text.primary" mb={0.3}>
             {data.name}
           </Typography>
+<<<<<<< HEAD
           {variant === 'usage' && data.startAtMs ? (
             <UsageTimer startAtMs={data.startAtMs} />
           ) : (
@@ -124,6 +132,14 @@ function EquipmentSection({ data, titleIcon, titleText, statusLabel, variant, ac
               </Typography>
             </Box>
           )}
+=======
+          <Box display="flex" alignItems="center" mb={1.2}>
+            <AccessTimeIcon sx={{ fontSize: 13, mr: 0.4, color: variant === 'called' ? 'error.main' : 'text.disabled' }} />
+            <Typography variant="caption" fontWeight="700" color={variant === 'called' ? 'error.main' : 'text.secondary'}>
+              {data.time}
+            </Typography>
+          </Box>
+>>>>>>> origin/main
 
           {variant === 'called' ? (
             <Stack direction="row" spacing={1}>

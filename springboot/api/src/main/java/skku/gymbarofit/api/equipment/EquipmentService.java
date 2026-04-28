@@ -1,8 +1,11 @@
 package skku.gymbarofit.api.equipment;
 
 import lombok.RequiredArgsConstructor;
+<<<<<<< HEAD
 import org.springframework.cache.annotation.CacheEvict;
 import org.springframework.cache.annotation.Cacheable;
+=======
+>>>>>>> origin/main
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -54,11 +57,16 @@ public class EquipmentService {
     private final NotificationFacade notificationFacade;
     private final EquipmentLogInternalService equipmentLogInternalService;
     private final ApplicationEventPublisher applicationEventPublisher;
+<<<<<<< HEAD
     private final EquipmentUsageTtlService equipmentUsageTtlService;
     private final Clock clock;
 
     @Transactional(readOnly = true)
     @Cacheable(value = "equipment:usage:active", key = "#gymId")
+=======
+    private final Clock clock;
+
+>>>>>>> origin/main
     public EquipmentListResponseDto getEquipments(Long gymId) {
 
         List<Equipment> equipments = equipmentInternalService.findAllByGymId(gymId);
@@ -82,7 +90,10 @@ public class EquipmentService {
                 .map(EquipmentUsage::getId);
     }
 
+<<<<<<< HEAD
     @CacheEvict(value = "equipment:usage:active", allEntries = true)
+=======
+>>>>>>> origin/main
     @DistributedLock(key = "'equipment:' + #equipmentId")
     @NotifyEquipmentChange
     public Long joinQueue(Long memberId, @EquipmentId Long equipmentId) {
@@ -102,7 +113,10 @@ public class EquipmentService {
         return usage.getId();
     }
 
+<<<<<<< HEAD
     @CacheEvict(value = "equipment:usage:active", allEntries = true)
+=======
+>>>>>>> origin/main
     @DistributedLock(key = "'usage:' + #usageId")
     @NotifyEquipmentChange
     public void leaveQueue(Long usageId) {
@@ -114,7 +128,10 @@ public class EquipmentService {
         );
     }
 
+<<<<<<< HEAD
     @CacheEvict(value = "equipment:usage:active", allEntries = true)
+=======
+>>>>>>> origin/main
     @DistributedLock(key = "'equipment:' + #equipmentId")
     @NotifyEquipmentChange
     public Long createUsage(Long memberId, @EquipmentId Long equipmentId) {
@@ -138,18 +155,27 @@ public class EquipmentService {
                 EquipmentLog.from(usage, EquipmentEventType.USAGE_STARTED, clock)
         );
 
+<<<<<<< HEAD
         equipmentUsageTtlService.registerTtlAfterCommit(usage.getId());
         return usage.getId();
     }
 
     @CacheEvict(value = "equipment:usage:active", allEntries = true)
+=======
+        return usage.getId();
+    }
+
+>>>>>>> origin/main
     @DistributedLock(key = "'usage:' + #usageId")
     @NotifyEquipmentChange
     public void endUsage(@UsageId Long usageId) {
 
         EquipmentUsage currentUsage = equipmentUsageInternalService.findByIdForUpdate(usageId);
         currentUsage.endUse(currentUsage.getMember().getWeight(), clock);
+<<<<<<< HEAD
         equipmentUsageTtlService.deleteTtl(usageId);
+=======
+>>>>>>> origin/main
 
         Long equipmentId = currentUsage.getEquipment().getId();
         EquipmentUsage firstWaiting = equipmentUsageInternalService.findFirstWaitingForUpdate(equipmentId);
@@ -164,7 +190,10 @@ public class EquipmentService {
         );
     }
 
+<<<<<<< HEAD
     @CacheEvict(value = "equipment:usage:active", allEntries = true)
+=======
+>>>>>>> origin/main
     @DistributedLock(key = "'usage:' + #usageId")
     @NotifyEquipmentChange
     public void startUsage(@UsageId Long usageId) {
@@ -177,6 +206,7 @@ public class EquipmentService {
         equipmentLogInternalService.save(
                 EquipmentLog.from(usage, EquipmentEventType.USAGE_STARTED, clock)
         );
+<<<<<<< HEAD
 
         equipmentUsageTtlService.registerTtlAfterCommit(usageId);
     }
@@ -205,6 +235,10 @@ public class EquipmentService {
     }
 
     @CacheEvict(value = "equipment:usage:active", allEntries = true)
+=======
+    }
+
+>>>>>>> origin/main
     @NotifyEquipmentChange
     public OwnerGymEquipmentDto updateStatus(@EquipmentId Long equipmentId, EquipmentStatusUpdateRequestDto dto) {
         Equipment equipment = equipmentInternalService.findById(equipmentId);
@@ -214,7 +248,10 @@ public class EquipmentService {
 
     // ─── 오너용 Equipment 관리 ──────────────────────────────────────────────────
 
+<<<<<<< HEAD
     @CacheEvict(value = "equipment:usage:active", key = "#gymId")
+=======
+>>>>>>> origin/main
     public List<Long> addEquipments(Long ownerId, Long gymId, EquipmentCreateRequestDto dto) {
         Gym gym = gymInternalService.findById(gymId);
         List<Equipment> list = IntStream.range(0, dto.count())
@@ -230,7 +267,10 @@ public class EquipmentService {
         return list.stream().map(Equipment::getId).toList();
     }
 
+<<<<<<< HEAD
     @CacheEvict(value = "equipment:usage:active", allEntries = true)
+=======
+>>>>>>> origin/main
     public OwnerGymEquipmentDto updateEquipment(Long ownerId, Long equipmentId, EquipmentUpdateRequestDto dto) {
         Equipment equipment = equipmentRepository.findById(equipmentId)
                 .orElseThrow(() -> new EquipmentException(EquipmentErrorCode.EQUIPMENT_NOT_FOUND, equipmentId, null));
@@ -238,7 +278,10 @@ public class EquipmentService {
         return OwnerGymEquipmentDto.from(equipment);
     }
 
+<<<<<<< HEAD
     @CacheEvict(value = "equipment:usage:active", allEntries = true)
+=======
+>>>>>>> origin/main
     public void deleteEquipment(Long ownerId, Long equipmentId) {
         Equipment equipment = equipmentRepository.findById(equipmentId)
                 .orElseThrow(() -> new EquipmentException(EquipmentErrorCode.EQUIPMENT_NOT_FOUND, equipmentId, null));

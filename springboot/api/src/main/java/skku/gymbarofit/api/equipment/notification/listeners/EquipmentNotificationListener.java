@@ -20,12 +20,20 @@ public class EquipmentNotificationListener {
     @Async("notificationExecutor")
     @TransactionalEventListener(phase = TransactionPhase.AFTER_COMMIT)
     public void onEquipmentChanged(EquipmentChangedEvent event) {
+<<<<<<< HEAD
         notificationFacade.notifyEquipmentStatus(event.getEquipmentId());
+=======
+        notificationFacade.notifyEquipmentStatus(event.equipmentId());
+>>>>>>> origin/main
     }
 
     @Async("notificationExecutor")
     @TransactionalEventListener(phase = TransactionPhase.AFTER_COMMIT)
     public void onWaitingAvailable(WaitingAvailableEvent event) {
+<<<<<<< HEAD
         notificationFacade.notifyWaitingAvailable(event.getMemberId(), event.getEquipmentId());
+=======
+        notificationFacade.notifyWaitingAvailable(event.memberId(), event.equipmentId());
+>>>>>>> origin/main
     }
 }

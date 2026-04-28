@@ -1,3 +1,4 @@
+<<<<<<< HEAD
 x-springboot-build: &springboot-build
   context: ./springboot
   dockerfile: Dockerfile
@@ -12,13 +13,18 @@ x-springboot-common: &springboot-common
       condition: service_started
   restart: unless-stopped
 
+=======
+>>>>>>> origin/main
 services:
 
   # ── PostgreSQL ────────────────────────────────────────────────────────────────
   postgres:
     image: postgres:16-alpine
     container_name: gymbarofit-postgres
+<<<<<<< HEAD
     command: postgres -c max_connections=200
+=======
+>>>>>>> origin/main
     ports:
       - "5432:5432"
     environment:
@@ -38,13 +44,17 @@ services:
   redis:
     image: redis:7-alpine
     container_name: gymbarofit-redis
+<<<<<<< HEAD
     command: redis-server --notify-keyspace-events Ex
+=======
+>>>>>>> origin/main
     ports:
       - "6379:6379"
     volumes:
       - redis-data:/data
     restart: unless-stopped
 
+<<<<<<< HEAD
   # ── Spring Boot API ───────────────────────────────────────────────────────────
   backend:
     <<: *springboot-common
@@ -57,11 +67,28 @@ services:
       - "8080:8080"
     environment:
       SPRING_PROFILES_ACTIVE: "docker${INIT_PROFILE:-}"
+=======
+  # ── Spring Boot Backend ───────────────────────────────────────────────────────
+  backend:
+    build:
+      context: ./springboot
+      dockerfile: Dockerfile
+    container_name: gymbarofit-backend
+    ports:
+      - "8080:8080"
+    env_file:
+      - ./springboot/.env
+    environment:
+      SPRING_PROFILES_ACTIVE: docker
+>>>>>>> origin/main
       POSTGRES_URL: jdbc:postgresql://postgres:5432/gymbarofit
       REDIS_HOST: redis
       REDIS_PORT: 6379
       LOG_PATH: /app/logs
+<<<<<<< HEAD
       FASTAPI_BASE_URL: http://gemma4-ai:8000
+=======
+>>>>>>> origin/main
     volumes:
       - ./springboot/images:/app/images
       - ./springboot/logs:/app/logs
@@ -70,6 +97,7 @@ services:
         condition: service_healthy
       redis:
         condition: service_started
+<<<<<<< HEAD
       gemma4-ai:
         condition: service_healthy
         required: false
@@ -89,6 +117,9 @@ services:
       POSTGRES_URL: jdbc:postgresql://postgres:5432/gymbarofit
       REDIS_HOST: redis
       REDIS_PORT: 6379
+=======
+    restart: unless-stopped
+>>>>>>> origin/main
 
   # ── React + Vite Frontend ─────────────────────────────────────────────────────
   frontend:
@@ -107,6 +138,7 @@ services:
       - backend
     restart: unless-stopped
 
+<<<<<<< HEAD
   # ── Gemma4 AI Server ──────────────────────────────────────────────────────────
   # 기본 실행 시 포함 안 됨 — `--profile ai` 옵션으로만 실행됨
   gemma4-ai:
@@ -148,6 +180,8 @@ services:
       retries: 3
       start_period: 120s
 
+=======
+>>>>>>> origin/main
 volumes:
   postgres-data:
   redis-data:

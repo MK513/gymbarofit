@@ -2,4 +2,7 @@ rootProject.name = 'gymbarofit'
 
 include ':core'
 include ':api'
+<<<<<<< HEAD
 include ':batch'
+=======
+>>>>>>> origin/main
