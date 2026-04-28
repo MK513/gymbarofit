@@ -5,5 +5,6 @@ public enum EquipmentEventType {
     WAIT_CANCELLED,
     WAIT_CALLED,
     USAGE_STARTED,
-    USAGE_ENDED
+    USAGE_ENDED,
+    USAGE_FORCE_ENDED
 }

@@ -54,6 +54,7 @@ public class EquipmentService {
     private final NotificationFacade notificationFacade;
     private final EquipmentLogInternalService equipmentLogInternalService;
     private final ApplicationEventPublisher applicationEventPublisher;
+    private final EquipmentUsageTtlService equipmentUsageTtlService;
     private final Clock clock;
 
     @Transactional(readOnly = true)
@@ -137,6 +138,7 @@ public class EquipmentService {
                 EquipmentLog.from(usage, EquipmentEventType.USAGE_STARTED, clock)
         );
 
+        equipmentUsageTtlService.registerTtlAfterCommit(usage.getId());
         return usage.getId();
     }
 
@@ -147,6 +149,7 @@ public class EquipmentService {
 
         EquipmentUsage currentUsage = equipmentUsageInternalService.findByIdForUpdate(usageId);
         currentUsage.endUse(currentUsage.getMember().getWeight(), clock);
+        equipmentUsageTtlService.deleteTtl(usageId);
 
         Long equipmentId = currentUsage.getEquipment().getId();
         EquipmentUsage firstWaiting = equipmentUsageInternalService.findFirstWaitingForUpdate(equipmentId);
@@ -173,6 +176,31 @@ public class EquipmentService {
 
         equipmentLogInternalService.save(
                 EquipmentLog.from(usage, EquipmentEventType.USAGE_STARTED, clock)
+        );
+
+        equipmentUsageTtlService.registerTtlAfterCommit(usageId);
+    }
+
+    @CacheEvict(value = "equipment:usage:active", allEntries = true)
+    @DistributedLock(key = "'usage:' + #usageId")
+    @NotifyEquipmentChange
+    public void forceEndUsage(@UsageId Long usageId) {
+        EquipmentUsage currentUsage = equipmentUsageInternalService.findByIdForUpdate(usageId);
+        if (currentUsage.getStatus() != EquipmentUsageStatus.IN_USE) {
+            return;
+        }
+        currentUsage.endUse(currentUsage.getMember().getWeight(), clock);
+
+        Long equipmentId = currentUsage.getEquipment().getId();
+        EquipmentUsage firstWaiting = equipmentUsageInternalService.findFirstWaitingForUpdate(equipmentId);
+
+        if (firstWaiting != null) {
+            firstWaiting.call();
+            applicationEventPublisher.publishEvent(new WaitingAvailableEvent(firstWaiting.getMember().getId(), equipmentId));
+        }
+
+        equipmentLogInternalService.save(
+                EquipmentLog.from(currentUsage, EquipmentEventType.USAGE_FORCE_ENDED, clock)
         );
     }
 

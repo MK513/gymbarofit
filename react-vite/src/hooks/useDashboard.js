@@ -64,6 +64,7 @@ export function useDashboard(initialGym) {
 
       const newEquipInfo = { usage: null, reservation: null };
       const eq = res.equipmentUsage;
+      console.log("[DEBUG] inUseDto:", eq?.inUseDto);
       if (eq?.inUseDto) {
         newEquipInfo.usage = {
           uid: eq.inUseDto.usageId,
@@ -71,6 +72,7 @@ export function useDashboard(initialGym) {
           name: eq.inUseDto.name,
           imageUrl: eq.inUseDto.imageUrl ? `${BUCKET_BASE_URL}${eq.inUseDto.imageUrl}` : "",
           time: "현재 이용 중",
+          startAtMs: eq.inUseDto.startAtMs ?? null,
         };
       }
       if (eq?.waitingDto) {

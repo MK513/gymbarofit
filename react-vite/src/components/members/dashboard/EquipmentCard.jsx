@@ -1,9 +1,70 @@
-import { Paper, Box, Typography, Button, Chip, Stack, IconButton } from "@mui/material";
+import { useState, useEffect } from "react";
+import { Paper, Box, Typography, Button, Chip, Stack, IconButton, LinearProgress } from "@mui/material";
 import FitnessCenterIcon from "@mui/icons-material/FitnessCenter";
 import EventAvailableIcon from "@mui/icons-material/EventAvailable";
 import AccessTimeIcon from '@mui/icons-material/AccessTime';
 import NotificationsActiveIcon from '@mui/icons-material/NotificationsActive';
 import MapIcon from "@mui/icons-material/Map";
+import TimerIcon from "@mui/icons-material/Timer";
+
+const USAGE_LIMIT_MS = 20 * 60 * 1000;
+
+function UsageTimer({ startAtMs }) {
+  const [remaining, setRemaining] = useState(() => {
+    if (!startAtMs) return USAGE_LIMIT_MS;
+    return Math.max(0, USAGE_LIMIT_MS - (Date.now() - startAtMs));
+  });
+
+  useEffect(() => {
+    if (!startAtMs) return;
+    const tick = () => {
+      setRemaining(Math.max(0, USAGE_LIMIT_MS - (Date.now() - startAtMs)));
+    };
+    tick();
+    const id = setInterval(tick, 1000);
+    return () => clearInterval(id);
+  }, [startAtMs]);
+
+  const totalSec = Math.ceil(remaining / 1000);
+  const minutes = Math.floor(totalSec / 60);
+  const seconds = totalSec % 60;
+  const timeStr = `${String(minutes).padStart(2, "0")}:${String(seconds).padStart(2, "0")}`;
+  const progress = (remaining / USAGE_LIMIT_MS) * 100;
+  const isUrgent = remaining <= 5 * 60 * 1000;
+
+  return (
+    <Box sx={{ mt: 0.5, mb: 1.2 }}>
+      <Box display="flex" alignItems="center" gap={0.5} mb={0.6}>
+        <TimerIcon sx={{ fontSize: 13, color: isUrgent ? "error.main" : "warning.main" }} />
+        <Typography
+          variant="h6"
+          fontWeight="900"
+          lineHeight={1}
+          color={isUrgent ? "error.main" : "warning.dark"}
+          sx={{ fontVariantNumeric: "tabular-nums", letterSpacing: 1 }}
+        >
+          {timeStr}
+        </Typography>
+        <Typography variant="caption" color="text.secondary" fontWeight={600} sx={{ ml: 0.3 }}>
+          남음
+        </Typography>
+      </Box>
+      <LinearProgress
+        variant="determinate"
+        value={progress}
+        sx={{
+          height: 5,
+          borderRadius: 3,
+          bgcolor: "#f5f5f5",
+          "& .MuiLinearProgress-bar": {
+            bgcolor: isUrgent ? "error.main" : "warning.main",
+            borderRadius: 3,
+          },
+        }}
+      />
+    </Box>
+  );
+}
 
 const SECTION_STYLES = {
   usage:   { bg: '#fff8e1', border: '#ffe0b2', textColor: 'warning.dark',   chip: 'warning' },
@@ -53,12 +114,16 @@ function EquipmentSection({ data, titleIcon, titleText, statusLabel, variant, ac
           <Typography variant="subtitle2" fontWeight="800" color="text.primary" mb={0.3}>
             {data.name}
           </Typography>
-          <Box display="flex" alignItems="center" mb={1.2}>
-            <AccessTimeIcon sx={{ fontSize: 13, mr: 0.4, color: variant === 'called' ? 'error.main' : 'text.disabled' }} />
-            <Typography variant="caption" fontWeight="700" color={variant === 'called' ? 'error.main' : 'text.secondary'}>
-              {data.time}
-            </Typography>
-          </Box>
+          {variant === 'usage' && data.startAtMs ? (
+            <UsageTimer startAtMs={data.startAtMs} />
+          ) : (
+            <Box display="flex" alignItems="center" mb={1.2}>
+              <AccessTimeIcon sx={{ fontSize: 13, mr: 0.4, color: variant === 'called' ? 'error.main' : 'text.disabled' }} />
+              <Typography variant="caption" fontWeight="700" color={variant === 'called' ? 'error.main' : 'text.secondary'}>
+                {data.time}
+              </Typography>
+            </Box>
+          )}
 
           {variant === 'called' ? (
             <Stack direction="row" spacing={1}>
