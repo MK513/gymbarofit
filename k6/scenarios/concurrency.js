@@ -8,18 +8,18 @@ export const options = {
     // Phase 1 — 기구 동시 사용 충돌
     // VU  1-20 → equipmentId=5001 / VU 21-40 → equipmentId=5002
     equipment_race: {
-      executor:    'shared-iterations',
+      executor:    'per-vu-iterations',
       vus:         40,
-      iterations:  40,
+      iterations:  1,
       maxDuration: '60s',
       exec:        'raceEquipment',
     },
     // Phase 2 — 라커 동시 대여 충돌
     // VU  1-10 → lockerId=5001   / VU 11-20 → lockerId=5002
     locker_race: {
-      executor:    'shared-iterations',
+      executor:    'per-vu-iterations',
       vus:         20,
-      iterations:  20,
+      iterations:  1,
       maxDuration: '30s',
       exec:        'raceLocker',
       startTime:   '10s',

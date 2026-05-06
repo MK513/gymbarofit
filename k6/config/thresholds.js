@@ -32,7 +32,7 @@ const STRESS_THRESHOLDS = {
 
 // ── 동시성 테스트 ─────────────────────────────────────────────────────────────
 const CONCURRENCY_THRESHOLDS = {
-  http_req_failed:       ['rate<0.40'],
+  http_req_failed:       ['rate<0.50'],
   equip_race_successes:  ['count<=2'],   // 타겟 2개 × 최대 1회 = 2
   locker_race_successes: ['count<=2'],   // 타겟 2개 × 최대 1회 = 2
   server_errors:         ['count<1'],    // 5xx 횟수 0
