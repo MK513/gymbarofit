@@ -25,7 +25,7 @@ export default function Dashboard() {
   const navigate = useNavigate();
   const { user, logout, updateGym } = useAuth();
   const { showNotification } = useNotification();
-  const { notifications, connectionFailed, reconnect } = useSseNotifications(user?.id);
+  const { notifications, connectionFailed, reconnect, reconnectedAt } = useSseNotifications(user?.id);
 
   const {
     lockerStatus, setLockerStatus,
@@ -37,6 +37,11 @@ export default function Dashboard() {
     checkInStatus, setCheckInStatus,
     loadGymData,
   } = useDashboard(user?.gym ?? null);
+
+  // SSE 재연결 시 DB 기준으로 재조회 — 끊긴 동안 놓친 CALLED 알림 복구
+  useEffect(() => {
+    if (reconnectedAt) loadGymData(user?.gym ?? null);
+  }, [reconnectedAt]);
 
   // SSE 알림 수신 처리
   useEffect(() => {

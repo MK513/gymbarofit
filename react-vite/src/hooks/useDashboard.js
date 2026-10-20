@@ -81,7 +81,10 @@ export function useDashboard(initialGym) {
           eid: eq.waitingDto.equipmentId,
           name: eq.waitingDto.name,
           imageUrl: eq.waitingDto.imageUrl ? `${BUCKET_BASE_URL}${eq.waitingDto.imageUrl}` : "",
-          time: `내 앞 대기 인원 ${eq.waitingDto.waitingCount}명`,
+          status: eq.waitingDto.status,
+          time: eq.waitingDto.status === "CALLED"
+            ? "지금 바로 사용 가능합니다!"
+            : `내 앞 대기 인원 ${eq.waitingDto.waitingCount}명`,
         };
       }
       setEquipmentInfo(newEquipInfo);

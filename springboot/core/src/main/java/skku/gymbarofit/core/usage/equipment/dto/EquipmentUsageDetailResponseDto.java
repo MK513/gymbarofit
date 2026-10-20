@@ -4,6 +4,7 @@ import lombok.Builder;
 import lombok.extern.slf4j.Slf4j;
 import skku.gymbarofit.core.item.equipment.Equipment;
 import skku.gymbarofit.core.usage.equipment.EquipmentUsage;
+import skku.gymbarofit.core.usage.equipment.enums.EquipmentUsageStatus;
 
 import java.time.ZoneId;
 
@@ -15,7 +16,8 @@ public record EquipmentUsageDetailResponseDto(
     String name,
     String imageUrl,
     int waitingCount,
-    Long startAtMs
+    Long startAtMs,
+    EquipmentUsageStatus status
 ) {
 
     public static EquipmentUsageDetailResponseDto from(EquipmentUsage usage, Equipment equipment, int waitingCount) {
@@ -32,6 +34,7 @@ public record EquipmentUsageDetailResponseDto(
                 .imageUrl(equipment.getImageUrl())
                 .waitingCount(waitingCount)
                 .startAtMs(startAtMs)
+                .status(usage.getStatus())
                 .build();
     }
 }
