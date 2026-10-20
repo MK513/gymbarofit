@@ -7,15 +7,19 @@ export function useSseNotifications(userId) {
   const [notifications, setNotifications] = useState([]);
   const [equipmentUpdate, setEquipmentUpdate] = useState(null);
   const [connectionFailed, setConnectionFailed] = useState(false);
+  // 첫 연결 이후 다시 연결될 때마다 갱신 — 끊긴 동안 놓친 이벤트는 화면에서 DB 기준으로 재조회
+  const [reconnectedAt, setReconnectedAt] = useState(null);
 
   const retryDelayRef = useRef(3000);
   const retryCountRef = useRef(0);
   const retryTimerRef = useRef(null);
   const esRef = useRef(null);
   const connectRef = useRef(null);
+  const hasConnectedRef = useRef(false);
 
   useEffect(() => {
     if (!userId) return;
+    hasConnectedRef.current = false;
 
     function connect() {
       const url = `${API_BASE_URL}/sse/subscribe?userId=${userId}`;
@@ -26,6 +30,10 @@ export function useSseNotifications(userId) {
         retryDelayRef.current = 3000;
         retryCountRef.current = 0;
         setConnectionFailed(false);
+        if (hasConnectedRef.current) {
+          setReconnectedAt(Date.now());
+        }
+        hasConnectedRef.current = true;
         console.log("SSE connection opened");
       };
 
@@ -91,5 +99,5 @@ export function useSseNotifications(userId) {
     connectRef.current?.();
   }
 
-  return { notifications, setNotifications, equipmentUpdate, connectionFailed, reconnect };
+  return { notifications, setNotifications, equipmentUpdate, connectionFailed, reconnect, reconnectedAt };
 }

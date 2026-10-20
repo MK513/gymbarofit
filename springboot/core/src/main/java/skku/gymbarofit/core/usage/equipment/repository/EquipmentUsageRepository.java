@@ -39,6 +39,8 @@ public interface EquipmentUsageRepository extends JpaRepository<EquipmentUsage, 
     """)
     Optional<EquipmentUsage> findByMemberIdAndStatusIn(@Param("memberId") Long memberId, @Param("status") EquipmentUsageStatus status);
 
+    Optional<EquipmentUsage> findFirstByMemberIdAndStatusInOrderByCreatedAtDesc(Long memberId, List<EquipmentUsageStatus> statuses);
+
     @Query("""
         select count(u)
         from EquipmentUsage u

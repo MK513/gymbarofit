@@ -23,7 +23,7 @@ export default function EquipmentReservation() {
   const navigate = useNavigate();
   const { showNotification } = useNotification();
   const { user } = useAuth();
-  const { equipmentUpdate, connectionFailed, reconnect } = useSseNotifications(user?.id);
+  const { equipmentUpdate, connectionFailed, reconnect, reconnectedAt } = useSseNotifications(user?.id);
 
   // --- 상태 관리 ---
   const allType = "전체 기구";
@@ -86,6 +86,11 @@ export default function EquipmentReservation() {
   };
   
   useEffect(() => { loadEquipmentData(user?.gym?.id); }, []); 
+
+  // SSE 재연결 시 끊긴 동안의 변경을 DB 기준으로 다시 반영
+  useEffect(() => {
+    if (reconnectedAt) loadEquipmentData(user?.gym?.id);
+  }, [reconnectedAt]);
 
   // 실시간 SSE 업데이트 감지 및 반영
   useEffect(() => {

@@ -51,7 +51,7 @@ public class EquipmentUsageInternalService {
 
     @Transactional(readOnly = true)
     public Optional<EquipmentUsage> findWaitingByMemberId(Long memberId) {
-        return equipmentUsageRepository.findByMemberIdAndStatusIn(memberId, EquipmentUsageStatus.WAITING);
+        return equipmentUsageRepository.findFirstByMemberIdAndStatusInOrderByCreatedAtDesc(memberId, WAITING_OR_CALLED);
     }
 
     @Transactional(readOnly = true)
