@@ -115,7 +115,7 @@ public class EquipmentService {
     }
 
     @CacheEvict(value = "equipment:usage:active", allEntries = true)
-    @DistributedLock(key = "'equipment:' + #equipmentId")
+    @DistributedLock(key = "'equipment:' + #equipmentId", waitTime = 0)
     @NotifyEquipmentChange
     public Long createUsage(Long memberId, @EquipmentId Long equipmentId) {
 

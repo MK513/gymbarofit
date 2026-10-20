@@ -5,25 +5,39 @@ x-k6-base: &k6-base
   env_file:
     - ./k6/.env
   environment:
-    BASE_URL: ${BASE_URL:-http://host.docker.internal:8080}
+    BASE_URL: ${BASE_URL:-http://backend:8080}
     K6_ADDRESS: 0.0.0.0:6464
-  extra_hosts:
-    - "host.docker.internal:host-gateway"
   networks:
     - monitoring
   depends_on:
-    - influxdb
+    influxdb:
+      condition: service_started
+    grafana:
+      condition: service_started
+    prometheus:
+      condition: service_started
+    backend:
+      condition: service_healthy
   profiles:
     - k6
 
 services:
 
-  # ── Backend 오버라이드 — k6/seed/seed.sql 마운트 ───────────────────────────────
+  # ── Backend 오버라이드 — k6/seed/seed.sql 마운트 + monitoring 네트워크 연결 ──────
   backend:
     volumes:
       - ./k6/seed/seed.sql:/app/k6-seed.sql:ro
     environment:
       SPRING_SQL_INIT_DATA_LOCATIONS: file:/app/k6-seed.sql
+    networks:
+      - default
+      - monitoring
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8080/actuator/health"]
+      interval: 10s
+      timeout: 5s
+      retries: 10
+      start_period: 60s
 
   # ── InfluxDB 1.8 — K6 메트릭 수신 ────────────────────────────────────────────
   influxdb:
